@@ -35,8 +35,8 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.governance.service.notification.NotificationChannels;
-import org.wso2.carbon.identity.local.auth.authenticator.constant.SmsOTPConstants;
-import org.wso2.carbon.identity.local.auth.authenticator.exception.SmsOTPAuthenticatorServerException;
+import org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.authenticator.exception.SMSOTPAuthenticatorServerException;
 import org.wso2.carbon.identity.local.auth.authenticator.internal.AuthenticatorDataHolder;
 import org.wso2.carbon.identity.local.auth.authenticator.util.AuthenticatorUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -72,10 +72,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             log.debug("Inside SMSOTPAuthenticator canHandle method and check the existence of mobile number and " +
                     "otp code");
         }
-        return ((StringUtils.isNotEmpty(request.getParameter(SmsOTPConstants.RESEND))
-                && StringUtils.isEmpty(request.getParameter(SmsOTPConstants.CODE)))
-                || StringUtils.isNotEmpty(request.getParameter(SmsOTPConstants.CODE))
-                || StringUtils.isNotEmpty(request.getParameter(SmsOTPConstants.MOBILE_NUMBER)));
+        return ((StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.RESEND))
+                && StringUtils.isEmpty(request.getParameter(SMSOTPConstants.CODE)))
+                || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.CODE))
+                || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.MOBILE_NUMBER)));
     }
 
     @Override
@@ -87,13 +87,13 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     @Override
     public String getFriendlyName() {
 
-        return SmsOTPConstants.SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME;
+        return SMSOTPConstants.SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME;
     }
 
     @Override
     public String getName() {
 
-        return SmsOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
+        return SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
     }
 
     @Override
@@ -101,13 +101,13 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         try {
             String configuredOTPLength = AuthenticatorUtils
-                    .getSmsAuthenticatorConfig(SmsOTPConstants.ConnectorConfig.SMS_OTP_LENGTH, tenantDomain);
+                    .getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH, tenantDomain);
             if (NumberUtils.isNumber(configuredOTPLength)) {
                 return Integer.parseInt(configuredOTPLength);
             }
-            return SmsOTPConstants.DEFAULT_OTP_LENGTH;
-        } catch (SmsOTPAuthenticatorServerException exception) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
+            return SMSOTPConstants.DEFAULT_OTP_LENGTH;
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
         }
     }
 
@@ -117,8 +117,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         UserStoreManager userStoreManager = getUserStoreManager(user);
         // Add required meta properties to the event.
         Map<String, Object> metaProperties = new HashMap<>();
-        metaProperties.put(AUTHENTICATOR_NAME, SmsOTPConstants.SMS_OTP_AUTHENTICATOR_NAME);
-        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, SmsOTPConstants.Claims.SMS_OTP_FAILED_ATTEMPTS_CLAIM);
+        metaProperties.put(AUTHENTICATOR_NAME, SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME);
+        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, SMSOTPConstants.Claims.SMS_OTP_FAILED_ATTEMPTS_CLAIM);
         metaProperties.put(USER_STORE_MANAGER, userStoreManager);
         metaProperties.put(OPERATION_STATUS, false);
 
@@ -143,18 +143,18 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         AuthenticatedUser authenticatingUser = resolveAuthenticatingUser(authenticatedUserFromContext,
                 mappedLocalUsername, applicationTenantDomain, isInitialFederationAttempt);
         if (!isInitialFederationAttempt && AuthenticatorUtils.isAccountLocked(authenticatingUser)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_USER_ACCOUNT_LOCKED,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_USER_ACCOUNT_LOCKED,
                     authenticatingUser.getUserName());
         }
-        if (StringUtils.isBlank(request.getParameter(SmsOTPConstants.CODE))) {
-            throw handleInvalidCredentialsScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE,
+        if (StringUtils.isBlank(request.getParameter(SMSOTPConstants.CODE))) {
+            throw handleInvalidCredentialsScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE,
                     authenticatedUserFromContext.getUserName());
         }
-        if (Boolean.parseBoolean(request.getParameter(SmsOTPConstants.RESEND))) {
-            throw handleInvalidCredentialsScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_RETRYING_OTP_RESEND,
+        if (Boolean.parseBoolean(request.getParameter(SMSOTPConstants.RESEND))) {
+            throw handleInvalidCredentialsScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_RETRYING_OTP_RESEND,
                     authenticatedUserFromContext.getUserName());
         }
-        boolean isSuccessfulAttempt = isSuccessfulAuthAttempt(request.getParameter(SmsOTPConstants.CODE),
+        boolean isSuccessfulAttempt = isSuccessfulAuthAttempt(request.getParameter(SMSOTPConstants.CODE),
                 applicationTenantDomain, authenticatingUser, context);
         if (isSuccessfulAttempt) {
             // It reached here means the authentication was successful.
@@ -177,15 +177,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             // A mapped user is not available for isInitialFederationAttempt true scenario.
             handleOtpVerificationFail(authenticatingUser);
         }
-        if (Boolean.parseBoolean(context.getProperty(SmsOTPConstants.OTP_EXPIRED).toString())) {
+        if (Boolean.parseBoolean(context.getProperty(SMSOTPConstants.OTP_EXPIRED).toString())) {
             publishPostOTPValidatedEvent(null, authenticatedUserFromContext, false,
                     true, request, context);
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_OTP_EXPIRED,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_OTP_EXPIRED,
                     authenticatedUserFromContext.getUserName());
         } else {
             publishPostOTPValidatedEvent(null, authenticatedUserFromContext, false,
                     false, request, context);
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_OTP_INVALID,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_OTP_INVALID,
                     authenticatedUserFromContext.getUserName());
         }
     }
@@ -196,8 +196,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         UserStoreManager userStoreManager = getUserStoreManager(user);
         // Add required meta properties to the event.
         Map<String, Object> metaProperties = new HashMap<>();
-        metaProperties.put(AUTHENTICATOR_NAME, SmsOTPConstants.SMS_OTP_AUTHENTICATOR_NAME);
-        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, SmsOTPConstants.Claims.SMS_OTP_FAILED_ATTEMPTS_CLAIM);
+        metaProperties.put(AUTHENTICATOR_NAME, SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME);
+        metaProperties.put(PROPERTY_FAILED_LOGIN_ATTEMPTS_CLAIM, SMSOTPConstants.Claims.SMS_OTP_FAILED_ATTEMPTS_CLAIM);
         metaProperties.put(USER_STORE_MANAGER, userStoreManager);
         metaProperties.put(OPERATION_STATUS, true);
 
@@ -211,12 +211,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         if (context.isLogoutRequest()) {
             return LOGOUT;
         } else if (!context.isRetrying()
-                && StringUtils.isBlank(request.getParameter(SmsOTPConstants.CODE))
-                && StringUtils.isBlank(request.getParameter(SmsOTPConstants.RESEND))) {
+                && StringUtils.isBlank(request.getParameter(SMSOTPConstants.CODE))
+                && StringUtils.isBlank(request.getParameter(SMSOTPConstants.RESEND))) {
             return INITIAL_OTP;
         } else if (context.isRetrying()
-                && StringUtils.isNotBlank(request.getParameter(SmsOTPConstants.RESEND))
-                && Boolean.parseBoolean(request.getParameter(SmsOTPConstants.RESEND))) {
+                && StringUtils.isNotBlank(request.getParameter(SMSOTPConstants.RESEND))
+                && Boolean.parseBoolean(request.getParameter(SMSOTPConstants.RESEND))) {
             return RESEND_OTP;
         }
         return SUBMIT_OTP;
@@ -247,7 +247,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         try {
             AuthenticatorDataHolder.getIdentityEventService().handleEvent(identityMgtEvent);
         } catch (IdentityEventException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_TRIGGERING_EVENT, e, eventName,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_TRIGGERING_EVENT, e, eventName,
                     user.getUserName());
         }
     }
@@ -272,11 +272,11 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         String mobile = resolveMobileNoOfAuthenticatedUser(authenticatedUser, tenantDomain, authenticationContext,
                 isInitialFederationAttempt);
         int screenAttributeLength = mobile.length();
-        String screenValue = mobile.substring(screenAttributeLength - SmsOTPConstants.MASKED_DIGITS,
+        String screenValue = mobile.substring(screenAttributeLength - SMSOTPConstants.MASKED_DIGITS,
                 screenAttributeLength);
-        String hiddenScreenValue = mobile.substring(0, screenAttributeLength - SmsOTPConstants.MASKED_DIGITS);
+        String hiddenScreenValue = mobile.substring(0, screenAttributeLength - SMSOTPConstants.MASKED_DIGITS);
         screenValue = new String(new char[hiddenScreenValue.length()]).
-                replace("\0", SmsOTPConstants.MOBILE_NUMBER_MASKING_CHARACTER).concat(screenValue);
+                replace("\0", SMSOTPConstants.MOBILE_NUMBER_MASKING_CHARACTER).concat(screenValue);
         return screenValue;
     }
 
@@ -303,28 +303,28 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                             authenticationContext.getTenantDomain()));
             eventProperties.put(IdentityEventConstants.EventProperty.TENANT_ID,
                     IdentityTenantUtil.getTenantId(tenantDomain));
-            eventProperties.put(SmsOTPConstants.PROVIDER, getProviderType(tenantDomain));
+            eventProperties.put(SMSOTPConstants.PROVIDER, getProviderType(tenantDomain));
             eventProperties.put(IdentityEventConstants.EventProperty.USER_ID, authenticatedUser.getUserId());
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN,
                     authenticatedUser.getUserStoreDomain());
-            if (StringUtils.isNotBlank(httpServletRequest.getParameter(SmsOTPConstants.RESEND))) {
+            if (StringUtils.isNotBlank(httpServletRequest.getParameter(SMSOTPConstants.RESEND))) {
                 eventProperties.put(IdentityEventConstants.EventProperty.RESEND_CODE,
-                        httpServletRequest.getParameter(SmsOTPConstants.RESEND));
+                        httpServletRequest.getParameter(SMSOTPConstants.RESEND));
             } else {
                 eventProperties.put(IdentityEventConstants.EventProperty.RESEND_CODE, false);
             }
             // Add OTP generated time and OTP expiry time to the event.
-            Object otpGeneratedTimeProperty = authenticationContext.getProperty(SmsOTPConstants.OTP_GENERATED_TIME);
+            Object otpGeneratedTimeProperty = authenticationContext.getProperty(SMSOTPConstants.OTP_GENERATED_TIME);
             if (otpGeneratedTimeProperty != null) {
                 long otpGeneratedTime = (long) otpGeneratedTimeProperty;
-                eventProperties.put(SmsOTPConstants.OTP_GENERATED_TIME, otpGeneratedTime);
+                eventProperties.put(SMSOTPConstants.OTP_GENERATED_TIME, otpGeneratedTime);
 
                 // Calculate OTP expiry time.
                 long expiryTime = otpGeneratedTime + getOtpValidityPeriod(tenantDomain);
-                eventProperties.put(SmsOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, expiryTime);
+                eventProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, expiryTime);
             }
         } catch (UserIdNotFoundException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_USER_ID_NOT_FOUND, e, (Object) null);
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_USER_ID_NOT_FOUND, e, (Object) null);
         }
         triggerEvent(IdentityEventConstants.Event.POST_GENERATE_SMS_OTP, authenticatedUser, eventProperties);
     }
@@ -344,25 +344,25 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_NAME,
                 authenticationContext.getServiceProviderName());
         eventProperties.put(IdentityEventConstants.EventProperty.USER_INPUT_OTP,
-                httpServletRequest.getParameter(SmsOTPConstants.CODE));
+                httpServletRequest.getParameter(SMSOTPConstants.CODE));
         eventProperties.put(IdentityEventConstants.EventProperty.OTP_USED_TIME, System.currentTimeMillis());
         // Add otp status to the event properties.
         if (isAuthenticationPassed) {
-            eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS, SmsOTPConstants.STATUS_SUCCESS);
+            eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS, SMSOTPConstants.STATUS_SUCCESS);
             eventProperties.put(IdentityEventConstants.EventProperty.GENERATED_OTP,
-                    httpServletRequest.getParameter(SmsOTPConstants.CODE));
+                    httpServletRequest.getParameter(SMSOTPConstants.CODE));
         } else {
             if (isExpired) {
                 eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS,
-                        SmsOTPConstants.STATUS_OTP_EXPIRED);
+                        SMSOTPConstants.STATUS_OTP_EXPIRED);
                 // Add generated time and expiry time info for the event.
-                long otpGeneratedTime = (long) authenticationContext.getProperty(SmsOTPConstants.OTP_GENERATED_TIME);
-                eventProperties.put(SmsOTPConstants.OTP_GENERATED_TIME, otpGeneratedTime);
+                long otpGeneratedTime = (long) authenticationContext.getProperty(SMSOTPConstants.OTP_GENERATED_TIME);
+                eventProperties.put(SMSOTPConstants.OTP_GENERATED_TIME, otpGeneratedTime);
                 long expiryTime = otpGeneratedTime + getOtpValidityPeriod(tenantDomain);
-                eventProperties.put(SmsOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, expiryTime);
+                eventProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, expiryTime);
             } else {
                 eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS,
-                        SmsOTPConstants.STATUS_CODE_MISMATCH);
+                        SMSOTPConstants.STATUS_CODE_MISMATCH);
             }
         }
         triggerEvent(IdentityEventConstants.Event.POST_VALIDATE_SMS_OTP, authenticatedUser, eventProperties);
@@ -373,9 +373,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                            AuthenticationContext authenticationContext) throws AuthenticationFailedException {
 
-        authenticationContext.setProperty(SmsOTPConstants.OTP_TOKEN, otp);
-        authenticationContext.setProperty(SmsOTPConstants.OTP_GENERATED_TIME, System.currentTimeMillis());
-        authenticationContext.setProperty(SmsOTPConstants.OTP_EXPIRED, Boolean.toString(false));
+        authenticationContext.setProperty(SMSOTPConstants.OTP_TOKEN, otp);
+        authenticationContext.setProperty(SMSOTPConstants.OTP_GENERATED_TIME, System.currentTimeMillis());
+        authenticationContext.setProperty(SMSOTPConstants.OTP_EXPIRED, Boolean.toString(false));
 
         String tenantDomain = authenticationContext.getTenantDomain();
         boolean isInitialFederationAttempt = StringUtils
@@ -386,13 +386,13 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         Map<String, Object> metaProperties = new HashMap<>();
         metaProperties.put(IdentityEventConstants.EventProperty.NOTIFICATION_CHANNEL,
                 NotificationChannels.SMS_CHANNEL.getChannelType());
-        metaProperties.put(SmsOTPConstants.ATTRIBUTE_SMS_SENT_TO, mobileNumber);
-        metaProperties.put(SmsOTPConstants.OTP_TOKEN, otp);
+        metaProperties.put(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO, mobileNumber);
+        metaProperties.put(SMSOTPConstants.OTP_TOKEN, otp);
         metaProperties.put(IdentityEventConstants.EventProperty.APPLICATION_NAME,
                 authenticationContext.getServiceProviderName());
-        metaProperties.put(SmsOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
+        metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                 String.valueOf(getOtpValidityPeriod(authenticationContext.getTenantDomain()) / 60000));
-        metaProperties.put(SmsOTPConstants.TEMPLATE_TYPE, SmsOTPConstants.EVENT_NAME);
+        metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
 
         triggerEvent(IdentityEventConstants.Event.TRIGGER_SMS_NOTIFICATION, authenticatedUser, metaProperties);
     }
@@ -401,14 +401,14 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     protected int getMaximumResendAttempts(String tenantDomain) throws AuthenticationFailedException {
 
         try {
-            String allowedResendCount = AuthenticatorUtils.getSmsAuthenticatorConfig(SmsOTPConstants.ConnectorConfig
+            String allowedResendCount = AuthenticatorUtils.getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig
                     .SMS_OTP_RESEND_ATTEMPTS_COUNT, tenantDomain);
             if (NumberUtils.isNumber(allowedResendCount)) {
                 return Integer.parseInt(allowedResendCount);
             }
-            return SmsOTPConstants.DEFAULT_OTP_RESEND_ATTEMPTS;
-        } catch (SmsOTPAuthenticatorServerException exception) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
+            return SMSOTPConstants.DEFAULT_OTP_RESEND_ATTEMPTS;
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
         }
     }
 
@@ -419,7 +419,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                     getServiceProvider(applicationName, tenantDomain);
             return serviceProvider.getApplicationResourceId();
         } catch (IdentityApplicationManagementException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_APPLICATION, e,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_APPLICATION, e,
                     (Object) null);
         }
     }
@@ -439,20 +439,20 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             AuthenticatedUser user = stepConfig.getAuthenticatedUser();
             if (stepConfig.isSubjectAttributeStep()) {
                 if (user == null) {
-                    throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND);
+                    throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND);
                 }
                 AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
                 if (StringUtils.isBlank(authenticatedUser.toFullQualifiedUsername())) {
                     if (log.isDebugEnabled()) {
                         log.debug("Username can not be empty");
                     }
-                    throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_USERNAME);
+                    throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_USERNAME);
                 }
                 return authenticatedUser;
             }
         }
         // If authenticated user cannot be found from the previous steps.
-        throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND);
+        throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND);
     }
 
     /**
@@ -509,12 +509,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         try {
             IdentityProvider idp = AuthenticatorDataHolder.getIdpManager().getIdPByName(idpName, tenantDomain);
             if (idp == null) {
-                throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_INVALID_FEDERATED_AUTHENTICATOR,
+                throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_INVALID_FEDERATED_AUTHENTICATOR,
                         idpName, tenantDomain);
             }
             return idp;
         } catch (IdentityProviderManagementException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages
                     .ERROR_CODE_ERROR_GETTING_FEDERATED_AUTHENTICATOR, idpName, tenantDomain);
         }
     }
@@ -539,7 +539,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         // If the user is federated, we need to check whether the user is already provisioned to the organization.
         String federatedUsername = FederatedAuthenticatorUtil.getLoggedInFederatedUser(context);
         if (StringUtils.isBlank(federatedUsername)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_NO_FEDERATED_USER);
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_NO_FEDERATED_USER);
         }
         String associatedLocalUsername =
                 FederatedAuthenticatorUtil.getLocalUsernameAssociatedWithFederatedUser(MultitenantUtils.
@@ -579,10 +579,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     private long getOtpValidityPeriod(String tenantDomain) throws AuthenticationFailedException {
 
         try {
-            String value = AuthenticatorUtils.getSmsAuthenticatorConfig(SmsOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
+            String value = AuthenticatorUtils.getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                     tenantDomain);
             if (StringUtils.isBlank(value)) {
-                return SmsOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
+                return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
             }
             long validityTime;
             try {
@@ -590,30 +590,30 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             } catch (NumberFormatException e) {
                 log.error(String.format("Email OTP validity period value: %s configured in tenant : %s is not a " +
                                 "number. Therefore, default validity period: %s (milli-seconds) will be used", value,
-                        tenantDomain, SmsOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
-                return SmsOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
+                        tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
+                return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
             }
             // We don't need to send tokens with infinite validity.
             if (validityTime < 0) {
                 log.error(String.format("Email OTP validity period value: %s configured in tenant : %s cannot be a " +
                         "negative number. Therefore, default validity period: %s (milli-seconds) will " +
-                        "be used", value, tenantDomain, SmsOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
-                return SmsOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
+                        "be used", value, tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
+                return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
             }
             // Converting to milliseconds since the config is provided in seconds.
             return validityTime * 1000;
-        } catch (SmsOTPAuthenticatorServerException exception) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG, exception);
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG, exception);
         }
     }
 
     private String getProviderType(String tenantDomain) {
 
         try {
-            Resource resource = AuthenticatorDataHolder.getConfigurationManager().getResource(SmsOTPConstants.PUBLISHER,
-                    SmsOTPConstants.SMS_PROVIDER);
+            Resource resource = AuthenticatorDataHolder.getConfigurationManager().getResource(SMSOTPConstants.PUBLISHER,
+                    SMSOTPConstants.SMS_PROVIDER);
             if (resource != null) {
-                return SmsOTPConstants.ProviderTypes.CUSTOM;
+                return SMSOTPConstants.ProviderTypes.CUSTOM;
             }
         } catch (ConfigurationManagementException e) {
             if (e.getErrorCode()
@@ -633,7 +633,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                         "from configuration store for the tenant domain: " + tenantDomain, e);
             }
         }
-        return SmsOTPConstants.ProviderTypes.DEFAULT;
+        return SMSOTPConstants.ProviderTypes.DEFAULT;
     }
 
     /**
@@ -650,11 +650,11 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         try {
             userRealm = (AuthenticatorDataHolder.getRealmService()).getTenantUserRealm(tenantId);
         } catch (UserStoreException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_REALM, e,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_REALM, e,
                     tenantDomain);
         }
         if (userRealm == null) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_REALM,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_REALM,
                     tenantDomain);
         }
         return userRealm;
@@ -675,10 +675,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             Map<String, String> claimValues =
                     userStoreManager.getUserClaimValues(MultitenantUtils.getTenantAwareUsername(
                             authenticatedUser.toFullQualifiedUsername()),
-                            new String[]{SmsOTPConstants.Claims.MOBILE_CLAIM}, null);
-            return claimValues.get(SmsOTPConstants.Claims.MOBILE_CLAIM);
+                            new String[]{SMSOTPConstants.Claims.MOBILE_CLAIM}, null);
+            return claimValues.get(SMSOTPConstants.Claims.MOBILE_CLAIM);
         } catch (UserStoreException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_MOBILE_NUMBER, e,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_MOBILE_NUMBER, e,
                     authenticatedUser.getUserName());
         }
     }
@@ -699,7 +699,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         try {
             UserStoreManager userStoreManager = userRealm.getUserStoreManager();
             if (userStoreManager == null) {
-                throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_STORE_MANAGER,
+                throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_STORE_MANAGER,
                         username);
             }
             if (StringUtils.isBlank(userStoreDomain) || PRIMARY_DEFAULT_DOMAIN_NAME.equals(userStoreDomain)) {
@@ -707,17 +707,17 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             }
             return ((AbstractUserStoreManager) userStoreManager).getSecondaryUserStoreManager(userStoreDomain);
         } catch (UserStoreException e) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_STORE_MANAGER, e,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_USER_STORE_MANAGER, e,
                     username);
         }
     }
 
-    private AuthenticationFailedException handleAuthErrorScenario(SmsOTPConstants.ErrorMessages error) {
+    private AuthenticationFailedException handleAuthErrorScenario(SMSOTPConstants.ErrorMessages error) {
 
         return handleAuthErrorScenario(error, (Object) null);
     }
 
-    private AuthenticationFailedException handleAuthErrorScenario(SmsOTPConstants.ErrorMessages error,
+    private AuthenticationFailedException handleAuthErrorScenario(SMSOTPConstants.ErrorMessages error,
                                                                   Object... data) {
 
         return handleAuthErrorScenario(error, null, data);
@@ -726,12 +726,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     /**
      * Handle the scenario by returning AuthenticationFailedException which has the details of the error scenario.
      *
-     * @param error     {@link SmsOTPConstants.ErrorMessages} error message.
+     * @param error     {@link SMSOTPConstants.ErrorMessages} error message.
      * @param throwable Throwable.
      * @param data      Additional data related to the scenario.
      * @return AuthenticationFailedException.
      */
-    private AuthenticationFailedException handleAuthErrorScenario(SmsOTPConstants.ErrorMessages error,
+    private AuthenticationFailedException handleAuthErrorScenario(SMSOTPConstants.ErrorMessages error,
                                                                   Throwable throwable, Object... data) {
 
         String message = error.getMessage();
@@ -745,7 +745,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         return new AuthenticationFailedException(errorCode, message, throwable);
     }
 
-    private InvalidCredentialsException handleInvalidCredentialsScenario(SmsOTPConstants.ErrorMessages error,
+    private InvalidCredentialsException handleInvalidCredentialsScenario(SMSOTPConstants.ErrorMessages error,
                                                                          String... data) {
 
         String message = error.getMessage();
@@ -767,10 +767,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     private boolean isOtpExpired(String tenantDomain, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        if (context.getProperty(SmsOTPConstants.OTP_GENERATED_TIME) == null) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_GENERATED_TIME);
+        if (context.getProperty(SMSOTPConstants.OTP_GENERATED_TIME) == null) {
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_GENERATED_TIME);
         }
-        long generatedTime = (long) context.getProperty(SmsOTPConstants.OTP_GENERATED_TIME);
+        long generatedTime = (long) context.getProperty(SMSOTPConstants.OTP_GENERATED_TIME);
         long expireTime = getOtpValidityPeriod(tenantDomain);
         return System.currentTimeMillis() >= generatedTime + expireTime;
     }
@@ -788,24 +788,24 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     private boolean isSuccessfulAuthAttempt(String userToken, String tenantDomain, AuthenticatedUser user,
                                             AuthenticationContext context) throws AuthenticationFailedException {
 
-        String tokenInContext = (String) context.getProperty(SmsOTPConstants.OTP_TOKEN);
+        String tokenInContext = (String) context.getProperty(SMSOTPConstants.OTP_TOKEN);
         if (StringUtils.isBlank(userToken)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE, user.getUserName());
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE, user.getUserName());
         }
         if (StringUtils.isBlank(tokenInContext)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE_IN_CONTEXT,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_OTP_CODE_IN_CONTEXT,
                     user.getUserName());
         }
         boolean isExpired = isOtpExpired(tenantDomain, context);
         if (userToken.equals(tokenInContext)) {
             if (isExpired) {
-                context.setProperty(SmsOTPConstants.OTP_EXPIRED, Boolean.toString(true));
+                context.setProperty(SMSOTPConstants.OTP_EXPIRED, Boolean.toString(true));
                 return false;
             } else {
-                context.setProperty(SmsOTPConstants.OTP_EXPIRED, Boolean.toString(false));
-                context.setProperty(SmsOTPConstants.OTP_TOKEN, StringUtils.EMPTY);
-                context.setProperty(SmsOTPConstants.OTP_GENERATED_TIME, StringUtils.EMPTY);
-                context.setProperty(SmsOTPConstants.OTP_RESEND_ATTEMPTS, StringUtils.EMPTY);
+                context.setProperty(SMSOTPConstants.OTP_EXPIRED, Boolean.toString(false));
+                context.setProperty(SMSOTPConstants.OTP_TOKEN, StringUtils.EMPTY);
+                context.setProperty(SMSOTPConstants.OTP_GENERATED_TIME, StringUtils.EMPTY);
+                context.setProperty(SMSOTPConstants.OTP_RESEND_ATTEMPTS, StringUtils.EMPTY);
                 context.setSubject(user);
                 return true;
             }
@@ -864,32 +864,32 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                                             AuthenticationContext context) throws AuthenticationFailedException {
 
         String dialect = getFederatedAuthenticatorDialect(context);
-        if (SmsOTPConstants.OIDC_DIALECT_URI.equals(dialect)) {
-            return SmsOTPConstants.MOBILE_ATTRIBUTE_KEY;
+        if (SMSOTPConstants.OIDC_DIALECT_URI.equals(dialect)) {
+            return SMSOTPConstants.MOBILE_ATTRIBUTE_KEY;
         }
         // If the dialect is not OIDC we need to check claim mappings for the mobile claim mapped attribute.
         String idpName = user.getFederatedIdPName();
         IdentityProvider idp = getIdentityProvider(idpName, tenantDomain);
         ClaimConfig claimConfigs = idp.getClaimConfig();
         if (claimConfigs == null) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages
                     .ERROR_CODE_NO_CLAIM_CONFIGS_IN_FEDERATED_AUTHENTICATOR, idpName, tenantDomain);
         }
         ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
         if (ArrayUtils.isEmpty(claimMappings)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages
                             .ERROR_CODE_NO_CLAIM_CONFIGS_IN_FEDERATED_AUTHENTICATOR, idpName, tenantDomain);
         }
 
         String mobileAttributeKey = null;
         for (ClaimMapping claimMapping : claimMappings) {
-            if (SmsOTPConstants.Claims.MOBILE_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
+            if (SMSOTPConstants.Claims.MOBILE_CLAIM.equals(claimMapping.getLocalClaim().getClaimUri())) {
                 mobileAttributeKey = claimMapping.getRemoteClaim().getClaimUri();
                 break;
             }
         }
         if (StringUtils.isBlank(mobileAttributeKey)) {
-            throw handleAuthErrorScenario(SmsOTPConstants.ErrorMessages.ERROR_CODE_NO_MOBILE_CLAIM_MAPPINGS,
+            throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_NO_MOBILE_CLAIM_MAPPINGS,
                     idpName, tenantDomain);
         }
         return mobileAttributeKey;

@@ -13,7 +13,7 @@ package org.wso2.carbon.identity.local.auth.authenticator.constant;
 /**
  * Constants class.
  */
-public class SmsOTPConstants {
+public class SMSOTPConstants {
 
     public static final String SMS_OTP_AUTHENTICATOR_NAME = "sms-otp-authenticator";
     public static final String SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME = "SMS OTP";

@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockSe
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.identity.local.auth.authenticator.SMSOTPAuthenticator;
-import org.wso2.carbon.identity.local.auth.authenticator.connector.SmsOTPAuthenticatorConfigImpl;
+import org.wso2.carbon.identity.local.auth.authenticator.connector.SMSOTPAuthenticatorConfigImpl;
 
 /**
  * SMS OTP service component.
@@ -49,7 +49,7 @@ public class AuthenticatorServiceComponent {
 
         try {
             BundleContext bundleContext = context.getBundleContext();
-            bundleContext.registerService(IdentityConnectorConfig.class.getName(), new SmsOTPAuthenticatorConfigImpl(),
+            bundleContext.registerService(IdentityConnectorConfig.class.getName(), new SMSOTPAuthenticatorConfigImpl(),
                     null);
             bundleContext.registerService(ApplicationAuthenticator.class.getName(), new SMSOTPAuthenticator(),
                     null);
