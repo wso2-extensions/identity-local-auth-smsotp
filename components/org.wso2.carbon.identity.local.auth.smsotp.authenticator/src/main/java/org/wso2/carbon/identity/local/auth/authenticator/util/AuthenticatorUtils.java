@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.com). All Rights Reserved.
+ *
+ * This software is the property of WSO2 LLC. and its suppliers, if any.
+ * Dissemination of any information or reproduction of any material contained
+ * herein in any form is strictly forbidden, unless permitted by WSO2 expressly.
+ * You may not alter or remove any copyright or other notice from copies of this content.
+ *
+ */
+
+package org.wso2.carbon.identity.local.auth.authenticator.util;
+
+import org.owasp.encoder.Encode;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.governance.IdentityGovernanceException;
+import org.wso2.carbon.identity.governance.IdentityGovernanceService;
+import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
+import org.wso2.carbon.identity.local.auth.authenticator.constant.SmsOTPConstants;
+import org.wso2.carbon.identity.local.auth.authenticator.exception.SmsOTPAuthenticatorServerException;
+import org.wso2.carbon.identity.local.auth.authenticator.internal.AuthenticatorDataHolder;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * This class contains the utility method implementations.
+ */
+public class AuthenticatorUtils {
+
+    /**
+     * Check whether a given user account is locked.
+     *
+     * @param user Authenticated user.
+     * @return True if user account is locked.
+     * @throws AuthenticationFailedException Exception on authentication failure.
+     */
+    public static boolean isAccountLocked(AuthenticatedUser user) throws AuthenticationFailedException {
+
+        try {
+            return AuthenticatorDataHolder.getAccountLockService().isAccountLocked(user.getUserName(),
+                    user.getTenantDomain(), user.getUserStoreDomain());
+        } catch (AccountLockServiceException e) {
+            String error = String.format(SmsOTPConstants.ErrorMessages.ERROR_CODE_GETTING_ACCOUNT_STATE.getMessage(), user.getUserName());
+            throw new AuthenticationFailedException(SmsOTPConstants.ErrorMessages.ERROR_CODE_GETTING_ACCOUNT_STATE.getCode(), error, e);
+        }
+    }
+
+    /**
+     * Get sms authenticator config related to the given key.
+     *
+     * @param key          Authenticator config key.
+     * @param tenantDomain Tenant domain.
+     * @return Value associated with the given config key.
+     * @throws SmsOTPAuthenticatorServerException If an error occurred while getting th config value.
+     */
+    public static String getSmsAuthenticatorConfig(String key, String tenantDomain)
+            throws SmsOTPAuthenticatorServerException {
+
+        try {
+            Property[] connectorConfigs;
+            IdentityGovernanceService governanceService = AuthenticatorDataHolder.getIdentityGovernanceService();
+            connectorConfigs = governanceService.getConfiguration(new String[]{key}, tenantDomain);
+            return connectorConfigs[0].getValue();
+        } catch (IdentityGovernanceException e) {
+            throw handleServerException(SmsOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG, e,
+                    (Object) null);
+        }
+    }
+
+    /**
+     * Get sms OTP login page URL.
+     *
+     * @return URL of the OTP login page.
+     * @throws AuthenticationFailedException If an error occurred while getting the login page url.
+     */
+    public static String getSMSOTPLoginPageUrl() throws AuthenticationFailedException {
+
+        try {
+            return ServiceURLBuilder.create().addPath(SmsOTPConstants.SMS_OTP_PAGE).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new AuthenticationFailedException("Error building sms OTP login page URL", e);
+        }
+    }
+
+    /**
+     * Get SMS OTP error page URL.
+     *
+     * @return URL of the OTP error page.
+     * @throws AuthenticationFailedException If an error occurred while getting the error page url.
+     */
+    public static String getSMSOTPErrorPageUrl() throws AuthenticationFailedException {
+
+        try {
+            return ServiceURLBuilder.create().addPath(SmsOTPConstants.ERROR_PAGE).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new AuthenticationFailedException("Error building sms OTP error page URL", e);
+        }
+    }
+
+    /**
+     * Get the SmsOtpAuthenticatorServerException with given error details.
+     *
+     * @param error     ErrorMessages.
+     * @param throwable Throwable.
+     * @param data      Meta data.
+     * @return SmsOtpAuthenticatorServerException.
+     */
+    public static SmsOTPAuthenticatorServerException handleServerException(SmsOTPConstants.ErrorMessages error,
+                                                                           Throwable throwable, Object... data) {
+
+        String message = error.getMessage();
+        if (data != null) {
+            message = String.format(message, data);
+        }
+        return new SmsOTPAuthenticatorServerException(error.getCode(), message, throwable);
+    }
+
+    /**
+     * Get the multi option URI query params.
+     *
+     * @param request HttpServletRequest.
+     */
+    public static String getMultiOptionURIQueryParam(HttpServletRequest request) {
+
+        String multiOptionURI = "";
+        if (request != null) {
+            multiOptionURI = request.getParameter("multiOptionURI");
+            multiOptionURI = multiOptionURI != null ? SmsOTPConstants.MULTI_OPTION_URI_PARAM +
+                    Encode.forUriComponent(multiOptionURI) : "";
+        }
+        return multiOptionURI;
+    }
+}
