@@ -37,7 +37,7 @@
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>
         <identity.auth.otp.commons.version>1.0.1-SNAPSHOT</identity.auth.otp.commons.version>
-        <identity.event.handler.notification.version>1.7.12</identity.event.handler.notification.version>
+        <identity.event.handler.notification.version>1.7.17</identity.event.handler.notification.version>
         <identity.notification.sender.tenant.config.version>1.7.10</identity.notification.sender.tenant.config.version>
 
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>

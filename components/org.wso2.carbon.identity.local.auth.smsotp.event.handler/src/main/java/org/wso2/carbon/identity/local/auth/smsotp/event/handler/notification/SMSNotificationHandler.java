@@ -13,6 +13,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.DefaultNotificationHandler;
+import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
@@ -40,15 +41,19 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
     public void handleEvent(Event event) throws IdentityEventException {
 
         try {
+            // Get the registered SMS senders from the database. This is done to support multiple SMS senders
+            // in the future. However, in the current implementation, only one SMS sender is supported through the UI.
             List<SMSSenderDTO> smsSenders = SMSNotificationHandlerDataHolder
                     .getInstance()
                     .getNotificationSenderManagementService()
                     .getSMSSenders();
             if (smsSenders != null) {
                 for (SMSSenderDTO smsSenderDTO : smsSenders) {
+                    // This is to get the supported SMS providers. We can include SMS providers through OSGi.
                     Provider provider = SMSNotificationHandlerDataHolder.getInstance()
                             .getProvider(smsSenderDTO.getName());
-                    provider.init(smsSenderDTO);
+                    String tenantDomain = (String) event.getEventProperties().get(NotificationConstants.TENANT_DOMAIN);
+                    provider.init(smsSenderDTO, tenantDomain);
                     provider.send(constructSMSOTPPayload(event.getEventProperties()));
                 }
             }

@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 /**
- * Implementation for the Vonage SMS provider.
+ * Implementation for the Vonage SMS provider for Vonage SMS gateway.
  *
  * @version 1.0.0
  * @since 1.0.0
@@ -41,7 +41,8 @@ public class VonageProvider implements Provider {
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO) {
+    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
+
         this.apiKey = smsSenderDTO.getKey();
         this.apiSecret = smsSenderDTO.getSecret();
         this.senderName = smsSenderDTO.getName();

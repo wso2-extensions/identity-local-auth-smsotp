@@ -25,36 +25,94 @@ public class SMSMetadata implements Serializable {
     private String secret;
     private String sender;
     private String contentType;
+    private String tenantDomain;
 
+    /**
+     * Returns the key.
+     *
+     * @return Key.
+     */
     public String getKey() {
         return key;
     }
 
+    /**
+     * Returns the secret.
+     *
+     * @return Secret.
+     */
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the key.
+     *
+     * @param key Key.
+     */
     public void setKey(String key) {
         this.key = key;
     }
 
+    /**
+     * Returns the secret.
+     * @return Secret.
+     */
     public String getSecret() {
         return secret;
     }
 
+    /**
+     * Sets the secret.
+     *
+     * @param secret Secret.
+     */
     public void setSecret(String secret) {
         this.secret = secret;
     }
 
+    /**
+     * Returns the sender.
+     *
+     * @return Sender.
+     */
     public String getSender() {
         return sender;
     }
 
+    /**
+     * Sets the sender.
+     *
+     * @param sender Sender.
+     */
     public void setSender(String sender) {
         this.sender = sender;
     }
 
+    /**
+     * Returns the content type.
+     *
+     * @return Content type.
+     */
     public String getContentType() {
         return contentType;
     }
 
+    /**
+     * Sets the content type.
+     *
+     * @param contentType Content type.
+     */
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    /**
+     * Sets the tenant domain.
+     *
+     * @param tenantDomain Tenant domain.
+     */
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 }

@@ -14,7 +14,8 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 /**
- * This interface represents the SMS provider.
+ * This interface represents the SMS provider. Which is a physical representation of the SMS provider we use to send
+ * the SMS and act as the SMS gat
  *
  * @version 1.0.0
  * @since 1.0.0
@@ -22,21 +23,23 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderD
 public interface Provider {
 
     /**
-     * Returns the name of the provider.
+     * Returns the unique name of the provider. This name will be used to identify the provider and send the necessary
+     * data using the provider metadata.
      *
      * @return Name of the provider.
      */
     String getName();
 
     /**
-     * Initializes the provider.
+     * Initializes the provider with {@link SMSSenderDTO} and tenant domain.
      *
      * @param smsSenderDTO SMS sender DTO.
+     * @param tenantDomain Tenant domain.
      */
-    void init(SMSSenderDTO smsSenderDTO);
+    void init(SMSSenderDTO smsSenderDTO, String tenantDomain);
 
     /**
-     * Sends the SMS.
+     * Sends the SMS using the provider SMS gateway.
      *
      * @param smsData SMS data.
      */

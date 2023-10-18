@@ -20,7 +20,8 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherEx
 import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 
 /**
- * Implementation for the custom SMS provider.
+ * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
+ * Configuration details are available in {@link SMSSenderDTO}.
  *
  * @version 1.0.0
  * @since 1.0.0
@@ -28,8 +29,8 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 public class CustomProvider implements Provider {
 
     private static final Log log = LogFactory.getLog(CustomProvider.class);
-
     private SMSSenderDTO smsSenderDTO;
+    private String tenantDomain;
     private boolean initialized;
 
     @Override
@@ -38,8 +39,9 @@ public class CustomProvider implements Provider {
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO) {
+    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
         this.smsSenderDTO = smsSenderDTO;
+        this.tenantDomain = tenantDomain;
         initialized = true;
     }
 
@@ -56,6 +58,7 @@ public class CustomProvider implements Provider {
         smsMetadata.setSecret(smsSenderDTO.getSecret());
         smsMetadata.setSender(smsSenderDTO.getSender());
         smsMetadata.setContentType(smsSenderDTO.getContentType());
+        smsMetadata.setTenantDomain(tenantDomain);
         smsData.setSmsMetadata(smsMetadata);
 
         HTTPPublisher publisher = new HTTPPublisher(smsSenderDTO.getProviderURL());

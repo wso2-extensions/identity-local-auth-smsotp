@@ -73,6 +73,13 @@ public class HTTPPublisher {
         }
     }
 
+    /**
+     * This method will return the {@link HttpURLConnection} object.
+     * @param smsData {@link SMSData} object
+     * @param json JSON string
+     * @return {@link HttpURLConnection} object
+     * @throws IOException if an error occurred while opening the connection
+     */
     private HttpURLConnection getHttpURLConnection(SMSData smsData, String json) throws IOException {
 
         URL url = new URL(publisherURL);

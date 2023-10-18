@@ -21,6 +21,4 @@ public class SMSNotificationConstants {
     public static final String SMS_MESSAGE_BODY_NAME = "body";
     public static final String SMS_MASSAGE_TO_NAME = "send-to";
     public static final String SMS_PUBLISHER_NAME = "SMSPublisher";
-    public static final String CHANNEL_TYPE_PROPERTY = "channel.type";
-    public static final String CHOREO_CHANNEL_TYPE = "choreo";
 }

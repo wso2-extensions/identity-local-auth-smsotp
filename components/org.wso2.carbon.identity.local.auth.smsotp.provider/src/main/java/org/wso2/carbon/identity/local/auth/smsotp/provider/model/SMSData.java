@@ -24,37 +24,68 @@ public class SMSData implements Serializable {
     private String toNumber;
     private String fromNumber;
     private String smsBody;
-
     private SMSMetadata smsMetadata;
 
+    /**
+     * Returns the from number.
+     * @return From number.
+     */
     public String getFromNumber() {
         return fromNumber;
     }
 
+    /**
+     * Returns the SMS metadata {@link SMSMetadata}.
+     * @return SMS metadata.
+     */
     public SMSMetadata getSmsMetadata() {
         return smsMetadata;
     }
 
+    /**
+     * Sets the from number.
+     * @param fromNumber From number.
+     */
     public void setFromNumber(String fromNumber) {
         this.fromNumber = fromNumber;
     }
 
+    /**
+     * Sets the SMS metadata {@link SMSMetadata}.
+     * @param smsMetadata SMS metadata.
+     */
     public void setSmsMetadata(SMSMetadata smsMetadata) {
         this.smsMetadata = smsMetadata;
     }
 
+    /**
+     * Sets the to number.
+     * @param toNumber To number.
+     */
     public void setToNumber(String toNumber) {
         this.toNumber = toNumber;
     }
 
+    /**
+     * Returns the to number.
+     * @return To number.
+     */
     public String getToNumber() {
         return toNumber;
     }
 
+    /**
+     * Sets the SMS body.
+     * @param smsBody SMS body.
+     */
     public void setSMSBody(String smsBody) {
         this.smsBody = smsBody;
     }
 
+    /**
+     * Returns the SMS body.
+     * @return SMS body.
+     */
     public String getSMSBody() {
         return smsBody;
     }

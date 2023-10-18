@@ -20,7 +20,7 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderD
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 
 /**
- * Implementation for the Twilio SMS provider.
+ * Implementation for the Twilio SMS provider for Twilio SMS gateway.
  *
  * @version 1.0.0
  * @since 1.0.0
@@ -32,6 +32,7 @@ public class TwilioProvider implements Provider {
     private String accountSid;
     private String authToken;
     private String senderName;
+    private String tenantDomain;
     private boolean initialized;
 
     @Override
@@ -40,10 +41,11 @@ public class TwilioProvider implements Provider {
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO) {
+    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
         this.accountSid = smsSenderDTO.getKey();
         this.authToken = smsSenderDTO.getSecret();
         this.senderName = smsSenderDTO.getName();
+        this.tenantDomain = tenantDomain;
         initialized = true;
     }
 
