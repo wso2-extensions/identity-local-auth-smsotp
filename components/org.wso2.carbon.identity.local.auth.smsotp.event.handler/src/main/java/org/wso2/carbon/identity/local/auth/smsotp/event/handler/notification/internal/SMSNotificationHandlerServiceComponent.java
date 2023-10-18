@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
         immediate = true)
 public class SMSNotificationHandlerServiceComponent {
 
-    private static final Log log = LogFactory.getLog(SMSNotificationHandlerServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(SMSNotificationHandlerServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -36,19 +36,19 @@ public class SMSNotificationHandlerServiceComponent {
             context.getBundleContext().registerService(AbstractEventHandler.class.getName(),
                     new SMSNotificationHandler(), null);
         } catch (Throwable e) {
-            log.error("Error occurred while activating SMS Notification Handler Service Component", e);
+            LOG.error("Error occurred while activating SMS Notification Handler Service Component", e);
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("SMS Notification Handler service is activated");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("SMS Notification Handler service is activated");
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("SMS Notification Handler service is de-activated");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("SMS Notification Handler service is de-activated");
         }
     }
 
@@ -81,8 +81,8 @@ public class SMSNotificationHandlerServiceComponent {
     )
     protected void setProvider(Provider provider) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Provider: " + provider.getName() + " is registered.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Provider: " + provider.getName() + " is registered.");
         }
         SMSNotificationHandlerDataHolder.getInstance().addProvider(provider.getName(), provider);
     }

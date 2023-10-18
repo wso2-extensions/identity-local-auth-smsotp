@@ -30,31 +30,17 @@ public class VonageProvider implements Provider {
 
     private static final Log log = LogFactory.getLog(VonageProvider.class);
 
-    private String apiKey;
-    private String apiSecret;
-    private String senderName;
-    private boolean initialized;
-
     @Override
     public String getName() {
         return "Vonage";
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
 
-        this.apiKey = smsSenderDTO.getKey();
-        this.apiSecret = smsSenderDTO.getSecret();
-        this.senderName = smsSenderDTO.getName();
-        initialized = true;
-    }
-
-    @Override
-    public void send(SMSData smsData) {
-
-        if (!initialized) {
-            throw new RuntimeException("Vonage Provider not initialized");
-        }
+        String apiKey = smsSenderDTO.getKey();
+        String apiSecret = smsSenderDTO.getSecret();
+        String senderName = smsSenderDTO.getSender();
 
         VonageClient client = new VonageClient.Builder()
                 .apiKey(apiKey)
@@ -64,6 +50,7 @@ public class VonageProvider implements Provider {
         SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
 
         if (response.getMessages().get(0).getStatus() != MessageStatus.OK) {
+            // TODO: Throw till event level and handle there.
             log.warn("Error occurred while sending SMS to " + smsData.getToNumber() + " using Vonage");
         } else if (log.isDebugEnabled()) {
             log.debug("SMS sent to " + smsData.getToNumber() + " using Vonage");

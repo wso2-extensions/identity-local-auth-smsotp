@@ -31,17 +31,11 @@ public interface Provider {
     String getName();
 
     /**
-     * Initializes the provider with {@link SMSSenderDTO} and tenant domain.
-     *
-     * @param smsSenderDTO SMS sender DTO.
-     * @param tenantDomain Tenant domain.
-     */
-    void init(SMSSenderDTO smsSenderDTO, String tenantDomain);
-
-    /**
      * Sends the SMS using the provider SMS gateway.
      *
      * @param smsData SMS data.
+     * @param smsSenderDTO SMS sender DTO.
+     * @param tenantDomain Tenant domain.
      */
-    void send(SMSData smsData);
+    void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain);
 }

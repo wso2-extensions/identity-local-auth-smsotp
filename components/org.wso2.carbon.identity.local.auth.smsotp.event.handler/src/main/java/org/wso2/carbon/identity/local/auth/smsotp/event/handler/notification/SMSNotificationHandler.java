@@ -53,8 +53,7 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                     Provider provider = SMSNotificationHandlerDataHolder.getInstance()
                             .getProvider(smsSenderDTO.getName());
                     String tenantDomain = (String) event.getEventProperties().get(NotificationConstants.TENANT_DOMAIN);
-                    provider.init(smsSenderDTO, tenantDomain);
-                    provider.send(constructSMSOTPPayload(event.getEventProperties()));
+                    provider.send(constructSMSOTPPayload(event.getEventProperties()), smsSenderDTO, tenantDomain);
                 }
             }
         } catch (NotificationSenderManagementException e) {

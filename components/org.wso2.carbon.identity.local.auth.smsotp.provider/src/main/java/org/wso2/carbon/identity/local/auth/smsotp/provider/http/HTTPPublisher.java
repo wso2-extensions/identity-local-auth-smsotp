@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
@@ -48,10 +49,27 @@ public class HTTPPublisher {
      */
     public void publish(SMSData smsData) throws PublisherException {
 
+        HttpURLConnection connection = null;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String json = objectMapper.writeValueAsString(smsData);
-            HttpURLConnection connection = getHttpURLConnection(smsData, json);
+            URL url = new URL(publisherURL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(Constants.POST);
+            connection.setRequestProperty(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+            SMSMetadata smsMetadata = smsData.getSmsMetadata();
+            if (smsMetadata.getKey() != null) {
+                connection.setRequestProperty(Constants.KEY, smsMetadata.getKey());
+            }
+            if (smsMetadata.getSecret() != null) {
+                connection.setRequestProperty(Constants.SECRET, smsMetadata.getSecret());
+            }
+            connection.setDoOutput(true);
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = json.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 if (log.isDebugEnabled()) {
@@ -61,7 +79,6 @@ public class HTTPPublisher {
             } else {
                 log.warn("Error occurred while publishing the sms data to the: " + publisherURL);
             }
-            connection.disconnect();
         } catch (JsonProcessingException e) {
             throw new PublisherException("Error while converting the SMSData object to JSON", e);
         } catch (ProtocolException e) {
@@ -70,35 +87,10 @@ public class HTTPPublisher {
             throw new PublisherException("Error while creating the URL object", e);
         } catch (IOException e) {
             throw new PublisherException("Error while opening the connection", e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
-    }
-
-    /**
-     * This method will return the {@link HttpURLConnection} object.
-     * @param smsData {@link SMSData} object
-     * @param json JSON string
-     * @return {@link HttpURLConnection} object
-     * @throws IOException if an error occurred while opening the connection
-     */
-    private HttpURLConnection getHttpURLConnection(SMSData smsData, String json) throws IOException {
-
-        URL url = new URL(publisherURL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        SMSMetadata smsMetadata = smsData.getSmsMetadata();
-        if (smsMetadata.getKey() != null) {
-            connection.setRequestProperty("key", smsMetadata.getKey());
-        }
-        if (smsMetadata.getSecret() != null) {
-            connection.setRequestProperty("secret", smsMetadata.getSecret());
-        }
-        connection.setDoOutput(true);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = json.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-        return connection;
     }
 }

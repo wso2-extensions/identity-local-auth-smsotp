@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.*;
 import org.wso2.carbon.identity.auth.otp.core.AbstractOTPAuthenticator;
+import org.wso2.carbon.identity.auth.otp.core.PasswordlessOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
@@ -60,16 +61,17 @@ import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN
 /**
  * This class contains the implementation of sms OTP authenticator.
  */
-public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements LocalApplicationAuthenticator {
+public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements LocalApplicationAuthenticator,
+        PasswordlessOTPAuthenticator {
 
-    private static final Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
+    private static final Log LOG = LogFactory.getLog(SMSOTPAuthenticator.class);
     private static final long serialVersionUID = 850244886656426295L;
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Inside SMSOTPAuthenticator canHandle method and check the existence of mobile number and " +
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Inside SMSOTPAuthenticator canHandle method and check the existence of mobile number and " +
                     "otp code");
         }
         return ((StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.RESEND))
@@ -158,8 +160,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 applicationTenantDomain, authenticatingUser, context);
         if (isSuccessfulAttempt) {
             // It reached here means the authentication was successful.
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("User: %s authenticated successfully via SMS OTP",
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("User: %s authenticated successfully via SMS OTP",
                         authenticatedUserFromContext.getUserName()));
             }
             if (!isInitialFederationAttempt) {
@@ -443,8 +445,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 }
                 AuthenticatedUser authenticatedUser = new AuthenticatedUser(user);
                 if (StringUtils.isBlank(authenticatedUser.toFullQualifiedUsername())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Username can not be empty");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Username can not be empty");
                     }
                     throw handleAuthErrorScenario(SMSOTPConstants.ErrorMessages.ERROR_CODE_EMPTY_USERNAME);
                 }
@@ -489,15 +491,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         IdentityProvider idp = getIdentityProvider(federatedIdp, tenantDomain);
         JustInTimeProvisioningConfig provisioningConfig = idp.getJustInTimeProvisioningConfig();
         if (provisioningConfig == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("No JIT provisioning configs for idp: %s in tenant: %s", federatedIdp,
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("No JIT provisioning configs for idp: %s in tenant: %s", federatedIdp,
                         tenantDomain));
             }
             return null;
         }
         String provisionedUserStore = provisioningConfig.getProvisioningUserStore();
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Setting user store: %s as the provisioning user store for user: %s in tenant: %s",
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Setting user store: %s as the provisioning user store for user: %s in tenant: %s",
                     provisionedUserStore, user.getUserName(), tenantDomain));
         }
         return provisionedUserStore;
@@ -588,14 +590,14 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             try {
                 validityTime = Long.parseLong(value);
             } catch (NumberFormatException e) {
-                log.error(String.format("Email OTP validity period value: %s configured in tenant : %s is not a " +
+                LOG.error(String.format("Email OTP validity period value: %s configured in tenant : %s is not a " +
                                 "number. Therefore, default validity period: %s (milli-seconds) will be used", value,
                         tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
                 return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
             }
             // We don't need to send tokens with infinite validity.
             if (validityTime < 0) {
-                log.error(String.format("Email OTP validity period value: %s configured in tenant : %s cannot be a " +
+                LOG.error(String.format("Email OTP validity period value: %s configured in tenant : %s cannot be a " +
                         "negative number. Therefore, default validity period: %s (milli-seconds) will " +
                         "be used", value, tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
                 return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
@@ -618,18 +620,18 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         } catch (ConfigurationManagementException e) {
             if (e.getErrorCode()
                     .equals(ERROR_CODE_FEATURE_NOT_ENABLED.getCode())) {
-                log.warn("Configuration store is disabled. Super tenant configurations are using for the tenant "
+                LOG.warn("Configuration store is disabled. Super tenant configurations are using for the tenant "
                         + "domain: " + tenantDomain);
             } else if (e.getErrorCode()
                     .equals(ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode())) {
-                log.warn("Configuration store does not contain resource SMSPublisher. Super "
+                LOG.warn("Configuration store does not contain resource SMSPublisher. Super "
                         + "tenant configurations are using for the tenant domain: " + tenantDomain);
             } else if (e.getErrorCode()
                     .equals(ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode())) {
-                log.warn("Configuration store does not contain  publisher resource type. Super "
+                LOG.warn("Configuration store does not contain  publisher resource type. Super "
                         + "tenant configurations are using for the tenant domain: " + tenantDomain);
             } else {
-                log.error("Error occurred while fetching the tenant specific publisher configuration files " +
+                LOG.error("Error occurred while fetching the tenant specific publisher configuration files " +
                         "from configuration store for the tenant domain: " + tenantDomain, e);
             }
         }
@@ -752,8 +754,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         if (data != null) {
             message = String.format(message, (Object) data);
         }
-        if (log.isDebugEnabled()) {
-            log.debug(message);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(message);
         }
         return new InvalidCredentialsException(error.getCode(), message);
     }
@@ -811,8 +813,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             }
         }
         // This is the OTP mismatched scenario.
-        if (log.isDebugEnabled()) {
-            log.debug("Invalid OTP given by the user: " + user.getUserName());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Invalid OTP given by the user: " + user.getUserName());
         }
         return false;
     }
@@ -911,14 +913,14 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         String mobile;
         if (isInitialFederationAttempt) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Getting the mobile number of the initially federating user: %s",
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Getting the mobile number of the initially federating user: %s",
                         user.getUserName()));
             }
             mobile = getMobileNoForFederatedUser(user, tenantDomain, context);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Getting the mobile number of the local user: %s in user store: %s in " +
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Getting the mobile number of the local user: %s in user store: %s in " +
                         "tenant: %s", user.getUserName(), user.getUserStoreDomain(), user.getTenantDomain()));
             }
             mobile = getUserClaimValueFromUserStore(user);

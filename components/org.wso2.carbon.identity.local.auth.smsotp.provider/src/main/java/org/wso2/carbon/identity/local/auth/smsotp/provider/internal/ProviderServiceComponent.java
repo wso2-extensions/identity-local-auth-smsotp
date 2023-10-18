@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.VonageProvider;
 )
 public class ProviderServiceComponent {
 
-    private static final Log log = LogFactory.getLog(ProviderServiceComponent.class);
+    private static final Log LOG = LogFactory.getLog(ProviderServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -40,20 +40,20 @@ public class ProviderServiceComponent {
             context.getBundleContext().registerService(Provider.class.getName(), new VonageProvider(), null);
             context.getBundleContext().registerService(Provider.class.getName(), new CustomProvider(), null);
         } catch (Throwable e) {
-            log.error("Error occurred while activating Provider Service Component", e);
+            LOG.error("Error occurred while activating Provider Service Component", e);
             return;
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Provider Service Component bundle activated successfully.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Provider Service Component bundle activated successfully.");
         }
     }
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Provider Service Component bundle is deactivated.");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Provider Service Component bundle is deactivated.");
         }
     }
 }

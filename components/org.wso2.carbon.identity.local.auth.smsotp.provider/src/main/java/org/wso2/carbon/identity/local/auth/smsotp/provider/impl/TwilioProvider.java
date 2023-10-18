@@ -29,32 +29,17 @@ public class TwilioProvider implements Provider {
 
     private static final Log log = LogFactory.getLog(TwilioProvider.class);
 
-    private String accountSid;
-    private String authToken;
-    private String senderName;
-    private String tenantDomain;
-    private boolean initialized;
-
     @Override
     public String getName() {
         return "Twilio";
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
-        this.accountSid = smsSenderDTO.getKey();
-        this.authToken = smsSenderDTO.getSecret();
-        this.senderName = smsSenderDTO.getName();
-        this.tenantDomain = tenantDomain;
-        initialized = true;
-    }
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
 
-    @Override
-    public void send(SMSData smsData) {
-
-        if (!initialized) {
-            throw new RuntimeException("Twilio Provider not initialized");
-        }
+        String accountSid = smsSenderDTO.getKey();
+        String authToken = smsSenderDTO.getSecret();
+        String senderName = smsSenderDTO.getSender();
 
         Twilio.init(accountSid, authToken);
         PhoneNumber to = new PhoneNumber(smsData.getToNumber());
@@ -62,6 +47,7 @@ public class TwilioProvider implements Provider {
         Message message = Message.creator(to, from, smsData.getSMSBody()).create();
 
         if (message.getStatus() != Message.Status.SENT) {
+            // TODO: Throw till event level and handle there.
             log.warn("Error occurred while sending SMS to " + smsData.getToNumber() + " using Twilio");
         } else if (log.isDebugEnabled()) {
             log.debug("SMS sent to " + smsData.getToNumber() + " using Twilio");

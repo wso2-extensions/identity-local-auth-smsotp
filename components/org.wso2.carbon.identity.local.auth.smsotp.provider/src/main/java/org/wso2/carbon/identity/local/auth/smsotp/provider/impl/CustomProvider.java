@@ -28,10 +28,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
  */
 public class CustomProvider implements Provider {
 
-    private static final Log log = LogFactory.getLog(CustomProvider.class);
-    private SMSSenderDTO smsSenderDTO;
-    private String tenantDomain;
-    private boolean initialized;
+    private static final Log LOG = LogFactory.getLog(CustomProvider.class);
 
     @Override
     public String getName() {
@@ -39,18 +36,7 @@ public class CustomProvider implements Provider {
     }
 
     @Override
-    public void init(SMSSenderDTO smsSenderDTO, String tenantDomain) {
-        this.smsSenderDTO = smsSenderDTO;
-        this.tenantDomain = tenantDomain;
-        initialized = true;
-    }
-
-    @Override
-    public void send(SMSData smsData) {
-
-        if (!initialized) {
-            throw new RuntimeException("Custom Provider not initialized");
-        }
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
 
         SMSMetadata smsMetadata = new SMSMetadata();
 
@@ -65,7 +51,8 @@ public class CustomProvider implements Provider {
         try {
             publisher.publish(smsData);
         } catch (PublisherException e) {
-            log.error("Error occurred while publishing the SMS data to the custom provider", e);
+            // TODO: Throw till event level and handle there.
+            LOG.error("Error occurred while publishing the SMS data to the custom provider", e);
         }
     }
 }
