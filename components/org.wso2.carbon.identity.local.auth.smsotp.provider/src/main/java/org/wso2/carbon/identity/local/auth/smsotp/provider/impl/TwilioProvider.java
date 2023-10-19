@@ -15,7 +15,10 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 
@@ -27,30 +30,43 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
  */
 public class TwilioProvider implements Provider {
 
-    private static final Log log = LogFactory.getLog(TwilioProvider.class);
+    private static final Log LOG = LogFactory.getLog(TwilioProvider.class);
 
     @Override
     public String getName() {
-        return "Twilio";
+        return Constants.TWILIO;
     }
 
     @Override
-    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) throws ProviderException {
 
-        String accountSid = smsSenderDTO.getKey();
-        String authToken = smsSenderDTO.getSecret();
-        String senderName = smsSenderDTO.getSender();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending SMS to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                    + " using Twilio provider");
+        }
 
-        Twilio.init(accountSid, authToken);
-        PhoneNumber to = new PhoneNumber(smsData.getToNumber());
-        PhoneNumber from = new PhoneNumber(senderName);
-        Message message = Message.creator(to, from, smsData.getSMSBody()).create();
+        try {
+            String accountSid = smsSenderDTO.getKey();
+            String authToken = smsSenderDTO.getSecret();
+            String senderName = smsSenderDTO.getSender();
 
-        if (message.getStatus() != Message.Status.SENT) {
-            // TODO: Throw till event level and handle there.
-            log.warn("Error occurred while sending SMS to " + smsData.getToNumber() + " using Twilio");
-        } else if (log.isDebugEnabled()) {
-            log.debug("SMS sent to " + smsData.getToNumber() + " using Twilio");
+            Twilio.init(accountSid, authToken);
+            PhoneNumber to = new PhoneNumber(smsData.getToNumber());
+            PhoneNumber from = new PhoneNumber(senderName);
+            Message message = Message.creator(to, from, smsData.getSMSBody()).create();
+
+            if (message.getStatus() != Message.Status.SENT) {
+                LOG.warn("Error occurred while sending SMS to "
+                        + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
+                        + " Status: " + message.getStatus() + " Message: " + message.getErrorMessage());
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                        + " using Twilio");
+            }
+        } catch (Exception e) {
+            throw new ProviderException("Error occurred while sending SMS to "
+                    + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                    + " using Twilio", e);
         }
     }
 }

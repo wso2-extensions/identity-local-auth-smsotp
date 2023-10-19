@@ -17,4 +17,7 @@ public class Constants {
     public static final String APPLICATION_JSON = "application/json";
     public static final String KEY = "key";
     public static final String SECRET = "secret";
+
+    public static final String VONAGE = "vonage";
+    public static final String TWILIO = "twilio";
 }

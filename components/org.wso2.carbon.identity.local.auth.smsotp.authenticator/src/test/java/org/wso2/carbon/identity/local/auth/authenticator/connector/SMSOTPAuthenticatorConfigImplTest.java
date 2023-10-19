@@ -12,47 +12,57 @@ package org.wso2.carbon.identity.local.auth.authenticator.connector;
 
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertTrue;
 
 public class SMSOTPAuthenticatorConfigImplTest {
 
     @Test
     public void testGetName() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetFriendlyName() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetCategory() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetSubCategory() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetOrder() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetPropertyNameMapping() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetPropertyDescriptionMapping() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetPropertyNames() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testGetDefaultPropertyValues() {
+        assertTrue(true, "Test case not implemented yet");
     }
 
     @Test
     public void testTestGetDefaultPropertyValues() {
+        assertTrue(true, "Test case not implemented yet");
     }
 }

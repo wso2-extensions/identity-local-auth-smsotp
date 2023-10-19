@@ -71,7 +71,7 @@ public class HTTPPublisher {
                 os.write(input, 0, input.length);
             }
             int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED) {
                 if (log.isDebugEnabled()) {
                     log.debug("Successfully published the sms data to the: " + publisherURL);
                     log.debug("JSON data: " + json);

@@ -10,6 +10,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider;
 
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
@@ -37,5 +38,5 @@ public interface Provider {
      * @param smsSenderDTO SMS sender DTO.
      * @param tenantDomain Tenant domain.
      */
-    void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain);
+    void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) throws ProviderException;
 }

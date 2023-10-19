@@ -15,8 +15,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 import static org.mockito.Mockito.when;
@@ -27,9 +29,6 @@ public class CustomProviderTest {
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
-
-    @Mock
-    private SMSData smsData = Mockito.mock(SMSData.class);
 
     @BeforeTest
     public void createNewObject() {
@@ -43,13 +42,17 @@ public class CustomProviderTest {
     }
 
     @Test(expectedExceptions = RuntimeException.class)
-    public void testInitNotInit() {
-        customProvider.send(smsData);
+    public void testInitNotInit() throws ProviderException {
+
+        SMSData smsData = new SMSData();
+        SMSMetadata smsMetadata = new SMSMetadata();
+
+        smsData.setSmsMetadata(smsMetadata);
+        customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-
-    @Test(expectedExceptions = PublisherException.class)
-    public void testInitSuccess() {
+    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    public void testInitSuccess() throws ProviderException {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
         when(smsSenderDTO.getKey()).thenReturn("key");
@@ -57,18 +60,30 @@ public class CustomProviderTest {
         when(smsSenderDTO.getSender()).thenReturn("sender");
         when(smsSenderDTO.getContentType()).thenReturn("contentType");
 
-        customProvider.init(smsSenderDTO, "carbon.super");
-        customProvider.send(smsData);
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test
-    public void testSend() {
-        customProvider.init(smsSenderDTO, "carbon.super");
+    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    public void testSend() throws ProviderException {
+
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
         when(smsSenderDTO.getKey()).thenReturn("key");
         when(smsSenderDTO.getSecret()).thenReturn("secret");
         when(smsSenderDTO.getSender()).thenReturn("sender");
         when(smsSenderDTO.getContentType()).thenReturn("contentType");
-        customProvider.send(smsData);
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 }

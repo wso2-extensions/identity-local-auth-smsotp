@@ -15,15 +15,13 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 
 import static org.testng.Assert.*;
 
 public class HTTPPublisherTest {
 
     private HTTPPublisher httpPublisher;
-
-    @Mock
-    private SMSData smsData;
 
     @BeforeTest
     public void setUp() {
@@ -32,6 +30,11 @@ public class HTTPPublisherTest {
 
     @Test(expectedExceptions = PublisherException.class)
     public void testPublisherExceptionCase() throws PublisherException {
+
+        SMSData smsData = new SMSData();
+        SMSMetadata smsMetadata = new SMSMetadata();
+
+        smsData.setSmsMetadata(smsMetadata);
 
         httpPublisher.publish(smsData);
     }

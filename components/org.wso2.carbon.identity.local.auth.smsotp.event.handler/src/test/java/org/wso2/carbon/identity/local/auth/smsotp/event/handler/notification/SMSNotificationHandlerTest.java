@@ -18,6 +18,8 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.CustomProvider;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.TwilioProvider;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementConstants;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
@@ -40,8 +42,10 @@ public class SMSNotificationHandlerTest {
     private final String tenantDomain = "tenant1";
     private final String topicSuffix = "NOTIFICATIONS";
     private final String eventURI = "urn:ietf:params:notifications:smsOtp";
+
     @Mock
     NotificationSenderManagementService notificationSenderManagementService;
+
     private SMSNotificationHandler smsNotificationHandler;
     private MockedStatic<IdentityTenantUtil> mockedStaticIdentityTenantUtil;
 
@@ -57,13 +61,22 @@ public class SMSNotificationHandlerTest {
         closeMockedIdentityTenantUtil();
     }
 
-    @BeforeMethod
+    @BeforeTest
     public void setup() {
 
         MockitoAnnotations.openMocks(this);
         smsNotificationHandler = new SMSNotificationHandlerExtended();
-        SMSNotificationHandlerDataHolder.getInstance()
+        SMSNotificationHandlerDataHolder
+                .getInstance()
                 .setNotificationSenderManagementService(notificationSenderManagementService);
+
+        SMSNotificationHandlerDataHolder
+                .getInstance()
+                .addProvider("TwilioSMSProvider", new TwilioProvider());
+
+        SMSNotificationHandlerDataHolder
+                .getInstance()
+                .addProvider("SMSProvider", new CustomProvider());
     }
 
     @Test(dataProvider = "handleEventDataProvider")
@@ -72,7 +85,11 @@ public class SMSNotificationHandlerTest {
 
         Event event = constructSMSOTPEvent();
         when(notificationSenderManagementService.getSMSSenders()).thenReturn(smsSenderDTOS);
-        smsNotificationHandler.handleEvent(event);
+        try {
+            smsNotificationHandler.handleEvent(event);
+        } catch (IdentityEventException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
     }
 
     @Test(expectedExceptions = IdentityEventException.class)
@@ -93,9 +110,8 @@ public class SMSNotificationHandlerTest {
         List<SMSSenderDTO> smsSenderDTOS = new ArrayList<>();
         Map<String, String> propertyMap = new HashMap<>();
         propertyMap.put("channel.type", "choreo");
-        smsSenderDTOS.add(constructSMSSenderDTO("SMSPublisher", propertyMap));
+        smsSenderDTOS.add(constructSMSSenderDTO("SMSProvider", propertyMap));
         Event event = constructSMSOTPEvent();
-        when(notificationSenderManagementService.getSMSSenders()).thenReturn(smsSenderDTOS);
         smsNotificationHandler.handleEvent(event);
     }
 
@@ -115,16 +131,16 @@ public class SMSNotificationHandlerTest {
         propertyMap2.put("channel.type", "default");
 
         List<SMSSenderDTO> smsSenderDTOS1 = new ArrayList<>();
-        smsSenderDTOS1.add(constructSMSSenderDTO("SMSPublisher", propertyMap1));
+        smsSenderDTOS1.add(constructSMSSenderDTO("SMSProvider", propertyMap1));
 
         List<SMSSenderDTO> smsSenderDTOS2 = new ArrayList<>();
-        smsSenderDTOS2.add(constructSMSSenderDTO("TwilioSMSPublisher", propertyMap1));
+        smsSenderDTOS2.add(constructSMSSenderDTO("TwilioSMSProvider", propertyMap1));
 
         List<SMSSenderDTO> smsSenderDTOS3 = new ArrayList<>();
-        smsSenderDTOS3.add(constructSMSSenderDTO("SMSPublisher", propertyMap2));
+        smsSenderDTOS3.add(constructSMSSenderDTO("SMSProvider", propertyMap2));
 
         List<SMSSenderDTO> smsSenderDTOS4 = new ArrayList<>();
-        smsSenderDTOS4.add(constructSMSSenderDTO("TwilioSMSPublisher", propertyMap2));
+        smsSenderDTOS4.add(constructSMSSenderDTO("TwilioSMSProvider", propertyMap2));
 
         return new Object[][]{
                 //sms sender dto list

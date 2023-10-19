@@ -12,20 +12,23 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+
+import static org.mockito.Mockito.when;
 
 public class VonageProviderTest {
 
     private VonageProvider vonageProvider;
 
     @Mock
-    private SMSSenderDTO smsSenderDTO;
-
-    @Mock
-    private SMSData smsData;
+    private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
 
     @BeforeTest
     public void createNewObject() {
@@ -38,21 +41,51 @@ public class VonageProviderTest {
         Assert.notNull(name);
     }
 
-    @Test(expectedExceptions = RuntimeException.class)
-    public void testInitNotInit() {
-       vonageProvider.send(smsData);
+    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    public void testInitNotInit() throws ProviderException {
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
+    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    public void testInitSuccess() throws ProviderException {
 
-    @Test
-    public void testInitSuccess() {
-        vonageProvider.init(smsSenderDTO, "carbon.super");
-        vonageProvider.send(smsData);
+        when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test
-    public void testSend() {
-        vonageProvider.init(smsSenderDTO, "carbon.super");
-        vonageProvider.send(smsData);
+    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    public void testSend() throws ProviderException {
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 }

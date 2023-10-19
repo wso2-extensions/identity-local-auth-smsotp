@@ -10,11 +10,14 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.DefaultNotificationHandler;
 import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
@@ -31,6 +34,8 @@ import java.util.Map;
  */
 public class SMSNotificationHandler extends DefaultNotificationHandler {
 
+    private static final Log LOG = LogFactory.getLog(SMSNotificationHandler.class);
+
     @Override
     public String getName() {
 
@@ -39,6 +44,11 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
 
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
+
+        String tenantDomain = (String) event.getEventProperties().get(NotificationConstants.TENANT_DOMAIN);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Handling SMS notification event for " + tenantDomain);
+        }
 
         try {
             // Get the registered SMS senders from the database. This is done to support multiple SMS senders
@@ -50,15 +60,21 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
             if (smsSenders != null) {
                 for (SMSSenderDTO smsSenderDTO : smsSenders) {
                     // This is to get the supported SMS providers. We can include SMS providers through OSGi.
-                    Provider provider = SMSNotificationHandlerDataHolder.getInstance()
+                    Provider provider = SMSNotificationHandlerDataHolder
+                            .getInstance()
                             .getProvider(smsSenderDTO.getName());
-                    String tenantDomain = (String) event.getEventProperties().get(NotificationConstants.TENANT_DOMAIN);
+                    if (provider == null) {
+                        throw new IdentityEventException("No SMS provider found for the name: "
+                                + smsSenderDTO.getName());
+                    }
                     provider.send(constructSMSOTPPayload(event.getEventProperties()), smsSenderDTO, tenantDomain);
                 }
             }
         } catch (NotificationSenderManagementException e) {
             throw new IdentityEventException("Error while retrieving SMS Sender: "
                     + SMSNotificationConstants.SMS_PUBLISHER_NAME, e);
+        } catch (ProviderException e) {
+            throw new IdentityEventException("Error while sending SMS", e);
         }
     }
 

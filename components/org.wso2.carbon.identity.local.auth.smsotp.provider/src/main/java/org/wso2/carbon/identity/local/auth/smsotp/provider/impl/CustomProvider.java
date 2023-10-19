@@ -12,8 +12,10 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
@@ -36,7 +38,12 @@ public class CustomProvider implements Provider {
     }
 
     @Override
-    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) throws ProviderException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending SMS to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                    + " using custom provider");
+        }
 
         SMSMetadata smsMetadata = new SMSMetadata();
 
@@ -51,8 +58,7 @@ public class CustomProvider implements Provider {
         try {
             publisher.publish(smsData);
         } catch (PublisherException e) {
-            // TODO: Throw till event level and handle there.
-            LOG.error("Error occurred while publishing the SMS data to the custom provider", e);
+            throw new ProviderException("Error occurred while publishing the SMS data to the custom provider", e);
         }
     }
 }

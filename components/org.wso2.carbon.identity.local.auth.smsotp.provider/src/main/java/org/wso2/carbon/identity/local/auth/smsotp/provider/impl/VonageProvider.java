@@ -17,7 +17,10 @@ import com.vonage.client.sms.messages.TextMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 /**
@@ -28,32 +31,46 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderD
  */
 public class VonageProvider implements Provider {
 
-    private static final Log log = LogFactory.getLog(VonageProvider.class);
+    private static final Log LOG = LogFactory.getLog(VonageProvider.class);
 
     @Override
     public String getName() {
-        return "Vonage";
+        return Constants.VONAGE;
     }
 
     @Override
-    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) {
+    public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) throws ProviderException {
 
-        String apiKey = smsSenderDTO.getKey();
-        String apiSecret = smsSenderDTO.getSecret();
-        String senderName = smsSenderDTO.getSender();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Sending SMS to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                    + " using Vonage provider");
+        }
 
-        VonageClient client = new VonageClient.Builder()
-                .apiKey(apiKey)
-                .apiSecret(apiSecret)
-                .build();
-        TextMessage message = new TextMessage(senderName, smsData.getToNumber(), smsData.getSMSBody());
-        SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
+        try {
+            String apiKey = smsSenderDTO.getKey();
+            String apiSecret = smsSenderDTO.getSecret();
+            String senderName = smsSenderDTO.getSender();
 
-        if (response.getMessages().get(0).getStatus() != MessageStatus.OK) {
-            // TODO: Throw till event level and handle there.
-            log.warn("Error occurred while sending SMS to " + smsData.getToNumber() + " using Vonage");
-        } else if (log.isDebugEnabled()) {
-            log.debug("SMS sent to " + smsData.getToNumber() + " using Vonage");
+            VonageClient client = new VonageClient.Builder()
+                    .apiKey(apiKey)
+                    .apiSecret(apiSecret)
+                    .build();
+            TextMessage message = new TextMessage(senderName, smsData.getToNumber(), smsData.getSMSBody());
+            SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
+
+            if (response.getMessages().get(0).getStatus() != MessageStatus.OK) {
+                LOG.warn("Error occurred while sending SMS to "
+                        + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage"
+                        + " Status: " + response.getMessages().get(0).getStatus() + " Message: "
+                        + response.getMessages().get(0).getErrorText());
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                        + " using Vonage");
+            }
+        } catch (Exception e) {
+            throw new ProviderException("Error occurred while sending SMS to "
+                    + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                    + " using Vonage", e);
         }
     }
 }
