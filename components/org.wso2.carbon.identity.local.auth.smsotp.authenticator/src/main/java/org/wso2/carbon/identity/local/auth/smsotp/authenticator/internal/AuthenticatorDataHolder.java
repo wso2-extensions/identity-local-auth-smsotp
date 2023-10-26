@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.internal;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal;
 
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;

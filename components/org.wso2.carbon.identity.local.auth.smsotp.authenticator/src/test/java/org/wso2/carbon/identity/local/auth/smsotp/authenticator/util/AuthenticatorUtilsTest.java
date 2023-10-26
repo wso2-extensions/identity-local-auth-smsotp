@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.util;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.util;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.local.auth.authenticator.exception.SMSOTPAuthenticatorServerException;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.exception.SMSOTPAuthenticatorServerException;
 
 import static junit.framework.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

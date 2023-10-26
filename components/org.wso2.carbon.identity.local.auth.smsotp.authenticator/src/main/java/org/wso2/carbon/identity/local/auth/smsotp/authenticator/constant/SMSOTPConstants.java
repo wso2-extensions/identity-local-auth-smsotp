@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.constant;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant;
 
 /**
  * Constants class.

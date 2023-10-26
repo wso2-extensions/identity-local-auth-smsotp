@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,10 +43,10 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.governance.service.notification.NotificationChannels;
-import org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants;
-import org.wso2.carbon.identity.local.auth.authenticator.exception.SMSOTPAuthenticatorServerException;
-import org.wso2.carbon.identity.local.auth.authenticator.internal.AuthenticatorDataHolder;
-import org.wso2.carbon.identity.local.auth.authenticator.util.AuthenticatorUtils;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.exception.SMSOTPAuthenticatorServerException;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.AuthenticatorUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;

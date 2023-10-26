@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.connector;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.connector;
 
 import org.testng.annotations.Test;
 

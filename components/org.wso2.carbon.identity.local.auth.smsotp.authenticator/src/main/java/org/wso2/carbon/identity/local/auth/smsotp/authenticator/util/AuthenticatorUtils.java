@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.util;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.util;
 
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -27,9 +27,9 @@ import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.handler.event.account.lock.exception.AccountLockServiceException;
-import org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants;
-import org.wso2.carbon.identity.local.auth.authenticator.exception.SMSOTPAuthenticatorServerException;
-import org.wso2.carbon.identity.local.auth.authenticator.internal.AuthenticatorDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.exception.SMSOTPAuthenticatorServerException;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
 
 import javax.servlet.http.HttpServletRequest;
 

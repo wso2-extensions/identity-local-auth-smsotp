@@ -16,14 +16,14 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 
 import javax.servlet.http.HttpServletRequest;
 

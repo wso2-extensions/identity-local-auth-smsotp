@@ -33,12 +33,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.twilio.sdk</groupId>
-            <artifactId>twilio</artifactId>
+            <groupId>org.wso2.orbit.com.twilio.sdk</groupId>
+            <artifactId>twilio.wso2</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.vonage</groupId>
-            <artifactId>client</artifactId>
+            <groupId>org.wso2.orbit.com.vonage</groupId>
+            <artifactId>client.wso2</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
