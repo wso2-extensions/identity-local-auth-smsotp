@@ -16,14 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.exception;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.exception;
+
+import org.wso2.carbon.identity.base.IdentityException;
 
 /**
- * Implementation of server errors.
+ * SMS OTP authenticator exception implementation.
  */
-public class SMSOTPAuthenticatorServerException extends SMSOTPAuthenticatorException {
+public class SMSOTPAuthenticatorException extends IdentityException {
 
-    private static final long serialVersionUID = -4635116841173579773L;
+    private static final long serialVersionUID = -6133941275898271108L;
 
     /**
      * Constructs a new exception with an error code, detail message and throwable.
@@ -32,7 +34,7 @@ public class SMSOTPAuthenticatorServerException extends SMSOTPAuthenticatorExcep
      * @param message   The detail message.
      * @param throwable Throwable.
      */
-    public SMSOTPAuthenticatorServerException(String errorCode, String message, Throwable throwable) {
+    public SMSOTPAuthenticatorException(String errorCode, String message, Throwable throwable) {
 
         super(errorCode, message, throwable);
         this.setErrorCode(errorCode);

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.connector;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.connector;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -29,14 +29,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_RESEND_ATTEMPTS_COUNT;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.DEFAULT_OTP_LENGTH;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.DEFAULT_OTP_RESEND_ATTEMPTS;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME;
-import static org.wso2.carbon.identity.local.auth.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_RESEND_ATTEMPTS_COUNT;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DEFAULT_OTP_LENGTH;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DEFAULT_OTP_RESEND_ATTEMPTS;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
 
 /**
  * This class contains the authenticator config implementation.

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.local.auth.authenticator.internal;
+package org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,8 +38,8 @@ import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.identity.local.auth.authenticator.SMSOTPAuthenticator;
-import org.wso2.carbon.identity.local.auth.authenticator.connector.SMSOTPAuthenticatorConfigImpl;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.SMSOTPAuthenticator;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.connector.SMSOTPAuthenticatorConfigImpl;
 
 /**
  * SMS OTP service component.

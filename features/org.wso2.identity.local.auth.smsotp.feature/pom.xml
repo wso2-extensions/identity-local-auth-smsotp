@@ -45,6 +45,14 @@
             <groupId>org.wso2.carbon.identity.local.auth.smsotp</groupId>
             <artifactId>org.wso2.carbon.identity.local.auth.smsotp.event.handler</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.twilio.sdk</groupId>
+            <artifactId>twilio.wso2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.com.vonage</groupId>
+            <artifactId>client.wso2</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -71,6 +79,8 @@
                                 <bundleDef>org.wso2.carbon.identity.local.auth.smsotp:org.wso2.carbon.identity.local.auth.smsotp.event.handler</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.local.auth.smsotp:org.wso2.carbon.identity.local.auth.smsotp.provider</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.local.auth.smsotp:org.wso2.carbon.identity.local.auth.smsotp.authenticator</bundleDef>
+                                <bundleDef>org.wso2.orbit.com.twilio.sdk:twilio.wso2</bundleDef>
+                                <bundleDef>org.wso2.orbit.com.vonage:client.wso2</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
