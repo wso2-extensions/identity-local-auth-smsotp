@@ -86,7 +86,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         return ((StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.RESEND))
                 && StringUtils.isEmpty(request.getParameter(SMSOTPConstants.CODE)))
                 || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.CODE))
-                || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.MOBILE_NUMBER)));
+                || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.MOBILE_NUMBER))
+                || (StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.USERNAME))
+                && StringUtils.isEmpty(request.getParameter(SMSOTPConstants.PASSWORD))));
     }
 
     @Override
