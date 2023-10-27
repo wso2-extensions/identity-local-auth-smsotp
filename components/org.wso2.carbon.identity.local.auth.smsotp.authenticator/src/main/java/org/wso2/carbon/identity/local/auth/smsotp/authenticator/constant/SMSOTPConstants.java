@@ -45,7 +45,7 @@ public class SMSOTPConstants {
     public static final String SMS_OTP_ALPHA_NUMERIC_CHAR_SET = "KIGXHOYSPRWCEFMVUQLZDNABJT9245378016";
     public static final String MOBILE_NUMBER_MASKING_CHARACTER = "*";
     public static final String RESEND = "resendCode";
-    public static final String CODE = "OTPCode";
+    public static final String CODE = "OTPcode";
     public static final String OTP_TOKEN = "otpToken";
     public static final String OTP_EXPIRED = "isOTPExpired";
     public static final String OTP_GENERATED_TIME = "tokenGeneratedTime";
