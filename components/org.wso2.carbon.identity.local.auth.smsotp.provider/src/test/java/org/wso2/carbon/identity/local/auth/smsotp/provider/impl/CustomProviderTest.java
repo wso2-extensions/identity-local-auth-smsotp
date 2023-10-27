@@ -49,11 +49,12 @@ public class CustomProviderTest {
         Assert.notNull(name);
     }
 
-    @Test(expectedExceptions = RuntimeException.class)
+    @Test(expectedExceptions = ProviderException.class)
     public void testInitNotInit() throws ProviderException {
 
         SMSData smsData = new SMSData();
         SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setToNumber("1234567890");
 
         smsData.setSmsMetadata(smsMetadata);
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
