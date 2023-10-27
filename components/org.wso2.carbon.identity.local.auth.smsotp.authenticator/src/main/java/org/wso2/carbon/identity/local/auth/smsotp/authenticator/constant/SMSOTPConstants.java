@@ -38,6 +38,8 @@ public class SMSOTPConstants {
     public static final String PROVIDER = "provider";
     public static final String PUBLISHER = "Publisher";
     public static final String SMS_PROVIDER = "SMSPublisher";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
 
 
     // OTP generation.
