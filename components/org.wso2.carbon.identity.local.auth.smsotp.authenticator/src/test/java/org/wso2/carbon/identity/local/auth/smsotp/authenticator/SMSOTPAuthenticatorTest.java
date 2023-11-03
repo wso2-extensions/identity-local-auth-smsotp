@@ -27,9 +27,9 @@ import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPC
 
 import javax.servlet.http.HttpServletRequest;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 

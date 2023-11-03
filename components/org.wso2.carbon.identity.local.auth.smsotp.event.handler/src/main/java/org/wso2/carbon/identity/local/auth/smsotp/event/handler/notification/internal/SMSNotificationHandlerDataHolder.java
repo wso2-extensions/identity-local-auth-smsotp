@@ -18,8 +18,9 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal;
 
-import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
+import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
 /**
  * SMS Notification Handler service component's value holder.
  */
+@SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class SMSNotificationHandlerDataHolder {
 
     private static final SMSNotificationHandlerDataHolder instance = new SMSNotificationHandlerDataHolder();

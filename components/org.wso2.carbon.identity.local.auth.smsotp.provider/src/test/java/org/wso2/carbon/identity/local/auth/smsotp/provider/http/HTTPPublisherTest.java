@@ -30,7 +30,18 @@ public class HTTPPublisherTest {
 
     @BeforeTest
     public void setUp() {
-        httpPublisher = new HTTPPublisher("http://localhost:8080");
+        httpPublisher = new HTTPPublisher();
+    }
+
+    @Test(expectedExceptions = PublisherException.class)
+    public void testForInvalidURL() throws PublisherException {
+
+        SMSData smsData = new SMSData();
+        SMSMetadata smsMetadata = new SMSMetadata();
+
+        smsData.setSmsMetadata(smsMetadata);
+
+        httpPublisher.publish(smsData, "file://localhost:8080");
     }
 
     @Test(expectedExceptions = PublisherException.class)
@@ -41,6 +52,6 @@ public class HTTPPublisherTest {
 
         smsData.setSmsMetadata(smsMetadata);
 
-        httpPublisher.publish(smsData);
+        httpPublisher.publish(smsData, "http://localhost:8080");
     }
 }

@@ -75,10 +75,10 @@ public class VonageProvider implements Provider {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Vonage");
             }
-        } catch (Exception e) {
+        } catch (Throwable throwable) {
             throw new ProviderException("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
-                    + " using Vonage", e);
+                    + " using Vonage", throwable);
         }
     }
 }

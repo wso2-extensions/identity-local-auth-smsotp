@@ -35,6 +35,7 @@ public class SMSOTPConstants {
     public static final String ATTRIBUTE_SMS_SENT_TO = "send-to";
     public static final String TEMPLATE_TYPE = "TEMPLATE_TYPE";
     public static final String EVENT_NAME = "SMSOTP";
+    public static final String EVENT_TRIGGER_NAME = "TRIGGER_SMS_NOTIFICATION_LOCAL";
     public static final String PROVIDER = "provider";
     public static final String PUBLISHER = "Publisher";
     public static final String SMS_PROVIDER = "SMSPublisher";
