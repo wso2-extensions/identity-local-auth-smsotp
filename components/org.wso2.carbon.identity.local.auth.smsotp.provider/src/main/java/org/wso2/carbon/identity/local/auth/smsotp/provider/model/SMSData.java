@@ -47,7 +47,7 @@ public class SMSData implements Serializable {
      * @return SMS metadata.
      */
     public SMSMetadata getSmsMetadata() {
-        return smsMetadata;
+        return new SMSMetadata(smsMetadata);
     }
 
     /**
@@ -63,7 +63,7 @@ public class SMSData implements Serializable {
      * @param smsMetadata SMS metadata.
      */
     public void setSmsMetadata(SMSMetadata smsMetadata) {
-        this.smsMetadata = smsMetadata;
+        this.smsMetadata = new SMSMetadata(smsMetadata);
     }
 
     /**

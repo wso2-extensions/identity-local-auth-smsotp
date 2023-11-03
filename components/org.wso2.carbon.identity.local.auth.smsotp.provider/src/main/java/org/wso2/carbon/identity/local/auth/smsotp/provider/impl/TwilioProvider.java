@@ -23,12 +23,12 @@ import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 
 /**
  * Implementation for the Twilio SMS provider for Twilio SMS gateway.
@@ -63,13 +63,13 @@ public class TwilioProvider implements Provider {
             PhoneNumber from = new PhoneNumber(senderName);
             Message message = Message.creator(to, from, smsData.getSMSBody()).create();
 
-            if (message.getStatus() != Message.Status.SENT) {
+            if (message.getStatus() == Message.Status.FAILED) {
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
-                        + " Status: " + message.getStatus() + " Message: " + message.getErrorMessage());
+                        + " Status: " + message.getStatus() + " (Error): " + message.getErrorMessage());
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
-                        + " using Twilio");
+                        + " using Twilio." + " Status: " + message.getStatus());
             }
         } catch (Exception e) {
             throw new ProviderException("Error occurred while sending SMS to "

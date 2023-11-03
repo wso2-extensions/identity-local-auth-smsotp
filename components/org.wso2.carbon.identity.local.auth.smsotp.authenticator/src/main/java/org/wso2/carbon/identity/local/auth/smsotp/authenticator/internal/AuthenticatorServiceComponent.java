@@ -36,10 +36,10 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.governance.common.IdentityConnectorConfig;
 import org.wso2.carbon.identity.handler.event.account.lock.service.AccountLockService;
-import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.SMSOTPAuthenticator;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.connector.SMSOTPAuthenticatorConfigImpl;
+import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * SMS OTP service component.

@@ -35,6 +35,18 @@ public class SMSMetadata implements Serializable {
     private String contentType;
     private String tenantDomain;
 
+    public SMSMetadata() {
+        super();
+    }
+
+    public SMSMetadata(SMSMetadata smsMetadata) {
+        this.key = smsMetadata.getKey();
+        this.secret = smsMetadata.getSecret();
+        this.sender = smsMetadata.getSender();
+        this.contentType = smsMetadata.getContentType();
+        this.tenantDomain = smsMetadata.getTenantDomain();
+    }
+
     /**
      * Returns the key.
      *

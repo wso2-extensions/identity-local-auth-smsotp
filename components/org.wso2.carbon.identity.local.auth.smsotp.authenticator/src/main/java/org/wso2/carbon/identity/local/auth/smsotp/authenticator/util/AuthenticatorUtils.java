@@ -51,8 +51,10 @@ public class AuthenticatorUtils {
             return AuthenticatorDataHolder.getAccountLockService().isAccountLocked(user.getUserName(),
                     user.getTenantDomain(), user.getUserStoreDomain());
         } catch (AccountLockServiceException e) {
-            String error = String.format(SMSOTPConstants.ErrorMessages.ERROR_CODE_GETTING_ACCOUNT_STATE.getMessage(), user.getUserName());
-            throw new AuthenticationFailedException(SMSOTPConstants.ErrorMessages.ERROR_CODE_GETTING_ACCOUNT_STATE.getCode(), error, e);
+            String error = String.format(SMSOTPConstants.ErrorMessages.ERROR_CODE_GETTING_ACCOUNT_STATE.getMessage(),
+                    user.getUserName());
+            throw new AuthenticationFailedException(SMSOTPConstants.ErrorMessages
+                    .ERROR_CODE_GETTING_ACCOUNT_STATE.getCode(), error, e);
         }
     }
 

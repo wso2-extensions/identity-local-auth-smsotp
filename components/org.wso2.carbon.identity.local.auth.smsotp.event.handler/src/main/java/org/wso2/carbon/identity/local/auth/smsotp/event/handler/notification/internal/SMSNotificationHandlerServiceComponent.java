@@ -21,11 +21,16 @@ package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.in
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationHandler;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
+import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 
 /**
  * SMS Notification Handler service component.

@@ -20,12 +20,13 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -45,17 +46,15 @@ public class HTTPPublisher {
 
     private static final Log log = LogFactory.getLog(HTTPPublisher.class);
 
-    private final String publisherURL;
-
-    public HTTPPublisher(String publisherURL) {
-        this.publisherURL = publisherURL;
-    }
-
     /**
      * This method will publish the {@link SMSData} as a JSON to the provided publisher URL.
      * @param smsData {@link SMSData} object
      */
-    public void publish(SMSData smsData) throws PublisherException {
+    @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
+    public void publish(SMSData smsData, String publisherURL) throws PublisherException {
+
+        // Validate the publisher URL for the protocol and format.
+        validateURL(publisherURL);
 
         HttpURLConnection connection = null;
         try {
@@ -99,6 +98,22 @@ public class HTTPPublisher {
             if (connection != null) {
                 connection.disconnect();
             }
+        }
+    }
+
+    /**
+     * This method will validate the publisher URL for the protocol and format for security purposes.
+     * @param stringURL Publisher URL.
+     * @throws PublisherException If URL validation failed.
+     */
+    private void validateURL(String stringURL) throws PublisherException {
+        try {
+            URL url = new URL(stringURL);
+            if (!url.getProtocol().equals("http") && !url.getProtocol().equals("https")) {
+                throw new PublisherException("Invalid protocol. Protocol should be either http or https.");
+            }
+        } catch (MalformedURLException e) {
+            throw new PublisherException("", e);
         }
     }
 }

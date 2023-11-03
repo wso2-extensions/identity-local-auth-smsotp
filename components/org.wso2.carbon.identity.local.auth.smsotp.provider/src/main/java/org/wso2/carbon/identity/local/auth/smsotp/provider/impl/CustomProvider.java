@@ -20,14 +20,14 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -62,9 +62,9 @@ public class CustomProvider implements Provider {
         smsMetadata.setTenantDomain(tenantDomain);
         smsData.setSmsMetadata(smsMetadata);
 
-        HTTPPublisher publisher = new HTTPPublisher(smsSenderDTO.getProviderURL());
         try {
-            publisher.publish(smsData);
+            HTTPPublisher publisher = new HTTPPublisher();
+            publisher.publish(smsData, smsSenderDTO.getProviderURL());
         } catch (PublisherException e) {
             throw new ProviderException("Error occurred while publishing the SMS data to the custom provider", e);
         }

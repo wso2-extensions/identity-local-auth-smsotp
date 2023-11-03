@@ -29,4 +29,6 @@ public class SMSNotificationConstants {
     public static final String SMS_MESSAGE_BODY_NAME = "body";
     public static final String SMS_MASSAGE_TO_NAME = "send-to";
     public static final String SMS_PUBLISHER_NAME = "SMSPublisher";
+    public static final String EVENT_NAME = "TRIGGER_SMS_NOTIFICATION_LOCAL";
+    public static final String OTP_TOKEN_PROPERTY_NAME = "otpToken";
 }

@@ -20,16 +20,20 @@ package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.auth.otp.core.model.OTP;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.DefaultNotificationHandler;
 import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,13 @@ import java.util.Map;
 public class SMSNotificationHandler extends DefaultNotificationHandler {
 
     private static final Log LOG = LogFactory.getLog(SMSNotificationHandler.class);
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
+
+        Event event = ((IdentityEventMessageContext) messageContext).getEvent();
+        return event.getEventName().equals(SMSNotificationConstants.EVENT_NAME);
+    }
 
     @Override
     public String getName() {
@@ -70,7 +81,7 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                     // This is to get the supported SMS providers. We can include SMS providers through OSGi.
                     Provider provider = SMSNotificationHandlerDataHolder
                             .getInstance()
-                            .getProvider(smsSenderDTO.getName());
+                            .getProvider(smsSenderDTO.getProvider());
                     if (provider == null) {
                         throw new IdentityEventException("No SMS provider found for the name: "
                                 + smsSenderDTO.getName());
@@ -90,7 +101,8 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
 
         SMSData smsData = new SMSData();
 
-        smsData.setSMSBody((String) eventProperties.get(SMSNotificationConstants.SMS_MESSAGE_BODY_NAME));
+        OTP otp = (OTP) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_PROPERTY_NAME);
+        smsData.setSMSBody(otp.getValue());
         smsData.setToNumber((String) eventProperties.get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME));
 
         return smsData;

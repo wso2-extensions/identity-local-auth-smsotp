@@ -29,6 +29,6 @@ public class Constants {
     public static final String KEY = "key";
     public static final String SECRET = "secret";
 
-    public static final String VONAGE = "vonage";
-    public static final String TWILIO = "twilio";
+    public static final String VONAGE = "Vonage";
+    public static final String TWILIO = "Twilio";
 }
