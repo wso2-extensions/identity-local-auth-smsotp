@@ -29,6 +29,10 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorMessage;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -54,8 +58,11 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -73,6 +80,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     private static final Log LOG = LogFactory.getLog(SMSOTPAuthenticator.class);
     private static final long serialVersionUID = 850244886656426295L;
+    private static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
+    private static final String SMS_OTP_SENT = "SMSOTPSent";
+    private static final String MASKED_MOBILE_NUMBER = "maskedMobileNumber";
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -307,7 +317,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                 String.valueOf(getOtpValidityPeriodInMillis(authenticationContext.getTenantDomain()) / 60000));
         metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
-
+        setAuthenticatorMessage(authenticationContext, mobileNumber);
         triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
     }
 
@@ -344,6 +354,24 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_APPLICATION, e,
                     (Object) null);
         }
+    }
+
+    /**
+     * Set the authenticator message to the context.
+     *
+     * @param context AuthenticationContext.
+     * @param maskedMobileNumber The masked mobile number.
+     */
+    private static void setAuthenticatorMessage(AuthenticationContext context, String maskedMobileNumber) {
+
+        String message = "The code is successfully sent to the mobile number: " + maskedMobileNumber;
+        Map<String, String> messageContext = new HashMap<>();
+        messageContext.put(MASKED_MOBILE_NUMBER, maskedMobileNumber);
+
+        AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(FrameworkConstants.
+                AuthenticatorMessageType.INFO, SMS_OTP_SENT, message, messageContext);
+
+        context.setProperty(AUTHENTICATOR_MESSAGE, authenticatorMessage);
     }
 
     /**
@@ -479,7 +507,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
      * @return User claim value.
      * @throws AuthenticationFailedException If an error occurred while getting the claim value.
      */
-    private String getUserClaimValueFromUserStore(AuthenticatedUser authenticatedUser)
+    private String getUserClaimValueFromUserStore(AuthenticatedUser authenticatedUser , AuthenticationContext context)
             throws AuthenticationFailedException {
 
         UserStoreManager userStoreManager = getUserStoreManager(authenticatedUser);
@@ -490,10 +518,22 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                             new String[]{SMSOTPConstants.Claims.MOBILE_CLAIM}, null);
             return claimValues.get(SMSOTPConstants.Claims.MOBILE_CLAIM);
         } catch (UserStoreException e) {
+            AuthenticatorMessage authenticatorMessage =
+                    new AuthenticatorMessage(FrameworkConstants.AuthenticatorMessageType.ERROR,
+                            AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_MOBILE_NUMBER.getCode(),
+                            AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_MOBILE_NUMBER.getMessage(),
+                            null);
+            setAuthenticatorMessage(authenticatorMessage, context);
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_MOBILE_NUMBER,
                     e, authenticatedUser.getUserName());
         }
     }
+
+    private static void setAuthenticatorMessage(AuthenticatorMessage errorMessage, AuthenticationContext context) {
+
+        context.setProperty(AUTHENTICATOR_MESSAGE, errorMessage);
+    }
+
 
     /**
      * Get UserStoreManager for the given user.
@@ -564,6 +604,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             }
         }
         if (StringUtils.isBlank(mobileAttributeKey)) {
+            AuthenticatorMessage authenticatorMessage =
+                    new AuthenticatorMessage(FrameworkConstants.AuthenticatorMessageType.ERROR,
+                            AuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_MOBILE_CLAIM_MAPPINGS.getCode(),
+                            AuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_MOBILE_CLAIM_MAPPINGS.getMessage(),
+                            null);
+            setAuthenticatorMessage(authenticatorMessage, context);
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_NO_MOBILE_CLAIM_MAPPINGS,
                     idpName, tenantDomain);
         }
@@ -596,8 +642,65 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 LOG.debug(String.format("Getting the mobile number of the local user: %s in user store: %s in " +
                         "tenant: %s", user.getUserName(), user.getUserStoreDomain(), user.getTenantDomain()));
             }
-            mobile = getUserClaimValueFromUserStore(user);
+            mobile = getUserClaimValueFromUserStore(user, context);
         }
         return mobile;
+    }
+
+    /**
+     * This method is responsible for validating whether the authenticator is supported for API Based Authentication.
+     *
+     * @return true if the authenticator is supported for API Based Authentication.
+     */
+    @Override
+    public boolean isAPIBasedAuthenticationSupported() {
+
+        return true;
+    }
+
+    /**
+     * This method is responsible for obtaining authenticator-specific data needed to
+     * initialize the authentication process within the provided authentication context.
+     *
+     * @param context The authentication context containing information about the current authentication attempt.
+     * @return An {@code Optional} containing an {@code AuthenticatorData} object representing the initiation data.
+     *         If the initiation data is available, it is encapsulated within the {@code Optional}; otherwise,
+     *         an empty {@code Optional} is returned.
+     */
+    @Override
+    public Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
+
+        AuthenticatorData authenticatorData = new AuthenticatorData();
+        authenticatorData.setName(getName());
+        String idpName = null;
+
+        AuthenticatedUser authenticatedUser = null;
+        if (context != null && context.getExternalIdP() != null) {
+            idpName = context.getExternalIdP().getIdPName();
+            authenticatedUser = context.getLastAuthenticatedUser();
+        }
+
+        authenticatorData.setIdp(idpName);
+        authenticatorData.setI18nKey(SMSOTPConstants.AUTHENTICATOR_SMS_OTP);
+
+        List<AuthenticatorParamMetadata> authenticatorParamMetadataList = new ArrayList<>();
+        List<String> requiredParams = new ArrayList<>();
+        if (authenticatedUser == null) {
+            AuthenticatorParamMetadata usernameMetadata = new AuthenticatorParamMetadata(
+                    SMSOTPConstants.USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
+                    0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM_KEY);
+            authenticatorParamMetadataList.add(usernameMetadata);
+            requiredParams.add(SMSOTPConstants.USERNAME);
+        } else {
+            AuthenticatorParamMetadata codeMetadata = new AuthenticatorParamMetadata(
+                    SMSOTPConstants.CODE, FrameworkConstants.AuthenticatorParamType.STRING,
+                    1, Boolean.TRUE, SMSOTPConstants.CODE_PARAM);
+            authenticatorParamMetadataList.add(codeMetadata);
+            requiredParams.add(SMSOTPConstants.CODE);
+        }
+        authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.USER_PROMPT);
+        authenticatorData.setRequiredParams(requiredParams);
+        authenticatorData.setAuthParams(authenticatorParamMetadataList);
+        return Optional.of(authenticatorData);
     }
 }
