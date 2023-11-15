@@ -20,12 +20,22 @@ package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -36,6 +46,9 @@ import static org.testng.Assert.assertTrue;
 public class SMSOTPAuthenticatorTest {
 
     private SMSOTPAuthenticator smsotpAuthenticator;
+
+    @Mock
+    private AuthenticationContext context = Mockito.mock(AuthenticationContext.class);
 
     @Mock
     private HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
@@ -145,5 +158,46 @@ public class SMSOTPAuthenticatorTest {
     @Test
     public void testGetMaximumResendAttempts() {
         assertTrue(true, "Test case not implemented yet");
+    }
+
+    @Test
+    public void testIsAPIBasedAuthenticationSupported() {
+
+        boolean isAPIBasedAuthenticationSupported = smsotpAuthenticator.isAPIBasedAuthenticationSupported();
+        Assert.assertTrue(isAPIBasedAuthenticationSupported);
+    }
+
+    @Test
+    public void testGetAuthInitiationData() throws AuthenticationFailedException {
+
+        Optional<AuthenticatorData> authenticatorData = smsotpAuthenticator.getAuthInitiationData(context);
+        Assert.assertTrue(authenticatorData.isPresent());
+        AuthenticatorData authenticatorDataObj = authenticatorData.get();
+
+        List<AuthenticatorParamMetadata> authenticatorParamMetadataList = new ArrayList<>();
+        AuthenticatorParamMetadata usernameMetadata = new AuthenticatorParamMetadata(
+                SMSOTPConstants.USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
+                0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM);
+        authenticatorParamMetadataList.add(usernameMetadata);
+
+        Assert.assertEquals(authenticatorDataObj.getName(), SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME,
+                "Authenticator name should match.");
+        Assert.assertEquals(authenticatorDataObj.getAuthParams().size(), authenticatorParamMetadataList.size(),
+                "Size of lists should be equal.");
+        Assert.assertEquals(authenticatorDataObj.getPromptType(),
+                FrameworkConstants.AuthenticatorPromptType.USER_PROMPT);
+        Assert.assertEquals(authenticatorDataObj.getRequiredParams().size(),
+                1);
+        for (int i = 0; i < authenticatorParamMetadataList.size(); i++) {
+            AuthenticatorParamMetadata expectedParam = authenticatorParamMetadataList.get(i);
+            AuthenticatorParamMetadata actualParam = authenticatorDataObj.getAuthParams().get(i);
+
+            Assert.assertEquals(actualParam.getName(), expectedParam.getName(), "Parameter name should match.");
+            Assert.assertEquals(actualParam.getType(), expectedParam.getType(), "Parameter type should match.");
+            Assert.assertEquals(actualParam.getParamOrder(), expectedParam.getParamOrder(),
+                    "Parameter order should match.");
+            Assert.assertEquals(actualParam.isConfidential(), expectedParam.isConfidential(),
+                    "Parameter mandatory status should match.");
+        }
     }
 }

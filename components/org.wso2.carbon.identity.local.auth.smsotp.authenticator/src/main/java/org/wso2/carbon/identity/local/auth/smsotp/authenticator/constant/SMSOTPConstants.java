@@ -85,6 +85,9 @@ public class SMSOTPConstants {
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
     public static final String PROP_THROTTLER_SERVICE_CONNECTION = "sms_throttler.throttler_service_connection";
     public static final String PROP_THROTTLER_SERVICE_ENABLE = "sms_throttler.enable";
+    public static final String AUTHENTICATOR_SMS_OTP = "authenticator.sms.otp";
+    public static final String CODE_PARAM = "code.param";
+    public static final String USERNAME_PARAM_KEY = "username.param";
 
     /**
      * Authenticator config related configurations.
