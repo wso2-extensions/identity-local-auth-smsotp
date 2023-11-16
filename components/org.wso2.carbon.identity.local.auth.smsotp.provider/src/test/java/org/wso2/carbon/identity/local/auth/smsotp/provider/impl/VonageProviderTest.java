@@ -61,7 +61,18 @@ public class VonageProviderTest {
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    @Test(expectedExceptions = {ProviderException.class})
+    public void testNullTelephoneNumberTest() throws ProviderException {
+
+        SMSData smsData = new SMSData();
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+    }
+
+    @Test()
     public void testInitSuccess() throws ProviderException {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
@@ -79,7 +90,7 @@ public class VonageProviderTest {
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
+    @Test()
     public void testSend() throws ProviderException {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
