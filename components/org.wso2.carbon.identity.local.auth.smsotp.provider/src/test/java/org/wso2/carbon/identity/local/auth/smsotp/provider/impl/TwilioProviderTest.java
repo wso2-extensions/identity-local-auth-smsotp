@@ -61,6 +61,17 @@ public class TwilioProviderTest {
         twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
+    @Test(expectedExceptions = {ProviderException.class})
+    public void testNullTelephoneNumberTest() throws ProviderException {
+
+        SMSData smsData = new SMSData();
+
+        SMSMetadata smsMetadata = new SMSMetadata();
+        smsData.setSmsMetadata(smsMetadata);
+
+        twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+    }
+
     @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
     public void testInitSuccess() throws ProviderException {
 

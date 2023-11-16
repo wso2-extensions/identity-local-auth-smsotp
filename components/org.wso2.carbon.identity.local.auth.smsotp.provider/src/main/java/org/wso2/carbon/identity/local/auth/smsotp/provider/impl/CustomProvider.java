@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
@@ -47,6 +48,10 @@ public class CustomProvider implements Provider {
 
     @Override
     public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain) throws ProviderException {
+
+        if (StringUtils.isBlank(smsData.getToNumber())) {
+            throw new ProviderException("To number is null or blank. Cannot send SMS");
+        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Sending SMS to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
