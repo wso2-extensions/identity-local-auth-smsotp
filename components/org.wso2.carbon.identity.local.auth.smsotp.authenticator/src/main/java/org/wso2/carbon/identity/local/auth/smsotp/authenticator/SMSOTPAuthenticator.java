@@ -70,6 +70,10 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_CODE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 
 /**
@@ -92,10 +96,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                     "otp code");
         }
         return ((StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.RESEND))
-                && StringUtils.isEmpty(request.getParameter(SMSOTPConstants.CODE)))
-                || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.CODE))
+                && StringUtils.isEmpty(request.getParameter(CODE)))
+                || StringUtils.isNotEmpty(request.getParameter(CODE))
                 || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.MOBILE_NUMBER))
-                || (StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.USERNAME))
+                || (StringUtils.isNotEmpty(request.getParameter(USERNAME))
                 && StringUtils.isEmpty(request.getParameter(SMSOTPConstants.PASSWORD))));
     }
 
@@ -270,13 +274,13 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         eventProperties.put(IdentityEventConstants.EventProperty.APPLICATION_NAME,
                 authenticationContext.getServiceProviderName());
         eventProperties.put(IdentityEventConstants.EventProperty.USER_INPUT_OTP,
-                httpServletRequest.getParameter(SMSOTPConstants.CODE));
+                httpServletRequest.getParameter(CODE));
         eventProperties.put(IdentityEventConstants.EventProperty.OTP_USED_TIME, System.currentTimeMillis());
         // Add otp status to the event properties.
         if (isAuthenticationPassed) {
             eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS, SMSOTPConstants.STATUS_SUCCESS);
             eventProperties.put(IdentityEventConstants.EventProperty.GENERATED_OTP,
-                    httpServletRequest.getParameter(SMSOTPConstants.CODE));
+                    httpServletRequest.getParameter(CODE));
         } else {
             if (isExpired) {
                 eventProperties.put(IdentityEventConstants.EventProperty.OTP_STATUS,
@@ -687,16 +691,16 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         List<String> requiredParams = new ArrayList<>();
         if (authenticatedUser == null) {
             AuthenticatorParamMetadata usernameMetadata = new AuthenticatorParamMetadata(
-                    SMSOTPConstants.USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
+                    USERNAME, DISPLAY_USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
                     0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM_KEY);
             authenticatorParamMetadataList.add(usernameMetadata);
-            requiredParams.add(SMSOTPConstants.USERNAME);
+            requiredParams.add(USERNAME);
         } else {
             AuthenticatorParamMetadata codeMetadata = new AuthenticatorParamMetadata(
-                    SMSOTPConstants.CODE, FrameworkConstants.AuthenticatorParamType.STRING,
+                    CODE, DISPLAY_CODE, FrameworkConstants.AuthenticatorParamType.STRING,
                     1, Boolean.TRUE, SMSOTPConstants.CODE_PARAM);
             authenticatorParamMetadataList.add(codeMetadata);
-            requiredParams.add(SMSOTPConstants.CODE);
+            requiredParams.add(CODE);
         }
         authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.USER_PROMPT);
         authenticatorData.setRequiredParams(requiredParams);

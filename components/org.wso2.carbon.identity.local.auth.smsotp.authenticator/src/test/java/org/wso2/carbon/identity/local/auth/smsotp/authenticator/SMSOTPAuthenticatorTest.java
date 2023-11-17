@@ -41,6 +41,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 
 
 public class SMSOTPAuthenticatorTest {
@@ -176,8 +178,8 @@ public class SMSOTPAuthenticatorTest {
 
         List<AuthenticatorParamMetadata> authenticatorParamMetadataList = new ArrayList<>();
         AuthenticatorParamMetadata usernameMetadata = new AuthenticatorParamMetadata(
-                SMSOTPConstants.USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
-                0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM);
+                USERNAME, DISPLAY_USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
+                0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM_KEY);
         authenticatorParamMetadataList.add(usernameMetadata);
 
         Assert.assertEquals(authenticatorDataObj.getName(), SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME,
