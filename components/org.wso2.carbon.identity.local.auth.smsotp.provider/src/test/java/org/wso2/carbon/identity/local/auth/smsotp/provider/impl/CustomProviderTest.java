@@ -74,7 +74,7 @@ public class CustomProviderTest {
     @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
     public void testInitSuccess() throws ProviderException {
 
-        when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
         when(smsSenderDTO.getKey()).thenReturn("key");
         when(smsSenderDTO.getSecret()).thenReturn("secret");
         when(smsSenderDTO.getSender()).thenReturn("sender");
@@ -92,7 +92,7 @@ public class CustomProviderTest {
     @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
     public void testSend() throws ProviderException {
 
-        when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
         when(smsSenderDTO.getKey()).thenReturn("key");
         when(smsSenderDTO.getSecret()).thenReturn("secret");
         when(smsSenderDTO.getSender()).thenReturn("sender");

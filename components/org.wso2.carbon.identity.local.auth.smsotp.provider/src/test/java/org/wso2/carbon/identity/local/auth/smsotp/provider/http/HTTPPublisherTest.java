@@ -52,6 +52,6 @@ public class HTTPPublisherTest {
 
         smsData.setSmsMetadata(smsMetadata);
 
-        httpPublisher.publish(smsData, "http://localhost:8080");
+        httpPublisher.publish(smsData, "https://localhost:8888");
     }
 }
