@@ -161,6 +161,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         String mobile = resolveMobileNoOfAuthenticatedUser(authenticatedUser, tenantDomain, authenticationContext,
                 isInitialFederationAttempt);
+        if (StringUtils.isBlank(mobile)) {
+            return null;
+        }
         int screenAttributeLength = mobile.length();
         String screenValue = mobile.substring(screenAttributeLength - SMSOTPConstants.MASKED_DIGITS,
                 screenAttributeLength);
