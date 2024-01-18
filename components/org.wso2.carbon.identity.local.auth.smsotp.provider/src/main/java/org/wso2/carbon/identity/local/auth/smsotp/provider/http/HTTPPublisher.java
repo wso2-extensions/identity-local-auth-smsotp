@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.http;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
@@ -35,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * This class will be used to publish the SMS to the custom SMS provider using the HTTP protocol.
@@ -62,15 +64,33 @@ public class HTTPPublisher {
             String json = objectMapper.writeValueAsString(smsData);
             URL url = new URL(publisherURL);
             connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(Constants.POST);
-            connection.setRequestProperty(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+
             SMSMetadata smsMetadata = smsData.getSmsMetadata();
+
+            if (smsMetadata.getHttpMethod() != null) {
+                connection.setRequestMethod(smsData.getSmsMetadata().getHttpMethod());
+            } else {
+                // Default method is POST (if not specified).
+                connection.setRequestMethod(Constants.POST);
+            }
             if (smsMetadata.getKey() != null) {
                 connection.setRequestProperty(Constants.KEY, smsMetadata.getKey());
             }
             if (smsMetadata.getSecret() != null) {
                 connection.setRequestProperty(Constants.SECRET, smsMetadata.getSecret());
             }
+
+            Map<String, String> headers = smsMetadata.getHeaders();
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                connection.setRequestProperty(entry.getKey().trim(), entry.getValue().trim());
+            }
+
+            if (StringUtils.isNotBlank(smsMetadata.getContentType())) {
+                connection.setRequestProperty(Constants.CONTENT_TYPE, smsMetadata.getContentType());
+            } else {
+                connection.setRequestProperty(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+            }
+
             connection.setDoOutput(true);
 
             try (OutputStream os = connection.getOutputStream()) {

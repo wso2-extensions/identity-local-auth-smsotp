@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.model;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents the SMS metadata.
@@ -34,6 +37,8 @@ public class SMSMetadata implements Serializable {
     private String sender;
     private String contentType;
     private String tenantDomain;
+    private String httpMethod;
+    private Map<String, String> headers = new HashMap<>();
 
     public SMSMetadata() {
         super();
@@ -45,6 +50,26 @@ public class SMSMetadata implements Serializable {
         this.sender = smsMetadata.getSender();
         this.contentType = smsMetadata.getContentType();
         this.tenantDomain = smsMetadata.getTenantDomain();
+        this.headers = smsMetadata.getHeaders();
+        this.httpMethod = smsMetadata.getHttpMethod();
+    }
+
+    /**
+     * Returns the headers.
+     *
+     * @return Headers.
+     */
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(headers);
+    }
+
+    /**
+     * Returns the HTTP method.
+     *
+     * @return HTTP method.
+     */
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     /**
@@ -66,6 +91,24 @@ public class SMSMetadata implements Serializable {
     }
 
     /**
+     * Sets the headers.
+     *
+     * @param headers Headers.
+     */
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = new HashMap<>(headers);
+    }
+
+    /**
+     * Sets the HTTP method.
+     *
+     * @param httpMethod HTTP method.
+     */
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    /**
      * Sets the key.
      *
      * @param key Key.
@@ -76,6 +119,7 @@ public class SMSMetadata implements Serializable {
 
     /**
      * Returns the secret.
+     *
      * @return Secret.
      */
     public String getSecret() {

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
@@ -29,6 +30,9 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -65,6 +69,15 @@ public class CustomProvider implements Provider {
         smsMetadata.setSender(smsSenderDTO.getSender());
         smsMetadata.setContentType(smsSenderDTO.getContentType());
         smsMetadata.setTenantDomain(tenantDomain);
+        smsMetadata.setHeaders(constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS)));
+        smsMetadata.setHttpMethod(smsSenderDTO.getProperties().get(Constants.HTTP_METHOD));
+
+        // If we have additional payload to be sent to the custom provider, we will append it to the SMS body.
+        String additionalPayload = smsSenderDTO.getProperties().get(Constants.HTTP_BODY);
+        if (StringUtils.isNotBlank(additionalPayload)) {
+            smsData.setSMSBody(smsData.getSMSBody() + "\n\r" + additionalPayload);
+        }
+        smsData.setFromNumber(smsSenderDTO.getSender());
         smsData.setSmsMetadata(smsMetadata);
 
         try {
@@ -73,5 +86,24 @@ public class CustomProvider implements Provider {
         } catch (PublisherException e) {
             throw new ProviderException("Error occurred while publishing the SMS data to the custom provider", e);
         }
+    }
+
+    private Map<String, String> constructHeaders(String headers) {
+
+        if (StringUtils.isBlank(headers)) {
+            return new HashMap<>();
+        }
+
+        String[] headerList = headers.split(",");
+        Map<String, String> headerMap = new HashMap<>();
+
+        // From the list of headers, construct the header map by splitting the header name and value using ':'.
+        for (String header : headerList) {
+            String[] headerArray = header.split(":");
+            if (headerArray.length == 2) {
+                headerMap.put(headerArray[0], headerArray[1]);
+            }
+        }
+        return headerMap;
     }
 }

@@ -31,4 +31,8 @@ public class Constants {
 
     public static final String VONAGE = "Vonage";
     public static final String TWILIO = "Twilio";
+
+    public static final String HTTP_HEADERS = "http.headers";
+    public static final String HTTP_METHOD = "http.method";
+    public static final String HTTP_BODY = "body";
 }
