@@ -31,4 +31,6 @@ public class SMSNotificationConstants {
     public static final String SMS_PUBLISHER_NAME = "SMSPublisher";
     public static final String EVENT_NAME = "TRIGGER_SMS_NOTIFICATION_LOCAL";
     public static final String OTP_TOKEN_PROPERTY_NAME = "otpToken";
+
+    public static final String ERROR_CODE_MISSING_SMS_SENDER = "40001";
 }
