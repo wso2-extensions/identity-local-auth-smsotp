@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
@@ -37,6 +38,8 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.exception.Noti
 
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.ERROR_CODE_MISSING_SMS_SENDER;
 
 /**
  * This class represents the SMS notification handler.
@@ -85,6 +88,15 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                     if (provider == null) {
                         throw new IdentityEventException("No SMS provider found for the name: "
                                 + smsSenderDTO.getName());
+                    }
+
+                    // We expect that all the providers will require the mobile number (To number) to proceed. Hence,
+                    // validating the mobile number at this level.
+                    String toNumber = (String) event.getEventProperties()
+                            .get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME);
+                    if (StringUtils.isBlank(toNumber)) {
+                        throw new IdentityEventException(ERROR_CODE_MISSING_SMS_SENDER,
+                                "To number is null or blank. Cannot send SMS");
                     }
                     provider.send(constructSMSOTPPayload(event.getEventProperties()), smsSenderDTO, tenantDomain);
                 }
