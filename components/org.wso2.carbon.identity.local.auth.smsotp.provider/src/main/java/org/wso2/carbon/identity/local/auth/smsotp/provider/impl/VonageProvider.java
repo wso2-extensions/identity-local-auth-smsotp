@@ -68,7 +68,7 @@ public class VonageProvider implements Provider {
                     .apiKey(apiKey)
                     .apiSecret(apiSecret)
                     .build();
-            TextMessage message = new TextMessage(senderName, smsData.getToNumber(), smsData.getSMSBody());
+            TextMessage message = new TextMessage(senderName, smsData.getToNumber(), smsData.getBody());
             SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
 
             if (response.getMessages().get(0).getStatus() != MessageStatus.OK) {

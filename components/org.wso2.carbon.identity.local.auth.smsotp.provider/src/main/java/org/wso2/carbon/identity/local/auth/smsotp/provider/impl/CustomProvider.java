@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderExc
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
@@ -62,23 +61,22 @@ public class CustomProvider implements Provider {
                     + " using custom provider");
         }
 
-        SMSMetadata smsMetadata = new SMSMetadata();
+        if (StringUtils.isBlank(smsSenderDTO.getContentType())
+                || smsSenderDTO.getContentType().equals(Constants.JSON)) {
+            smsData.setContentType(Constants.APPLICATION_JSON);
+        } else if (smsSenderDTO.getContentType().equals(Constants.FORM)) {
+            smsData.setContentType(Constants.APPLICATION_FORM);
+        }
 
-        smsMetadata.setKey(smsSenderDTO.getKey());
-        smsMetadata.setSecret(smsSenderDTO.getSecret());
-        smsMetadata.setSender(smsSenderDTO.getSender());
-        smsMetadata.setContentType(smsSenderDTO.getContentType());
-        smsMetadata.setTenantDomain(tenantDomain);
-        smsMetadata.setHeaders(constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS)));
-        smsMetadata.setHttpMethod(smsSenderDTO.getProperties().get(Constants.HTTP_METHOD));
+        smsData.setHeaders(constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS)));
+        smsData.setHttpMethod(smsSenderDTO.getProperties().get(Constants.HTTP_METHOD));
 
         // If we have additional payload to be sent to the custom provider, we will append it to the SMS body.
-        String additionalPayload = smsSenderDTO.getProperties().get(Constants.HTTP_BODY);
-        if (StringUtils.isNotBlank(additionalPayload)) {
-            smsData.setSMSBody(smsData.getSMSBody() + "\n\r" + additionalPayload);
+        String template = smsSenderDTO.getProperties().get(Constants.HTTP_BODY);
+        if (StringUtils.isBlank(template)) {
+            throw new ProviderException("Template is null or blank. Cannot send SMS");
         }
-        smsData.setFromNumber(smsSenderDTO.getSender());
-        smsData.setSmsMetadata(smsMetadata);
+        smsData.setBody(resolveTemplate(template, smsData.getToNumber(), smsData.getBody()));
 
         try {
             HTTPPublisher publisher = new HTTPPublisher();
@@ -105,5 +103,12 @@ public class CustomProvider implements Provider {
             }
         }
         return headerMap;
+    }
+
+    private String resolveTemplate(String template, String to, String body) {
+
+        return template
+                .replace(Constants.TO_PLACEHOLDER, "\"" + to + "\"")
+                .replace(Constants.BODY_PLACEHOLDER, "\"" + body + "\"");
     }
 }

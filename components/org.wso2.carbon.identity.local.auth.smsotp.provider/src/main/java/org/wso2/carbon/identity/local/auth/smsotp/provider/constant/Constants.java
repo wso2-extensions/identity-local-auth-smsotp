@@ -23,11 +23,12 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.constant;
  */
 public class Constants {
 
-    public static final String POST = "POST";
+    public static final String FORM = "FORM";
+    public static final String JSON = "JSON";
+    public static final String HTTP_POST = "POST";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json";
-    public static final String KEY = "key";
-    public static final String SECRET = "secret";
+    public static final String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
     public static final String VONAGE = "Vonage";
     public static final String TWILIO = "Twilio";
@@ -35,4 +36,6 @@ public class Constants {
     public static final String HTTP_HEADERS = "http.headers";
     public static final String HTTP_METHOD = "http.method";
     public static final String HTTP_BODY = "body";
+    public static final String TO_PLACEHOLDER = "{{mobile}}";
+    public static final String BODY_PLACEHOLDER = "{{body}}";
 }

@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.model;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents the SMS data.
@@ -29,53 +32,51 @@ import java.io.Serializable;
 public class SMSData implements Serializable {
 
     private static final long serialVersionUID = 350777056982260622L;
+    private String body;
     private String toNumber;
-    private String fromNumber;
-    private String smsBody;
-    private SMSMetadata smsMetadata;
+    private String contentType;
+    private String httpMethod;
+    private Map<String, String> headers = new HashMap<>();
 
     /**
-     * Returns the from number.
-     * @return From number.
+     * Returns the body.
+     *
+     * @return Body.
      */
-    public String getFromNumber() {
-        return fromNumber;
+    public String getBody() {
+        return body;
     }
 
     /**
-     * Returns the SMS metadata {@link SMSMetadata}.
-     * @return SMS metadata.
+     * Returns the content type.
+     *
+     * @return Content type.
      */
-    public SMSMetadata getSmsMetadata() {
-        return new SMSMetadata(smsMetadata);
+    public String getContentType() {
+        return contentType;
     }
 
     /**
-     * Sets the from number.
-     * @param fromNumber From number.
+     * Returns the headers.
+     *
+     * @return Headers.
      */
-    public void setFromNumber(String fromNumber) {
-        this.fromNumber = fromNumber;
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(headers);
     }
 
     /**
-     * Sets the SMS metadata {@link SMSMetadata}.
-     * @param smsMetadata SMS metadata.
+     * Returns the HTTP method.
+     *
+     * @return HTTP method.
      */
-    public void setSmsMetadata(SMSMetadata smsMetadata) {
-        this.smsMetadata = new SMSMetadata(smsMetadata);
-    }
-
-    /**
-     * Sets the to number.
-     * @param toNumber To number.
-     */
-    public void setToNumber(String toNumber) {
-        this.toNumber = toNumber;
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     /**
      * Returns the to number.
+     *
      * @return To number.
      */
     public String getToNumber() {
@@ -83,18 +84,47 @@ public class SMSData implements Serializable {
     }
 
     /**
-     * Sets the SMS body.
-     * @param smsBody SMS body.
+     * Sets the body.
+     *
+     * @param body Body.
      */
-    public void setSMSBody(String smsBody) {
-        this.smsBody = smsBody;
+    public void setBody(String body) {
+        this.body = body;
     }
 
     /**
-     * Returns the SMS body.
-     * @return SMS body.
+     * Sets the content type.
+     *
+     * @param contentType Content type.
      */
-    public String getSMSBody() {
-        return smsBody;
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    /**
+     * Sets the headers.
+     *
+     * @param headers Headers.
+     */
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = new HashMap<>(headers);
+    }
+
+    /**
+     * Sets the HTTP method.
+     *
+     * @param httpMethod HTTP method.
+     */
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    /**
+     * Sets the to number.
+     *
+     * @param toNumber To number.
+     */
+    public void setToNumber(String toNumber) {
+        this.toNumber = toNumber;
     }
 }
