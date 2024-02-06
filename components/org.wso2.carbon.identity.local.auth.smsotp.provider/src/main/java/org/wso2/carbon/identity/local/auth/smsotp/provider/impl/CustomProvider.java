@@ -62,9 +62,9 @@ public class CustomProvider implements Provider {
         }
 
         if (StringUtils.isBlank(smsSenderDTO.getContentType())
-                || smsSenderDTO.getContentType().equals(Constants.JSON)) {
+                || Constants.JSON.equals(smsSenderDTO.getContentType())) {
             smsData.setContentType(Constants.APPLICATION_JSON);
-        } else if (smsSenderDTO.getContentType().equals(Constants.FORM)) {
+        } else if (Constants.FORM.equals(smsSenderDTO.getContentType())) {
             smsData.setContentType(Constants.APPLICATION_FORM);
         }
 
