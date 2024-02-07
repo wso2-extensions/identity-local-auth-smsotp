@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -27,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,52 +58,28 @@ public class HTTPPublisher {
 
         HttpURLConnection connection = null;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(smsData);
+            String json = smsData.getBody();
             URL url = new URL(publisherURL);
             connection = (HttpURLConnection) url.openConnection();
 
-            SMSMetadata smsMetadata = smsData.getSmsMetadata();
-
-            if (smsMetadata.getHttpMethod() != null) {
-                connection.setRequestMethod(smsData.getSmsMetadata().getHttpMethod());
-            } else {
-                // Default method is POST (if not specified).
-                connection.setRequestMethod(Constants.POST);
-            }
-            if (smsMetadata.getKey() != null) {
-                connection.setRequestProperty(Constants.KEY, smsMetadata.getKey());
-            }
-            if (smsMetadata.getSecret() != null) {
-                connection.setRequestProperty(Constants.SECRET, smsMetadata.getSecret());
-            }
-
-            Map<String, String> headers = smsMetadata.getHeaders();
+            Map<String, String> headers = smsData.getHeaders();
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 connection.setRequestProperty(entry.getKey().trim(), entry.getValue().trim());
             }
 
-            if (StringUtils.isNotBlank(smsMetadata.getContentType())) {
-                connection.setRequestProperty(Constants.CONTENT_TYPE, smsMetadata.getContentType());
+            if (StringUtils.isNotBlank(smsData.getContentType())) {
+                connection.setRequestProperty(Constants.CONTENT_TYPE, smsData.getContentType());
             } else {
                 connection.setRequestProperty(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
             }
 
-            connection.setDoOutput(true);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = json.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Successfully published the sms data to the: " + publisherURL);
-                    log.debug("JSON data: " + json);
-                }
+            if (StringUtils.isNotBlank(smsData.getHttpMethod())) {
+                connection.setRequestMethod(smsData.getHttpMethod());
             } else {
-                log.warn("Error occurred while publishing the sms data to the: " + publisherURL);
+                connection.setRequestMethod(Constants.HTTP_POST);
             }
+
+            publish(json, publisherURL, connection);
         } catch (JsonProcessingException e) {
             throw new PublisherException("Error while converting the SMSData object to JSON", e);
         } catch (ProtocolException e) {
@@ -118,6 +92,25 @@ public class HTTPPublisher {
             if (connection != null) {
                 connection.disconnect();
             }
+        }
+    }
+
+    private void publish(String json, String publisherURL, HttpURLConnection connection) throws IOException {
+
+        connection.setDoOutput(true);
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = json.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED) {
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully published the sms data to the: " + publisherURL);
+                log.debug("JSON data: " + json);
+            }
+        } else {
+            log.warn("Error occurred while publishing the sms data to the: " + publisherURL
+                    + ". Response code: " + responseCode);
         }
     }
 

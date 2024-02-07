@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 import static org.mockito.Mockito.when;
@@ -55,9 +54,6 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        SMSMetadata smsMetadata = new SMSMetadata();
-        smsData.setSmsMetadata(smsMetadata);
-
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
@@ -65,10 +61,6 @@ public class VonageProviderTest {
     public void testNullTelephoneNumberTest() throws ProviderException {
 
         SMSData smsData = new SMSData();
-
-        SMSMetadata smsMetadata = new SMSMetadata();
-        smsData.setSmsMetadata(smsMetadata);
-
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
@@ -84,9 +76,6 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        SMSMetadata smsMetadata = new SMSMetadata();
-        smsData.setSmsMetadata(smsMetadata);
-
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
@@ -101,9 +90,6 @@ public class VonageProviderTest {
 
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
-
-        SMSMetadata smsMetadata = new SMSMetadata();
-        smsData.setSmsMetadata(smsMetadata);
 
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }

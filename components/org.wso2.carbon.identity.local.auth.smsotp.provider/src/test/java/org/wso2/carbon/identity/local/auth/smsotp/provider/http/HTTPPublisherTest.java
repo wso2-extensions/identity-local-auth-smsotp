@@ -22,7 +22,6 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
-import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSMetadata;
 
 public class HTTPPublisherTest {
 
@@ -37,10 +36,6 @@ public class HTTPPublisherTest {
     public void testForInvalidURL() throws PublisherException {
 
         SMSData smsData = new SMSData();
-        SMSMetadata smsMetadata = new SMSMetadata();
-
-        smsData.setSmsMetadata(smsMetadata);
-
         httpPublisher.publish(smsData, "file://localhost:8080");
     }
 
@@ -48,10 +43,6 @@ public class HTTPPublisherTest {
     public void testPublisherExceptionCase() throws PublisherException {
 
         SMSData smsData = new SMSData();
-        SMSMetadata smsMetadata = new SMSMetadata();
-
-        smsData.setSmsMetadata(smsMetadata);
-
         httpPublisher.publish(smsData, "https://localhost:8888");
     }
 }

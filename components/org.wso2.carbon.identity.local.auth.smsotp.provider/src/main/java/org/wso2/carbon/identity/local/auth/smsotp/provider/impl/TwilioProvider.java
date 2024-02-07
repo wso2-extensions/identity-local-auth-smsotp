@@ -66,7 +66,7 @@ public class TwilioProvider implements Provider {
             Twilio.init(accountSid, authToken);
             PhoneNumber to = new PhoneNumber(smsData.getToNumber());
             PhoneNumber from = new PhoneNumber(senderName);
-            Message message = Message.creator(to, from, smsData.getSMSBody()).create();
+            Message message = Message.creator(to, from, smsData.getBody()).create();
 
             if (message.getStatus() == Message.Status.FAILED) {
                 LOG.warn("Error occurred while sending SMS to "
