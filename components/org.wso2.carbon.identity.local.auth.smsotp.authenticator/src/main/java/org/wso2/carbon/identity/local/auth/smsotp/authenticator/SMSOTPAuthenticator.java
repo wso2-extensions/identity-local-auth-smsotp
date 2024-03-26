@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorMessage;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -325,7 +326,19 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 String.valueOf(getOtpValidityPeriodInMillis(authenticationContext.getTenantDomain()) / 60000));
         metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
         setAuthenticatorMessage(authenticationContext, mobileNumber);
-        triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+        /* SaaS apps are created at the super tenant level and they can be accessed by users of other organizations.
+        If users of other organizations try to login to a saas app, the sms notification should be triggered from the
+        sms provider configured for that organization. Hence, we need to start a new tenanted flow here. */
+        if (authenticationContext.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+            try {
+                FrameworkUtils.startTenantFlow(authenticatedUser.getTenantDomain());
+                triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+            } finally {
+                FrameworkUtils.endTenantFlow();
+            }
+        } else {
+            triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+        }
     }
 
     @Override
