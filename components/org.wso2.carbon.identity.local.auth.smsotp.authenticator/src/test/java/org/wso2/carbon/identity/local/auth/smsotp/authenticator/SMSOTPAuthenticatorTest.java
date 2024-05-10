@@ -184,6 +184,8 @@ public class SMSOTPAuthenticatorTest {
 
         Assert.assertEquals(authenticatorDataObj.getName(), SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME,
                 "Authenticator name should match.");
+        Assert.assertEquals(authenticatorDataObj.getDisplayName(), SMSOTPConstants.SMS_OTP_AUTHENTICATOR_FRIENDLY_NAME,
+                "Authenticator display name should match.");
         Assert.assertEquals(authenticatorDataObj.getAuthParams().size(), authenticatorParamMetadataList.size(),
                 "Size of lists should be equal.");
         Assert.assertEquals(authenticatorDataObj.getPromptType(),
