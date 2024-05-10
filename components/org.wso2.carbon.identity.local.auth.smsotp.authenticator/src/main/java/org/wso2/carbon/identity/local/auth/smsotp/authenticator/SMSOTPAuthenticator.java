@@ -692,6 +692,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         AuthenticatorData authenticatorData = new AuthenticatorData();
         authenticatorData.setName(getName());
+        authenticatorData.setDisplayName(getFriendlyName());
         String idpName = null;
 
         AuthenticatedUser authenticatedUser = null;
