@@ -110,7 +110,7 @@ public class CustomProvider implements Provider {
 
     String resolveTemplate(String contentType, String template, String to, String body) throws ProviderException {
 
-        if (Constants.FORM.equals(contentType)) {
+        if (Constants.APPLICATION_FORM.equals(contentType)) {
             try {
                 return template
                         .replace(Constants.TO_PLACEHOLDER, URLEncoder.encode(to, StandardCharsets.UTF_8.name()))

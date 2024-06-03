@@ -100,11 +100,11 @@ public class CustomProviderTest {
     public void resolveTemplateTest() throws ProviderException {
 
         String template = customProvider.resolveTemplate(
-                Constants.FORM,
+                Constants.APPLICATION_FORM,
                 "Body={{body}}&To={{mobile}}", TO_NUMBER, "Verification Code: 769317");
         Assert.isTrue("Body=Verification+Code%3A+769317&To=%2B1234567890".equals(template));
         template = customProvider.resolveTemplate(
-                Constants.JSON,
+                Constants.APPLICATION_JSON,
                 "{\"content\": {{body}},\"to\": {{mobile}}}", TO_NUMBER, "Verification Code: 769317");
         Assert.isTrue("{\"content\": \"Verification Code: 769317\",\"to\": \"+1234567890\"}".equals(template));
     }
