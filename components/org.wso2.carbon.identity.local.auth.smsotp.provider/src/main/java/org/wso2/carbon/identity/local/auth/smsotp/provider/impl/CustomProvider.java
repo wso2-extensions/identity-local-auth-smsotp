@@ -30,6 +30,9 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +79,7 @@ public class CustomProvider implements Provider {
         if (StringUtils.isBlank(template)) {
             throw new ProviderException("Template is null or blank. Cannot send SMS");
         }
-        smsData.setBody(resolveTemplate(template, smsData.getToNumber(), smsData.getBody()));
+        smsData.setBody(resolveTemplate(smsData.getContentType(), template, smsData.getToNumber(), smsData.getBody()));
 
         try {
             HTTPPublisher publisher = new HTTPPublisher();
@@ -105,8 +108,17 @@ public class CustomProvider implements Provider {
         return headerMap;
     }
 
-    private String resolveTemplate(String template, String to, String body) {
+    String resolveTemplate(String contentType, String template, String to, String body) throws ProviderException {
 
+        if (Constants.FORM.equals(contentType)) {
+            try {
+                return template
+                        .replace(Constants.TO_PLACEHOLDER, URLEncoder.encode(to, StandardCharsets.UTF_8.name()))
+                        .replace(Constants.BODY_PLACEHOLDER, URLEncoder.encode(body, StandardCharsets.UTF_8.name()));
+            } catch (UnsupportedEncodingException e) {
+                throw new ProviderException("The specified encoding is not supported.");
+            }
+        }
         return template
                 .replace(Constants.TO_PLACEHOLDER, "\"" + to + "\"")
                 .replace(Constants.BODY_PLACEHOLDER, "\"" + body + "\"");

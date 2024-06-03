@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.when;
 public class CustomProviderTest {
 
     private CustomProvider customProvider;
+    private final String TO_NUMBER = "+1234567890";
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
@@ -52,7 +54,7 @@ public class CustomProviderTest {
     public void testInitNotInit() throws ProviderException {
 
         SMSData smsData = new SMSData();
-        smsData.setToNumber("1234567890");
+        smsData.setToNumber(TO_NUMBER);
 
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
@@ -74,7 +76,7 @@ public class CustomProviderTest {
         when(smsSenderDTO.getContentType()).thenReturn("contentType");
 
         SMSData smsData = new SMSData();
-        smsData.setToNumber("1234567890");
+        smsData.setToNumber(TO_NUMBER);
 
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
@@ -89,8 +91,21 @@ public class CustomProviderTest {
         when(smsSenderDTO.getContentType()).thenReturn("contentType");
 
         SMSData smsData = new SMSData();
-        smsData.setToNumber("1234567890");
+        smsData.setToNumber(TO_NUMBER);
 
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
+    }
+
+    @Test
+    public void resolveTemplateTest() throws ProviderException {
+
+        String template = customProvider.resolveTemplate(
+                Constants.FORM,
+                "Body={{body}}&To={{mobile}}", TO_NUMBER, "Sample body");
+        Assert.isTrue("Body=Sample+body&To=%2B1234567890".equals(template));
+        template = customProvider.resolveTemplate(
+                Constants.JSON,
+                "{\"content\": {{body}},\"to\": {{mobile}}}", TO_NUMBER, "Sample body");
+        Assert.isTrue("{\"content\": \"Sample body\",\"to\": \"+1234567890\"}".equals(template));
     }
 }
