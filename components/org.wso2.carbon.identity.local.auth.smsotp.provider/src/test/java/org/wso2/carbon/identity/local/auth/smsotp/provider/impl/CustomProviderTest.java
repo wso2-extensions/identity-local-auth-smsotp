@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class CustomProviderTest {
 
     private CustomProvider customProvider;
-    private final String TO_NUMBER = "+1234567890";
+    private static final String TO_NUMBER = "+1234567890";
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
@@ -101,11 +101,11 @@ public class CustomProviderTest {
 
         String template = customProvider.resolveTemplate(
                 Constants.FORM,
-                "Body={{body}}&To={{mobile}}", TO_NUMBER, "Sample body");
-        Assert.isTrue("Body=Sample+body&To=%2B1234567890".equals(template));
+                "Body={{body}}&To={{mobile}}", TO_NUMBER, "Verification Code: 769317");
+        Assert.isTrue("Body=Verification+Code%3A+769317&To=%2B1234567890".equals(template));
         template = customProvider.resolveTemplate(
                 Constants.JSON,
-                "{\"content\": {{body}},\"to\": {{mobile}}}", TO_NUMBER, "Sample body");
-        Assert.isTrue("{\"content\": \"Sample body\",\"to\": \"+1234567890\"}".equals(template));
+                "{\"content\": {{body}},\"to\": {{mobile}}}", TO_NUMBER, "Verification Code: 769317");
+        Assert.isTrue("{\"content\": \"Verification Code: 769317\",\"to\": \"+1234567890\"}".equals(template));
     }
 }
