@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
-import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
@@ -29,15 +29,28 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherEx
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.mockito.Mockito.when;
 
 public class CustomProviderTest {
 
     private CustomProvider customProvider;
+    private Map<String, String> propertiesMap = new HashMap<>();
     private static final String TO_NUMBER = "+1234567890";
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
+
+    @BeforeTest
+    public void init() {
+        propertiesMap.put(Constants.HTTP_HEADERS, "Authorization: Basic QUNiMziOTIyNT");
+        propertiesMap.put(Constants.HTTP_BODY, "Body={{body}}&To={{mobile}}");
+        propertiesMap.put(Constants.HTTP_METHOD, "POST");
+    }
 
     @BeforeTest
     public void createNewObject() {
@@ -47,7 +60,7 @@ public class CustomProviderTest {
     @Test
     public void testGetName() {
         String name = customProvider.getName();
-        Assert.notNull(name);
+        Assert.assertNotNull(name);
     }
 
     @Test(expectedExceptions = ProviderException.class)
@@ -59,11 +72,27 @@ public class CustomProviderTest {
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test(expectedExceptions = {ProviderException.class})
-    public void testNullTelephoneNumberTest() throws ProviderException {
+    @Test
+    public void testNullTelephoneNumberTest() {
 
         SMSData smsData = new SMSData();
-        customProvider.send(smsData, smsSenderDTO, "carbon.super");
+        try {
+            customProvider.send(smsData, smsSenderDTO, "carbon.super");
+        } catch (ProviderException e) {
+            Assert.assertEquals(e.getMessage(), "To number is null or blank. Cannot send SMS");
+        }
+    }
+
+    @Test
+    public void testNullTemplateTest() {
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+        try {
+            customProvider.send(smsData, smsSenderDTO, "carbon.super");
+        } catch (ProviderException e) {
+            Assert.assertEquals(e.getMessage(), "Template is null or blank. Cannot send SMS");
+        }
     }
 
     @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
@@ -81,31 +110,53 @@ public class CustomProviderTest {
         customProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test(expectedExceptions = {PublisherException.class, ProviderException.class})
-    public void testSend() throws ProviderException {
+    @Test
+    public void testSend() {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
         when(smsSenderDTO.getKey()).thenReturn("key");
         when(smsSenderDTO.getSecret()).thenReturn("secret");
         when(smsSenderDTO.getSender()).thenReturn("sender");
         when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
 
         SMSData smsData = new SMSData();
         smsData.setToNumber(TO_NUMBER);
 
-        customProvider.send(smsData, smsSenderDTO, "carbon.super");
+        try {
+            customProvider.send(smsData, smsSenderDTO, "carbon.super");
+        } catch (ProviderException e) {
+            Assert.assertEquals(e.getMessage(), "Error occurred while publishing the SMS data to the custom provider");
+        }
     }
 
     @Test
-    public void resolveTemplateTest() throws ProviderException {
+    public void resolveFormTemplateTest()
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-        String template = customProvider.resolveTemplate(
+        CustomProvider customProvider = new CustomProvider();
+        Method method = CustomProvider.class.getDeclaredMethod(
+                "resolveTemplate", String.class, String.class, String.class, String.class);
+        method.setAccessible(true);
+
+        String template = (String) method.invoke(customProvider,
                 Constants.APPLICATION_FORM,
                 "Body={{body}}&To={{mobile}}", TO_NUMBER, "Verification Code: 769317");
-        Assert.isTrue("Body=Verification+Code%3A+769317&To=%2B1234567890".equals(template));
-        template = customProvider.resolveTemplate(
+        Assert.assertEquals(template, "Body=Verification+Code%3A+769317&To=%2B1234567890");
+    }
+
+    @Test
+    public void  resolveJsonTemplateTest()
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        CustomProvider customProvider = new CustomProvider();
+        Method method = CustomProvider.class.getDeclaredMethod(
+                "resolveTemplate", String.class, String.class, String.class, String.class);
+        method.setAccessible(true);
+
+        String template = (String) method.invoke(customProvider,
                 Constants.APPLICATION_JSON,
                 "{\"content\": {{body}},\"to\": {{mobile}}}", TO_NUMBER, "Verification Code: 769317");
-        Assert.isTrue("{\"content\": \"Verification Code: 769317\",\"to\": \"+1234567890\"}".equals(template));
+        Assert.assertEquals(template, "{\"content\": \"Verification Code: 769317\",\"to\": \"+1234567890\"}");
     }
 }

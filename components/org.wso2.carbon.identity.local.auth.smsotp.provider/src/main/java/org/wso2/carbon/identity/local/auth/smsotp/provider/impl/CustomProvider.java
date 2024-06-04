@@ -108,7 +108,8 @@ public class CustomProvider implements Provider {
         return headerMap;
     }
 
-    String resolveTemplate(String contentType, String template, String to, String body) throws ProviderException {
+    private String resolveTemplate(String contentType, String template, String to, String body)
+            throws ProviderException {
 
         if (Constants.APPLICATION_FORM.equals(contentType)) {
             try {
