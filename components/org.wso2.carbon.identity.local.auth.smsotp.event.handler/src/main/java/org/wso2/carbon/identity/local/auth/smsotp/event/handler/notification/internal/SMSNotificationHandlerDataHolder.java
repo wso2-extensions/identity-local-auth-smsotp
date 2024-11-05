@@ -91,10 +91,12 @@ public class SMSNotificationHandlerDataHolder {
     }
 
     public RealmService getRealmService() {
+
         return realmService;
     }
 
     public void setRealmService(RealmService realmService) {
+
         this.realmService = realmService;
     }
 }
