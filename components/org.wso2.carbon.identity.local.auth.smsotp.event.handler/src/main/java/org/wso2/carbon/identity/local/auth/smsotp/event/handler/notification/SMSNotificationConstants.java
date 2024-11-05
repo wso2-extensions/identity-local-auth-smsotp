@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 
+import java.util.Set;
+
 /**
  * Keep constants required by the SMS OTP Notification Event Handler.
  */
@@ -32,6 +34,29 @@ public class SMSNotificationConstants {
     public static final String EVENT_NAME = "TRIGGER_SMS_NOTIFICATION_LOCAL";
     public static final String OTP_TOKEN_PROPERTY_NAME = "otpToken";
     public static final String OTP_TOKEN_STRING_PROPERTY_NAME = "otpTokenString";
+    public static final String BODY_TEMPLATE = "body-template";
+    public static final String PROPERTY_APPLY_SMS_TEMPLATES = "NotificationTemplates.SMSTemplates.Apply";
+
+    public static final String PLACE_HOLDER_REGEX = "\\{\\{([a-zA-Z0-9\\-]+?)}}";
+    public static final String PLACE_HOLDER_CONFIRMATION_CODE = "confirmation-code";
+    public static final String PLACE_HOLDER_OTP_EXPIRY_TIME = "otp-expiry-time";
+    public static final String PLACE_HOLDER_TENANT_DOMAIN = "tenant-domain";
+    public static final String PLACE_HOLDER_USER_NAME = "user-name";
+    public static final String PLACE_HOLDER_USER_STORE_DOMAIN = "userstore-domain";
+    public static final String PLACEHOLDER_ORGANIZATION_NAME = "organization-name";
+    public static final String PLACE_HOLDER_APPLICATION_NAME = "application-name";
 
     public static final String ERROR_CODE_MISSING_SMS_SENDER = "40001";
+    public static final String ERROR_CODE_TEMPLATE_NOT_FOUND = "40002";
+
+    public static final String ERROR_MESSAGE_TEMPLATE_NOT_FOUND = "SMS template not found.";
+
+    public static final Set<String> ACCEPTED_SMS_PLACEHOLDERS = Set.of(
+            PLACE_HOLDER_TENANT_DOMAIN,
+            PLACE_HOLDER_USER_NAME,
+            PLACE_HOLDER_USER_STORE_DOMAIN,
+            PLACEHOLDER_ORGANIZATION_NAME,
+            PLACE_HOLDER_APPLICATION_NAME,
+            PLACE_HOLDER_CONFIRMATION_CODE,
+            PLACE_HOLDER_OTP_EXPIRY_TIME);
 }

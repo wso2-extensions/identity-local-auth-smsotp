@@ -30,8 +30,10 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.CustomProvider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.TwilioProvider;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementConstants;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
@@ -74,7 +76,8 @@ public class SMSNotificationHandlerTest {
     public void setup() {
 
         MockitoAnnotations.openMocks(this);
-        smsNotificationHandler = new SMSNotificationHandlerExtended();
+        TestableSMSNotificationHandler.resetNotificationData();
+        smsNotificationHandler = new TestableSMSNotificationHandler();
         SMSNotificationHandlerDataHolder
                 .getInstance()
                 .setNotificationSenderManagementService(notificationSenderManagementService);
@@ -98,6 +101,40 @@ public class SMSNotificationHandlerTest {
             smsNotificationHandler.handleEvent(event);
         } catch (IdentityEventException e) {
             Assert.assertNotNull(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testConstructSMSOTPPayload() throws IdentityEventException {
+
+        Event testEvent = constructSMSOTPEvent();
+        try (MockedStatic<SMSNotificationUtil> mockedSMSNotificationUtil = mockStatic(SMSNotificationUtil.class)) {
+            mockedSMSNotificationUtil.when(SMSNotificationUtil::isEnabledSMSTemplates).thenReturn(true);
+            mockedSMSNotificationUtil.when(() -> SMSNotificationUtil.replacePlaceholders(
+                    TestableSMSNotificationHandler.notificationData.get(SMSNotificationConstants.BODY_TEMPLATE),
+                    TestableSMSNotificationHandler.notificationData)).thenReturn("success");
+            SMSData smsData = smsNotificationHandler.constructSMSOTPPayload(testEvent);
+            Assert.assertEquals(smsData.getBody(), "success");
+        }
+    }
+
+    @Test(expectedExceptions = IdentityEventException.class)
+    public void testConstructSMSOTPPayloadWithNoTemplate() throws IdentityEventException {
+
+        Event testEvent = constructSMSOTPEvent();
+        try (MockedStatic<SMSNotificationUtil> mockedSMSNotificationUtil = mockStatic(SMSNotificationUtil.class)) {
+            mockedSMSNotificationUtil.when(SMSNotificationUtil::isEnabledSMSTemplates).thenReturn(true);
+            mockedSMSNotificationUtil.when(() -> SMSNotificationUtil.replacePlaceholders(
+                    TestableSMSNotificationHandler.notificationData.get(SMSNotificationConstants.BODY_TEMPLATE),
+                    TestableSMSNotificationHandler.notificationData)).thenReturn("success");
+            TestableSMSNotificationHandler.notificationData.remove(SMSNotificationConstants.BODY_TEMPLATE);
+            smsNotificationHandler.constructSMSOTPPayload(testEvent);
+        } finally {
+            TestableSMSNotificationHandler.notificationData.put(SMSNotificationConstants.BODY_TEMPLATE,
+                    "Your one-time password for the {{application-name}} is {{otpToken}}. This expires " +
+                            "in {{otp-expiry-time}} minutes.,");
+            TestableSMSNotificationHandler.notificationData.remove(
+                    SMSNotificationConstants.PLACEHOLDER_ORGANIZATION_NAME);
         }
     }
 
@@ -203,36 +240,5 @@ public class SMSNotificationHandlerTest {
                 "{{application-name}} is {{otpToken}}. This expires in {{otp-expiry-time}} minutes.,");
 
         return smsOtpEvent;
-    }
-
-    public class SMSNotificationHandlerExtended extends SMSNotificationHandler {
-
-        protected void publishToStream(Map<String, String> dataMap, Event event) {
-
-        }
-
-        protected Map<String, String> buildNotificationData(Event event) {
-
-            Map<String, String> notificationData = new HashMap<>();
-
-            notificationData.put("send-to", "+11110000");
-            notificationData.put("TEMPLATE_TYPE", "SMSOTP");
-            notificationData.put("application-name", "sms_otp_singlepage_App");
-            notificationData.put("notification-channel", "smsotp");
-            notificationData.put("notification-event", "smsotp");
-            notificationData.put("mobile", "+11110000");
-            notificationData.put("otpToken", "874090");
-            notificationData.put("userstore-domain", "DEFAULT");
-            notificationData.put("locale", "en_US");
-            notificationData.put("body", "Your one-time password for the sms_otp_singlepage_App is 874090. " +
-                    "This expires in 5 minutes.");
-            notificationData.put("tenant-domain", tenantDomain);
-            notificationData.put("otp-expiry-time", "5");
-            notificationData.put("user-name", "wso2@gmail.com");
-            notificationData.put("body-template", "Your one-time password for the {{application-name}} " +
-                    "is {{otpToken}}. This expires in {{otp-expiry-time}} minutes.,");
-
-            return notificationData;
-        }
     }
 }

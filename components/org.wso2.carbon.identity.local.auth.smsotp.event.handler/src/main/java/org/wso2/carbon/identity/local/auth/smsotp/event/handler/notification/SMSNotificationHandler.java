@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.notification.DefaultNotificationHandler;
 import org.wso2.carbon.identity.event.handler.notification.NotificationConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
+import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
@@ -98,7 +99,7 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                         throw new IdentityEventException(ERROR_CODE_MISSING_SMS_SENDER,
                                 "To number is null or blank. Cannot send SMS");
                     }
-                    provider.send(constructSMSOTPPayload(event.getEventProperties()), smsSenderDTO, tenantDomain);
+                    provider.send(constructSMSOTPPayload(event), smsSenderDTO, tenantDomain);
                 }
             }
         } catch (NotificationSenderManagementException e) {
@@ -109,19 +110,37 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
         }
     }
 
-    private SMSData constructSMSOTPPayload(Map<String, Object> eventProperties) {
+    protected SMSData constructSMSOTPPayload(Event event) throws IdentityEventException {
 
         SMSData smsData = new SMSData();
-
-        String otpString = (String) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME);
-        if (StringUtils.isNotBlank(otpString)) {
-            smsData.setBody(otpString);
+        Map<String, Object> eventProperties = event.getEventProperties();
+        if (SMSNotificationUtil.isEnabledSMSTemplates()) {
+            smsData.setBody(constructTemplatedSMSBody(event));
         } else {
-            OTP otp = (OTP) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_PROPERTY_NAME);
-            smsData.setBody(otp.getValue());
+            String otpString = (String) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME);
+            if (StringUtils.isNotBlank(otpString)) {
+                smsData.setBody(otpString);
+            } else {
+                OTP otp = (OTP) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_PROPERTY_NAME);
+                smsData.setBody(otp.getValue());
+            }
         }
         smsData.setToNumber((String) eventProperties.get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME));
-
         return smsData;
+    }
+
+    protected String constructTemplatedSMSBody(Event event) throws IdentityEventException {
+
+        Map<String, String> notificationData = buildNotificationData(event);
+        SMSNotificationUtil.resolveOTPValues(event.getEventProperties(), notificationData);
+        String orgName = SMSNotificationUtil.resolveHumanReadableOrganizationName((String) event.getEventProperties()
+                .get(NotificationConstants.TENANT_DOMAIN));
+        notificationData.put(SMSNotificationConstants.PLACEHOLDER_ORGANIZATION_NAME, orgName);
+        String template = notificationData.get(SMSNotificationConstants.BODY_TEMPLATE);
+        if (StringUtils.isBlank(template)) {
+            throw new IdentityEventException(SMSNotificationConstants.ERROR_CODE_TEMPLATE_NOT_FOUND,
+                    SMSNotificationConstants.ERROR_MESSAGE_TEMPLATE_NOT_FOUND);
+        }
+        return SMSNotificationUtil.replacePlaceholders(template, notificationData);
     }
 }

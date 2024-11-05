@@ -19,8 +19,11 @@
 package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.wso2.carbon.identity.governance.service.notification.NotificationTemplateManager;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +36,10 @@ public class SMSNotificationHandlerDataHolder {
 
     private static final SMSNotificationHandlerDataHolder instance = new SMSNotificationHandlerDataHolder();
 
+    private NotificationTemplateManager notificationTemplateManager;
     private NotificationSenderManagementService notificationSenderManagementService;
+    private OrganizationManager organizationManager;
+    private RealmService realmService;
     private final Map<String, Provider> providers = new HashMap<>();
 
     private SMSNotificationHandlerDataHolder() {
@@ -62,5 +68,33 @@ public class SMSNotificationHandlerDataHolder {
     public void setNotificationSenderManagementService(
             NotificationSenderManagementService notificationSenderManagementService) {
         this.notificationSenderManagementService = notificationSenderManagementService;
+    }
+
+    public void setNotificationTemplateManager(NotificationTemplateManager notificationTemplateManager) {
+
+        this.notificationTemplateManager = notificationTemplateManager;
+    }
+
+    public NotificationTemplateManager getNotificationTemplateManager() {
+
+        return notificationTemplateManager;
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    public RealmService getRealmService() {
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 }
