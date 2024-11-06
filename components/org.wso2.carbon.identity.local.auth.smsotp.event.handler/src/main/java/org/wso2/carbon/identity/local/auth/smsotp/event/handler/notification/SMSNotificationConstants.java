@@ -37,7 +37,7 @@ public class SMSNotificationConstants {
     public static final String BODY_TEMPLATE = "body-template";
     public static final String PROPERTY_APPLY_SMS_TEMPLATES = "NotificationTemplates.SMSTemplates.Apply";
 
-    public static final String PLACE_HOLDER_REGEX = "\\{\\{([a-zA-Z0-9\\-]+?)}}";
+    public static final String PLACE_HOLDER_REGEX = "\\{\\{([a-zA-Z0-9\\-]+?)\\}\\}";
     public static final String PLACE_HOLDER_CONFIRMATION_CODE = "confirmation-code";
     public static final String PLACE_HOLDER_OTP_EXPIRY_TIME = "otp-expiry-time";
     public static final String PLACE_HOLDER_TENANT_DOMAIN = "tenant-domain";
