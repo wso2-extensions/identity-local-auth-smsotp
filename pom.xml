@@ -55,12 +55,13 @@
         <carbon.kernel.version>4.9.16</carbon.kernel.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
         <carbon.identity.framework.version>5.25.522</carbon.identity.framework.version>
-        <identity.governance.version>1.8.40</identity.governance.version>
+        <identity.governance.version>1.11.11</identity.governance.version>
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>
         <identity.auth.otp.commons.version>1.0.3</identity.auth.otp.commons.version>
         <identity.event.handler.notification.version>1.7.17</identity.event.handler.notification.version>
         <identity.notification.sender.tenant.config.version>1.7.10</identity.notification.sender.tenant.config.version>
+        <identity.organization.management.core.version>1.0.93</identity.organization.management.core.version>
 
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
 
@@ -89,6 +90,8 @@
         <identity.event.handler.notification.imp.pkg.version.range>[1.3.15, 2.0.0)
         </identity.event.handler.notification.imp.pkg.version.range>
         <identity.auth.otp.commons.version.range>[1.0.0, 2.0.0)</identity.auth.otp.commons.version.range>
+        <identity.organization.management.core.version.range>[1.0.0, 2.0.0)
+        </identity.organization.management.core.version.range>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
@@ -171,6 +174,12 @@
                 <groupId>org.wso2.carbon.identity.auth.otp.commons</groupId>
                 <artifactId>org.wso2.carbon.identity.auth.otp.core</artifactId>
                 <version>${identity.auth.otp.commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+                <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+                <version>${identity.organization.management.core.version}</version>
             </dependency>
 
             <dependency>

@@ -28,9 +28,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
+import org.wso2.carbon.identity.governance.service.notification.NotificationTemplateManager;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationHandler;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * SMS Notification Handler service component.
@@ -103,5 +106,57 @@ public class SMSNotificationHandlerServiceComponent {
     protected void unsetProvider(Provider provider) {
 
         SMSNotificationHandlerDataHolder.getInstance().removeProvider(provider.getName());
+    }
+
+    @Reference(name = "notificationTemplateManager.service",
+            service = org.wso2.carbon.identity.governance.service.notification.NotificationTemplateManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetNotificationTemplateManager")
+    protected void setNotificationTemplateManager(NotificationTemplateManager notificationTemplateManager) {
+
+        LOG.debug("Setting the Notification Template Manager");
+        SMSNotificationHandlerDataHolder.getInstance().setNotificationTemplateManager(notificationTemplateManager);
+    }
+
+    protected void unsetNotificationTemplateManager(NotificationTemplateManager notificationTemplateManager) {
+
+        LOG.debug("UnSetting the Notification Email Template Manager");
+        SMSNotificationHandlerDataHolder.getInstance().setNotificationTemplateManager(null);
+    }
+
+    @Reference(name = "identity.organization.management.component",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager")
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("Setting the Organization Manager");
+        SMSNotificationHandlerDataHolder.getInstance().setOrganizationManager(organizationManager);
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        LOG.debug("UnSetting the Organization Manager");
+        SMSNotificationHandlerDataHolder.getInstance().setOrganizationManager(null);
+    }
+
+    @Reference(
+            name = "realm.service",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+
+        LOG.debug("Setting the Realm Service");
+        SMSNotificationHandlerDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        LOG.debug("UnSetting the Realm Service");
+        SMSNotificationHandlerDataHolder.getInstance().setRealmService(null);
     }
 }
