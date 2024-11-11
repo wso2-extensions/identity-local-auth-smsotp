@@ -132,6 +132,7 @@ public class AuthenticatorUtils {
      * Get the multi option URI query params.
      *
      * @param request HttpServletRequest.
+     * @return Multi option URI query parameter value.
      */
     public static String getMultiOptionURIQueryParam(HttpServletRequest request) {
 
