@@ -28,14 +28,14 @@
     <artifactId>identity-local-auth-smsotp</artifactId>
     <name>SMS OTP - Parent component</name>
     <packaging>pom</packaging>
-    <version>1.0.10</version>
+    <version>1.0.11-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/wso2-extensions/identity-local-auth-smsotp.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-local-auth-smsotp.git
         </developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-local-auth-smsotp.git</connection>
-        <tag>v1.0.10</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
