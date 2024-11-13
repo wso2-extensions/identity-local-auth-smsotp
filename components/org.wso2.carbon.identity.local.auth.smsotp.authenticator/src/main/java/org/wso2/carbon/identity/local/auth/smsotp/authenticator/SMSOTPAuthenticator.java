@@ -187,6 +187,20 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     @Override
+    protected String getRemainingNumberOfOtpAttemptsQueryParam() {
+
+        return SMSOTPConstants.REMAINING_NUMBER_OF_SMS_OTP_ATTEMPTS_QUERY;
+    }
+
+    @Override
+    protected boolean isShowAuthFailureReason() {
+
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        String showAuthFailureReason = parameterMap.get(SMSOTPConstants.CONF_SHOW_AUTH_FAILURE_REASON);
+        return Boolean.parseBoolean(showAuthFailureReason);
+    }
+
+    @Override
     protected long getOtpValidityPeriodInMillis(String tenantDomain) throws AuthenticationFailedException {
 
         try {
