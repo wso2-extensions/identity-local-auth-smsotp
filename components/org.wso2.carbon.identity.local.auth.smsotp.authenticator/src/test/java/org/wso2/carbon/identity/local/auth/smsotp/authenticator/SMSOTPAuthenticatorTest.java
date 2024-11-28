@@ -19,9 +19,11 @@
 package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -30,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.AuthenticatorUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -202,6 +205,29 @@ public class SMSOTPAuthenticatorTest {
                     "Parameter order should match.");
             Assert.assertEquals(actualParam.isConfidential(), expectedParam.isConfidential(),
                     "Parameter mandatory status should match.");
+        }
+    }
+
+    @DataProvider
+    public static Object[][] validateTestUseOnlyNumbersInOTP() {
+        return new Object[][] {
+                {"carbon.super", "true"},
+                {"carbon.super", "false"},
+        };
+    }
+
+    @Test(dataProvider = "validateTestUseOnlyNumbersInOTP")
+    public void testUseOnlyNumbersInOTP(String tenantDomain, String useNumericChars) {
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, tenantDomain))
+                    .thenReturn(useNumericChars);
+
+            boolean useOnlyNumbersInOTP = smsotpAuthenticator.useOnlyNumericChars(tenantDomain);
+            assertEquals(useOnlyNumbersInOTP, Boolean.parseBoolean(useNumericChars));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+
         }
     }
 }
