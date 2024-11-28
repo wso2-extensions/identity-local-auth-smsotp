@@ -90,6 +90,8 @@ public class SMSOTPConstants {
     public static final String AUTHENTICATOR_SMS_OTP = "authenticator.sms.otp";
     public static final String CODE_PARAM = "code.param";
     public static final String USERNAME_PARAM_KEY = "username.param";
+    public static final String REMAINING_NUMBER_OF_SMS_OTP_ATTEMPTS_QUERY = "&remainingNumberOfSMSOtpAttempts=";
+    public static final String CONF_SHOW_AUTH_FAILURE_REASON = "showAuthFailureReason";
 
     /**
      * Authenticator config related configurations.
