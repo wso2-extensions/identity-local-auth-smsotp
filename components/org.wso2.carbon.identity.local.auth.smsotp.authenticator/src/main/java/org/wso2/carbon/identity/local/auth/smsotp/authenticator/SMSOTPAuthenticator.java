@@ -724,4 +724,17 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         authenticatorData.setAuthParams(authenticatorParamMetadataList);
         return Optional.of(authenticatorData);
     }
+
+    @Override
+    protected boolean useOnlyNumericChars(String tenantDomain) {
+        try {
+            return Boolean.parseBoolean(AuthenticatorUtils.getSmsAuthenticatorConfig
+                    (SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, tenantDomain));
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            LOG.error("Error deciding numeric or alphanumeric characters for OTP generation. Using only numeric characters. " +exception);
+            return true;
+        }
+    }
+
+
 }
