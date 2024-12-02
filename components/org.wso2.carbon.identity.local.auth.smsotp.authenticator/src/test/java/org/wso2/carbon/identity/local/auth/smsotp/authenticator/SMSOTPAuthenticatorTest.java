@@ -210,7 +210,7 @@ public class SMSOTPAuthenticatorTest {
 
     @DataProvider
     public static Object[][] validateTestUseOnlyNumbersInOTP() {
-        return new Object[][]{
+        return new Object[][] {
                 {"carbon.super", "true"},
                 {"carbon.super", "false"},
         };
@@ -218,16 +218,16 @@ public class SMSOTPAuthenticatorTest {
 
     @Test(dataProvider = "validateTestUseOnlyNumbersInOTP")
     public void testUseOnlyNumbersInOTP(String tenantDomain, String useNumericChars) {
-        try {
-            try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
-                mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, "carbon.super"))
-                        .thenReturn(useNumericChars);
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, tenantDomain))
+                    .thenReturn(useNumericChars);
 
-                boolean useOnlyNumbersInOTP = smsotpAuthenticator.useOnlyNumericChars(tenantDomain);
-                assertEquals(useOnlyNumbersInOTP, Boolean.parseBoolean(String.valueOf(useNumericChars)));
-            }
+            boolean useOnlyNumbersInOTP = smsotpAuthenticator.useOnlyNumericChars(tenantDomain);
+            assertEquals(useOnlyNumbersInOTP, Boolean.parseBoolean(String.valueOf(useNumericChars)));
         } catch (Exception e) {
             throw new RuntimeException(e);
+
         }
     }
 }
