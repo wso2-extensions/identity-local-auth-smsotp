@@ -210,6 +210,7 @@ public class SMSOTPAuthenticatorTest {
 
     @DataProvider
     public static Object[][] validateTestUseOnlyNumbersInOTP() {
+
         return new Object[][] {
                 {"carbon.super", "true"},
                 {"carbon.super", "false"},
@@ -218,6 +219,7 @@ public class SMSOTPAuthenticatorTest {
 
     @Test(dataProvider = "validateTestUseOnlyNumbersInOTP")
     public void testUseOnlyNumbersInOTP(String tenantDomain, String useNumericChars) {
+
         try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
             mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
                             SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, tenantDomain))
@@ -230,4 +232,5 @@ public class SMSOTPAuthenticatorTest {
 
         }
     }
+
 }
