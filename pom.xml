@@ -58,7 +58,7 @@
         <identity.governance.version>1.11.11</identity.governance.version>
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>
-        <identity.auth.otp.commons.version>1.0.7</identity.auth.otp.commons.version>
+        <identity.auth.otp.commons.version>1.0.8</identity.auth.otp.commons.version>
         <identity.event.handler.notification.version>1.7.17</identity.event.handler.notification.version>
         <identity.notification.sender.tenant.config.version>1.7.10</identity.notification.sender.tenant.config.version>
         <identity.organization.management.core.version>1.0.93</identity.organization.management.core.version>
