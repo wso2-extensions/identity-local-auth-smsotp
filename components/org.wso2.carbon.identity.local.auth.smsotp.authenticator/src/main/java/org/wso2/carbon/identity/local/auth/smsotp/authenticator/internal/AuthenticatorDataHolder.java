@@ -32,8 +32,6 @@ import org.wso2.carbon.user.core.service.RealmService;
  */
 public class AuthenticatorDataHolder {
 
-    private static volatile AuthenticatorDataHolder authenticatorDataHolder = new AuthenticatorDataHolder();
-
     private static RealmService realmService;
     private static AccountLockService accountLockService;
     private static IdentityGovernanceService identityGovernanceService;
@@ -45,11 +43,6 @@ public class AuthenticatorDataHolder {
 
     private AuthenticatorDataHolder() {
 
-    }
-
-    public static AuthenticatorDataHolder getInstance() {
-
-        return authenticatorDataHolder;
     }
 
     /**
