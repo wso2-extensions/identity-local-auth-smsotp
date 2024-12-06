@@ -374,7 +374,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
      * Get the application id from the application name and the tenant domain which application is created on.
      *
      * @param applicationName Application name.
-     * @param tenantDomain Tenant domain.
+     * @param tenantDomain    Tenant domain.
      * @return Application id.
      * @throws AuthenticationFailedException If an error occurred while getting the application id.
      */
@@ -393,7 +393,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     /**
      * Set the authenticator message to the context.
      *
-     * @param context AuthenticationContext.
+     * @param context            AuthenticationContext.
      * @param maskedMobileNumber The masked mobile number.
      */
     private static void setAuthenticatorMessage(AuthenticationContext context, String maskedMobileNumber) {
@@ -429,7 +429,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     /**
      * Get the {@link IdentityProvider} object from the given IDP name and tenant domain.
-     * @param idpName IDP name.
+     *
+     * @param idpName      IDP name.
      * @param tenantDomain Tenant domain.
      * @return IdentityProvider.
      * @throws AuthenticationFailedException If an error occurred while getting the IdentityProvider.
@@ -478,6 +479,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     /**
      * Get the SMS Provider type for the specific tenant.
+     *
      * @param tenantDomain Tenant domain.
      * @return SMS Provider type.
      */
@@ -541,15 +543,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
      * @return User claim value.
      * @throws AuthenticationFailedException If an error occurred while getting the claim value.
      */
-    private String getUserClaimValueFromUserStore(AuthenticatedUser authenticatedUser , AuthenticationContext context)
+    private String getUserClaimValueFromUserStore(AuthenticatedUser authenticatedUser, AuthenticationContext context)
             throws AuthenticationFailedException {
 
         UserStoreManager userStoreManager = getUserStoreManager(authenticatedUser);
         try {
             Map<String, String> claimValues =
                     userStoreManager.getUserClaimValues(MultitenantUtils.getTenantAwareUsername(
-                            authenticatedUser.toFullQualifiedUsername()),
-                            new String[]{SMSOTPConstants.Claims.MOBILE_CLAIM}, null);
+                                    authenticatedUser.toFullQualifiedUsername()),
+                            new String[] {SMSOTPConstants.Claims.MOBILE_CLAIM}, null);
             return claimValues.get(SMSOTPConstants.Claims.MOBILE_CLAIM);
         } catch (UserStoreException e) {
             AuthenticatorMessage authenticatorMessage =
@@ -627,7 +629,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         ClaimMapping[] claimMappings = claimConfigs.getClaimMappings();
         if (ArrayUtils.isEmpty(claimMappings)) {
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages
-                            .ERROR_CODE_NO_CLAIM_CONFIGS_IN_FEDERATED_AUTHENTICATOR, idpName, tenantDomain);
+                    .ERROR_CODE_NO_CLAIM_CONFIGS_IN_FEDERATED_AUTHENTICATOR, idpName, tenantDomain);
         }
 
         String mobileAttributeKey = null;
@@ -698,8 +700,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
      *
      * @param context The authentication context containing information about the current authentication attempt.
      * @return An {@code Optional} containing an {@code AuthenticatorData} object representing the initiation data.
-     *         If the initiation data is available, it is encapsulated within the {@code Optional}; otherwise,
-     *         an empty {@code Optional} is returned.
+     * If the initiation data is available, it is encapsulated within the {@code Optional}; otherwise,
+     * an empty {@code Optional} is returned.
      */
     @Override
     public Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context) {
@@ -738,4 +740,19 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         authenticatorData.setAuthParams(authenticatorParamMetadataList);
         return Optional.of(authenticatorData);
     }
+
+    @Override
+    protected boolean useOnlyNumericChars(String tenantDomain) {
+
+        try {
+            return Boolean.parseBoolean(AuthenticatorUtils.getSmsAuthenticatorConfig
+                    (SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS, tenantDomain));
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            LOG.error(
+                    "Error deciding numeric or alphanumeric characters for OTP generation. Using only numeric " +
+                            "characters. ", exception);
+            return true;
+        }
+    }
+
 }
