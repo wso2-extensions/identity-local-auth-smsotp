@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -114,17 +113,7 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
 
         SMSData smsData = new SMSData();
         Map<String, Object> eventProperties = event.getEventProperties();
-        if (SMSNotificationUtil.isEnabledSMSTemplates()) {
-            smsData.setBody(constructTemplatedSMSBody(event));
-        } else {
-            String otpString = (String) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME);
-            if (StringUtils.isNotBlank(otpString)) {
-                smsData.setBody(otpString);
-            } else {
-                OTP otp = (OTP) eventProperties.get(SMSNotificationConstants.OTP_TOKEN_PROPERTY_NAME);
-                smsData.setBody(otp.getValue());
-            }
-        }
+        smsData.setBody(constructTemplatedSMSBody(event));
         smsData.setToNumber((String) eventProperties.get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME));
         return smsData;
     }

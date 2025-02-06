@@ -109,7 +109,6 @@ public class SMSNotificationHandlerTest {
 
         Event testEvent = constructSMSOTPEvent();
         try (MockedStatic<SMSNotificationUtil> mockedSMSNotificationUtil = mockStatic(SMSNotificationUtil.class)) {
-            mockedSMSNotificationUtil.when(SMSNotificationUtil::isEnabledSMSTemplates).thenReturn(true);
             mockedSMSNotificationUtil.when(() -> SMSNotificationUtil.replacePlaceholders(
                     TestableSMSNotificationHandler.notificationData.get(SMSNotificationConstants.BODY_TEMPLATE),
                     TestableSMSNotificationHandler.notificationData)).thenReturn("success");
@@ -123,7 +122,6 @@ public class SMSNotificationHandlerTest {
 
         Event testEvent = constructSMSOTPEvent();
         try (MockedStatic<SMSNotificationUtil> mockedSMSNotificationUtil = mockStatic(SMSNotificationUtil.class)) {
-            mockedSMSNotificationUtil.when(SMSNotificationUtil::isEnabledSMSTemplates).thenReturn(true);
             mockedSMSNotificationUtil.when(() -> SMSNotificationUtil.replacePlaceholders(
                     TestableSMSNotificationHandler.notificationData.get(SMSNotificationConstants.BODY_TEMPLATE),
                     TestableSMSNotificationHandler.notificationData)).thenReturn("success");

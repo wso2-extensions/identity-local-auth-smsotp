@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.in
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
@@ -90,16 +89,6 @@ public class SMSNotificationUtil {
                 notificationData.put(SMSNotificationConstants.PLACE_HOLDER_CONFIRMATION_CODE, otpCode);
             }
         }
-    }
-
-    /**
-     * Get if applying SMS templates is enabled.
-     *
-     * @return boolean if applying SMS templates is enabled.
-     */
-    public static boolean isEnabledSMSTemplates() {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(SMSNotificationConstants.PROPERTY_APPLY_SMS_TEMPLATES));
     }
 
     /**
