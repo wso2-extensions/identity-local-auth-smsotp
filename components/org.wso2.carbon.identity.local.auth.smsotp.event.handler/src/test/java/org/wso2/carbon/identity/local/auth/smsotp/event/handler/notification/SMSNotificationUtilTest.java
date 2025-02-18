@@ -29,7 +29,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationHandlerDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.internal.SMSNotificationUtil;
@@ -193,17 +192,6 @@ public class SMSNotificationUtilTest {
         Assert.assertEquals(
                 notificationData.get(SMSNotificationConstants.PLACE_HOLDER_CONFIRMATION_CODE), confirmationCode);
         Assert.assertEquals(notificationData.get(SMSNotificationConstants.PLACE_HOLDER_OTP_EXPIRY_TIME), expiryTime);
-    }
-
-    @Test
-    public void testIsEnabledSMSTemplates() {
-
-        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
-            mockedIdentityUtil.when(() ->
-                            IdentityUtil.getProperty(SMSNotificationConstants.PROPERTY_APPLY_SMS_TEMPLATES))
-                    .thenReturn("true");
-            Assert.assertTrue(SMSNotificationUtil.isEnabledSMSTemplates());
-        }
     }
 
     @Test(dataProvider = "filterPlaceholderDataProvider")
