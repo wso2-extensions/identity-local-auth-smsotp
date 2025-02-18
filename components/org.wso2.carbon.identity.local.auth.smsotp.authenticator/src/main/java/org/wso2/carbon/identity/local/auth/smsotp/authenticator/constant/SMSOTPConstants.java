@@ -66,6 +66,7 @@ public class SMSOTPConstants {
     public static final String SMS_OTP_PAGE = "authenticationendpoint/smsOtp.jsp";
 
     public static final String OIDC_DIALECT_URI = "http://wso2.org/oidc/claim";
+    public static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims";
     public static final String MOBILE_ATTRIBUTE_KEY = "phone_number";
 
     // Query params.

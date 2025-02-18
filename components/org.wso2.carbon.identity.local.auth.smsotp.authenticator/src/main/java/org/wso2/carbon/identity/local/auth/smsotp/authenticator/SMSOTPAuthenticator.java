@@ -612,9 +612,13 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     private String resolveMobileNoAttribute(AuthenticatedUser user, String tenantDomain,
                                             AuthenticationContext context) throws AuthenticationFailedException {
 
+        // Prioritizing the authenticator's dialect first, then considering the claim mapping defined in the IdP.
         String dialect = getFederatedAuthenticatorDialect(context);
         if (SMSOTPConstants.OIDC_DIALECT_URI.equals(dialect)) {
             return SMSOTPConstants.MOBILE_ATTRIBUTE_KEY;
+        }
+        if (SMSOTPConstants.WSO2_CLAIM_DIALECT.equals(dialect)) {
+            return SMSOTPConstants.Claims.MOBILE_CLAIM;
         }
         // If the dialect is not OIDC we need to check claim mappings for the mobile claim mapped attribute.
         String idpName = user.getFederatedIdPName();
