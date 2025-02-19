@@ -45,6 +45,8 @@ public class SMSNotificationConstants {
     public static final String PLACE_HOLDER_USER_STORE_DOMAIN = "userstore-domain";
     public static final String PLACEHOLDER_ORGANIZATION_NAME = "organization-name";
     public static final String PLACE_HOLDER_APPLICATION_NAME = "application-name";
+    public static final String PLACE_HOLDER_BINDING_MESSAGE = "binding-message";
+    public static final String PLACE_HOLDER_USER_LOGIN_LINK = "user-login-link";
 
     public static final String ERROR_CODE_MISSING_SMS_SENDER = "40001";
     public static final String ERROR_CODE_TEMPLATE_NOT_FOUND = "40002";
@@ -58,5 +60,7 @@ public class SMSNotificationConstants {
             PLACEHOLDER_ORGANIZATION_NAME,
             PLACE_HOLDER_APPLICATION_NAME,
             PLACE_HOLDER_CONFIRMATION_CODE,
-            PLACE_HOLDER_OTP_EXPIRY_TIME);
+            PLACE_HOLDER_OTP_EXPIRY_TIME,
+            PLACE_HOLDER_BINDING_MESSAGE,
+            PLACE_HOLDER_USER_LOGIN_LINK);
 }
