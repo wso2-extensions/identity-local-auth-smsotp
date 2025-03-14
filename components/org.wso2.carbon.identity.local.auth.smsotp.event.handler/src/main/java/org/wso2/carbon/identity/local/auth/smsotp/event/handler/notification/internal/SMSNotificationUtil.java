@@ -30,13 +30,11 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.ACCEPTED_SMS_PLACEHOLDERS;
 import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_ORGANIZATION_NOT_FOUND_FOR_TENANT;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -55,13 +53,12 @@ public class SMSNotificationUtil {
      */
     public static String replacePlaceholders(String template, Map<String, String> notificationData) {
 
-        Map<String, String> filteredPlaceholderData = filterPlaceHolderData(notificationData);
         // Regular expression to match placeholders in the format {{placeholder-name}}
         Matcher placeHolderMatcher = Pattern.compile(SMSNotificationConstants.PLACE_HOLDER_REGEX).matcher(template);
         StringBuilder smsBody = new StringBuilder();
         while (placeHolderMatcher.find()) {
             String placeholder = placeHolderMatcher.group(1);
-            String replacement = filteredPlaceholderData.get(placeholder);
+            String replacement = notificationData.get(placeholder);
             if (StringUtils.isBlank(replacement)) {
                 continue;
             }
@@ -89,23 +86,6 @@ public class SMSNotificationUtil {
                 notificationData.put(SMSNotificationConstants.PLACE_HOLDER_CONFIRMATION_CODE, otpCode);
             }
         }
-    }
-
-    /**
-     * Filter out the placeholders that are not accepted in the SMS template.
-     *
-     * @param notificationData Notification data.
-     * @return Filtered notification data.
-     */
-    public static Map<String, String> filterPlaceHolderData(Map<String, String> notificationData) {
-
-        Map<String, String> result = new HashMap<>();
-        for (Map.Entry<String, String> entry : notificationData.entrySet()) {
-            if (ACCEPTED_SMS_PLACEHOLDERS.contains(entry.getKey())) {
-                result.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return result;
     }
 
     /**
