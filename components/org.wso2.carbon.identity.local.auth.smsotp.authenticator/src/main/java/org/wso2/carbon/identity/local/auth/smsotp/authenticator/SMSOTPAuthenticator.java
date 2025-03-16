@@ -140,7 +140,6 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             return AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP;
         } else {
             return context.isRetrying() &&
-                    Boolean.parseBoolean(request.getParameter(RESEND)) &&
                     Boolean.parseBoolean(request.getParameter(RESEND)) ?
                     AuthenticatorConstants.AuthenticationScenarios.RESEND_OTP :
                     AuthenticatorConstants.AuthenticationScenarios.SUBMIT_OTP;
