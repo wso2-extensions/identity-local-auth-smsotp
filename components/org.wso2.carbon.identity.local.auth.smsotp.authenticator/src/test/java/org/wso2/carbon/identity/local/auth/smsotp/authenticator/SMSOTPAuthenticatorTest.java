@@ -44,7 +44,9 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 
 
@@ -66,7 +68,7 @@ public class SMSOTPAuthenticatorTest {
     @Test
     public void testCanHandle() {
 
-        when(httpServletRequest.getParameter(SMSOTPConstants.RESEND)).thenReturn("true");
+        when(httpServletRequest.getParameter(RESEND)).thenReturn("true");
         assertTrue(smsotpAuthenticator.canHandle(httpServletRequest));
     }
 
@@ -112,7 +114,34 @@ public class SMSOTPAuthenticatorTest {
 
     @Test
     public void testResolveScenario() {
-        assertTrue(true, "Test case not implemented yet");
+
+        SMSOTPAuthenticator smsotpAuthenticator = new SMSOTPAuthenticator();
+        AuthenticationContext context = Mockito.mock(AuthenticationContext.class);
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        // Test case 1: Logout request
+        when(context.isLogoutRequest()).thenReturn(true);
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.LOGOUT);
+
+        // Test case 2: Initial OTP scenario
+        when(context.isLogoutRequest()).thenReturn(false);
+        when(context.isRetrying()).thenReturn(false);
+        when(request.getParameter(CODE)).thenReturn(null);
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(false));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP);
+
+        // Test case 3: Resend OTP scenario
+        when(context.isRetrying()).thenReturn(true);
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(true));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.RESEND_OTP);
+
+        // Test case 4: Submit OTP scenario
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(false));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.SUBMIT_OTP);
     }
 
     @Test
