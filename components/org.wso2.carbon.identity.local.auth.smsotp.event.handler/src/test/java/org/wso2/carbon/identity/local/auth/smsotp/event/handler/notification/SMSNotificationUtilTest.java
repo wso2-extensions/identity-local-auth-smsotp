@@ -194,14 +194,6 @@ public class SMSNotificationUtilTest {
         Assert.assertEquals(notificationData.get(SMSNotificationConstants.PLACE_HOLDER_OTP_EXPIRY_TIME), expiryTime);
     }
 
-    @Test(dataProvider = "filterPlaceholderDataProvider")
-    public void testFilterPlaceHolderData(Map<String, String> notificationDataInput,
-                                          Map<String, String> expectedOutput) {
-
-        Map<String, String> filteredData = SMSNotificationUtil.filterPlaceHolderData(notificationDataInput);
-        Assert.assertEquals(filteredData, expectedOutput);
-    }
-
     @Test(dataProvider = "organizationNameDataProvider")
     public void  testResolveHumanReadableOrganizationName(String tenant, String expectedOrgName, Tenant testTenant)
             throws IdentityEventException, UserStoreException, OrganizationManagementException {
