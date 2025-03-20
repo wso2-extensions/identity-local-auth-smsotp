@@ -74,6 +74,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 
@@ -96,7 +98,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             LOG.debug("Inside SMSOTPAuthenticator canHandle method and check the existence of mobile number and " +
                     "otp code");
         }
-        return ((StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.RESEND))
+        return ((StringUtils.isNotEmpty(request.getParameter(RESEND))
                 && StringUtils.isEmpty(request.getParameter(CODE)))
                 || StringUtils.isNotEmpty(request.getParameter(CODE))
                 || StringUtils.isNotEmpty(request.getParameter(SMSOTPConstants.MOBILE_NUMBER))
@@ -120,6 +122,28 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     public String getName() {
 
         return SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
+    }
+
+    @Override
+    public AuthenticatorConstants.AuthenticationScenarios resolveScenario(HttpServletRequest request,
+            AuthenticationContext context) {
+
+        // If the current authenticator is not SMS OTP, then set the flow to not retrying which could have been
+        // set from other authenticators and not cleared.
+        if (!SMS_OTP_AUTHENTICATOR_NAME.equals(context.getCurrentAuthenticator())) {
+            context.setRetrying(false);
+        }
+        if (context.isLogoutRequest()) {
+            return AuthenticatorConstants.AuthenticationScenarios.LOGOUT;
+        } else if (!context.isRetrying() && StringUtils.isBlank(request.getParameter(CODE)) &&
+                !Boolean.parseBoolean(request.getParameter(RESEND))) {
+            return AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP;
+        } else {
+            return context.isRetrying() &&
+                    Boolean.parseBoolean(request.getParameter(RESEND)) ?
+                    AuthenticatorConstants.AuthenticationScenarios.RESEND_OTP :
+                    AuthenticatorConstants.AuthenticationScenarios.SUBMIT_OTP;
+        }
     }
 
     @Override
@@ -254,9 +278,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             eventProperties.put(IdentityEventConstants.EventProperty.USER_ID, authenticatedUser.getUserId());
             eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_DOMAIN,
                     authenticatedUser.getUserStoreDomain());
-            if (StringUtils.isNotBlank(httpServletRequest.getParameter(SMSOTPConstants.RESEND))) {
+            if (StringUtils.isNotBlank(httpServletRequest.getParameter(RESEND))) {
                 eventProperties.put(IdentityEventConstants.EventProperty.RESEND_CODE,
-                        httpServletRequest.getParameter(SMSOTPConstants.RESEND));
+                        httpServletRequest.getParameter(RESEND));
             } else {
                 eventProperties.put(IdentityEventConstants.EventProperty.RESEND_CODE, false);
             }
