@@ -27,11 +27,23 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
+import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.AuthenticatorUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,11 +52,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 
 
@@ -53,10 +71,12 @@ public class SMSOTPAuthenticatorTest {
     private SMSOTPAuthenticator smsotpAuthenticator;
 
     @Mock
-    private AuthenticationContext context = Mockito.mock(AuthenticationContext.class);
+    private AuthenticationContext context = mock(AuthenticationContext.class);
+
+    private MockedStatic<AuthenticatorDataHolder> authenticatorDataHolder;
 
     @Mock
-    private HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+    private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
     @BeforeTest
     public void createNewObject() {
@@ -66,7 +86,7 @@ public class SMSOTPAuthenticatorTest {
     @Test
     public void testCanHandle() {
 
-        when(httpServletRequest.getParameter(SMSOTPConstants.RESEND)).thenReturn("true");
+        when(httpServletRequest.getParameter(RESEND)).thenReturn("true");
         assertTrue(smsotpAuthenticator.canHandle(httpServletRequest));
     }
 
@@ -112,7 +132,34 @@ public class SMSOTPAuthenticatorTest {
 
     @Test
     public void testResolveScenario() {
-        assertTrue(true, "Test case not implemented yet");
+
+        SMSOTPAuthenticator smsotpAuthenticator = new SMSOTPAuthenticator();
+        AuthenticationContext context = mock(AuthenticationContext.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
+        // Test case 1: Logout request
+        when(context.isLogoutRequest()).thenReturn(true);
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.LOGOUT);
+
+        // Test case 2: Initial OTP scenario
+        when(context.isLogoutRequest()).thenReturn(false);
+        when(context.isRetrying()).thenReturn(false);
+        when(request.getParameter(CODE)).thenReturn(null);
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(false));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP);
+
+        // Test case 3: Resend OTP scenario
+        when(context.isRetrying()).thenReturn(true);
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(true));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.RESEND_OTP);
+
+        // Test case 4: Submit OTP scenario
+        when(request.getParameter(RESEND)).thenReturn(String.valueOf(false));
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.SUBMIT_OTP);
     }
 
     @Test
@@ -153,6 +200,48 @@ public class SMSOTPAuthenticatorTest {
     @Test
     public void testPublishPostOTPValidatedEvent() {
         assertTrue(true, "Test case not implemented yet");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class)
+    public void testPublishPostOTPGeneratedEventException()
+            throws AuthenticationFailedException,
+            IdentityApplicationManagementException, ConfigurationManagementException {
+
+        // Prepare mock data
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        authenticatedUser.setUserId("testUserId");
+        authenticatedUser.setUserStoreDomain("PRIMARY");
+        authenticatedUser.setTenantDomain("carbon.super");
+
+        // Mock context behavior
+        when(context.getCallerSessionKey()).thenReturn("testSessionKey");
+        when(context.getServiceProviderName()).thenReturn("testServiceProvider");
+        when(context.getTenantDomain()).thenReturn("carbon.super");
+        when(httpServletRequest.getParameter(RESEND)).thenReturn("false");
+
+        // Mock IdentityTenantUtil static method
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class)) {
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).thenReturn(-1234);
+
+            // Mock AuthenticatorDataHolder static method
+            try (MockedStatic<AuthenticatorDataHolder> authenticatorDataHolderMockedStatic = mockStatic(AuthenticatorDataHolder.class)) {
+                ApplicationManagementService applicationManagementService = mock(ApplicationManagementService.class);
+                authenticatorDataHolderMockedStatic.when(AuthenticatorDataHolder::getApplicationManagementService).thenReturn(applicationManagementService);
+
+                // Mock service provider
+                ServiceProvider serviceProvider = new ServiceProvider();
+                serviceProvider.setApplicationResourceId("testAppId");
+                when(applicationManagementService.getServiceProvider("testServiceProvider", "carbon.super")).thenReturn(serviceProvider);
+
+                // Mock ConfigurationManager
+                ConfigurationManager configurationManager = mock(ConfigurationManager.class);
+                authenticatorDataHolderMockedStatic.when(AuthenticatorDataHolder::getConfigurationManager).thenReturn(configurationManager);
+                when(configurationManager.getResource(SMSOTPConstants.PUBLISHER, SMSOTPConstants.SMS_PROVIDER)).thenReturn(mock(Resource.class));
+
+                // Execute the method under test
+                smsotpAuthenticator.publishPostOTPGeneratedEvent(null, authenticatedUser, httpServletRequest, context);
+            }
+        }
     }
 
     @Test
