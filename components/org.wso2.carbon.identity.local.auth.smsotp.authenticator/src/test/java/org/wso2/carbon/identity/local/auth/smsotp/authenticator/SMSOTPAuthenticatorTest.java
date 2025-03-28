@@ -63,6 +63,7 @@ import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 
 
@@ -150,6 +151,8 @@ public class SMSOTPAuthenticatorTest {
         assertEquals(smsotpAuthenticator.resolveScenario(request, context),
                 AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP);
 
+        when(context.getCurrentAuthenticator()).thenReturn(SMS_OTP_AUTHENTICATOR_NAME);
+
         // Test case 3: Resend OTP scenario
         when(context.isRetrying()).thenReturn(true);
         when(request.getParameter(RESEND)).thenReturn(String.valueOf(true));
@@ -160,6 +163,12 @@ public class SMSOTPAuthenticatorTest {
         when(request.getParameter(RESEND)).thenReturn(String.valueOf(false));
         assertEquals(smsotpAuthenticator.resolveScenario(request, context),
                 AuthenticatorConstants.AuthenticationScenarios.SUBMIT_OTP);
+
+        // Test case 5: Submit OTP scenario with OTP code
+        when(request.getParameter(CODE)).thenReturn("123456");
+        when(context.getCurrentAuthenticator()).thenReturn("dummyAuthenticator");
+        assertEquals(smsotpAuthenticator.resolveScenario(request, context),
+                AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP);
     }
 
     @Test
