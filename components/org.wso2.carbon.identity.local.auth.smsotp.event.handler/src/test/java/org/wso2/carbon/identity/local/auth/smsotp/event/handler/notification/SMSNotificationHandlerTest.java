@@ -26,6 +26,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderD
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +135,52 @@ public class SMSNotificationHandlerTest {
                             "in {{otp-expiry-time}} minutes.,");
             TestableSMSNotificationHandler.notificationData.remove(
                     SMSNotificationConstants.PLACEHOLDER_ORGANIZATION_NAME);
+        }
+    }
+
+    @Test
+    public void testConstructSMSOTPPayloadWithPlaceHolders() throws IdentityEventException {
+
+        Event testEvent = constructSMSOTPEvent();
+        testEvent.addEventProperty("otpToken", new OTP("874090", 300000, 300000));
+        testEvent.addEventProperty("tenant-domain", "carbon.super");
+
+        String givenName = "John";
+        String lastName = "Doe";
+        String currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+        String smsBody = "Hi John Doe,\n\nYour one-time password for the sms_otp_singlepage_App " +
+                "is 874090. This expires in 5 minutes.\n\nCopyright " + currentYear + ", WSO2.";
+        String bodyTemplate = "Hi {{user.claim.givenname}} {{user.claim.lastname}}," +
+                "\n\nYour one-time password for the {{application-name}} is {{otpToken}}. " +
+                "This expires in {{otp-expiry-time}} minutes.\n\nCopyright {{current-year}}, WSO2.";
+
+        String prevBody = TestableSMSNotificationHandler.notificationData.get(
+                SMSNotificationConstants.SMS_MESSAGE_BODY_NAME);
+        String prevTemplate = TestableSMSNotificationHandler.notificationData.get(
+                SMSNotificationConstants.BODY_TEMPLATE);
+
+        try {
+            testEvent.addEventProperty("body", smsBody);
+            testEvent.addEventProperty("body-template", bodyTemplate);
+            testEvent.addEventProperty("user.claim.givenname", givenName);
+            testEvent.addEventProperty("user.claim.lastname", lastName);
+            TestableSMSNotificationHandler.notificationData.put(
+                    SMSNotificationConstants.SMS_MESSAGE_BODY_NAME, smsBody);
+            TestableSMSNotificationHandler.notificationData.put(
+                    SMSNotificationConstants.BODY_TEMPLATE, bodyTemplate);
+            TestableSMSNotificationHandler.notificationData.put("user.claim.givenname", givenName);
+            TestableSMSNotificationHandler.notificationData.put("user.claim.lastname", lastName);
+
+            SMSData smsData = smsNotificationHandler.constructSMSOTPPayload(testEvent);
+            Assert.assertNotNull(smsData);
+            Assert.assertEquals(smsData.getBody(), smsBody);
+        } finally {
+            TestableSMSNotificationHandler.notificationData.put(
+                    SMSNotificationConstants.SMS_MESSAGE_BODY_NAME, prevBody);
+            TestableSMSNotificationHandler.notificationData.put(
+                    SMSNotificationConstants.BODY_TEMPLATE, prevTemplate);
+            TestableSMSNotificationHandler.notificationData.remove("user.claim.givenname");
+            TestableSMSNotificationHandler.notificationData.remove("user.claim.lastname");
         }
     }
 

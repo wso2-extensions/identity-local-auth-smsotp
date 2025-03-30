@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -125,6 +126,11 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
         String orgName = SMSNotificationUtil.resolveHumanReadableOrganizationName((String) event.getEventProperties()
                 .get(NotificationConstants.TENANT_DOMAIN));
         notificationData.put(SMSNotificationConstants.PLACEHOLDER_ORGANIZATION_NAME, orgName);
+
+        // This is added to support the use of current year in the SMS template.
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        notificationData.put(SMSNotificationConstants.PLACE_HOLDER_CURRENT_YEAR, String.valueOf(currentYear));
+
         String template = notificationData.get(SMSNotificationConstants.BODY_TEMPLATE);
         if (StringUtils.isBlank(template)) {
             throw new IdentityEventException(SMSNotificationConstants.ERROR_CODE_TEMPLATE_NOT_FOUND,
