@@ -135,7 +135,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         }
         if (context.isLogoutRequest()) {
             return AuthenticatorConstants.AuthenticationScenarios.LOGOUT;
-        } else if (!context.isRetrying() && StringUtils.isBlank(request.getParameter(CODE)) &&
+        } else if (!SMS_OTP_AUTHENTICATOR_NAME.equals(context.getCurrentAuthenticator()) ||
+                !context.isRetrying() && StringUtils.isBlank(request.getParameter(CODE)) &&
                 !Boolean.parseBoolean(request.getParameter(RESEND))) {
             return AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP;
         } else {
