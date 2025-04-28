@@ -42,6 +42,7 @@ public class SMSOTPConstants {
     public static final String USERNAME = "username";
     public static final String DISPLAY_USERNAME = "Username";
     public static final String PASSWORD = "password";
+    public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
 
 
     // OTP generation.

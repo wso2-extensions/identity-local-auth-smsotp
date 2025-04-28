@@ -72,7 +72,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         metaProperties.put(SMSOTPConstants.OTP_TOKEN, otp);
         metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, String.valueOf(
                 SMSOTPExecutorUtils.getOTPValidityPeriod(registrationContext.getTenantDomain()) / 60000));
-        metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
+        metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE);
         metaProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, registrationContext.getTenantDomain());
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {

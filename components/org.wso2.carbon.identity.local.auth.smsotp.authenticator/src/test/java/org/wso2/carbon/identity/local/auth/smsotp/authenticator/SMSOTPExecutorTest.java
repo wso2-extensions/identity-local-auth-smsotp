@@ -78,7 +78,8 @@ public class SMSOTPExecutorTest {
         Assert.assertEquals(event.getEventName(), SMSOTPConstants.EVENT_TRIGGER_NAME);
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.OTP_TOKEN), otp);
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO), "1234567890");
-        Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE), SMSOTPConstants.EVENT_NAME);
+        Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE),
+                SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE);
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME), "10");
     }
 
