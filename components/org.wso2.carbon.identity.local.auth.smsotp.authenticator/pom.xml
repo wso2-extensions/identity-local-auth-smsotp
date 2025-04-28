@@ -63,6 +63,10 @@
             <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.registration.engine</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.governance</groupId>
             <artifactId>org.wso2.carbon.identity.governance</artifactId>
         </dependency>
@@ -168,6 +172,12 @@
                             org.wso2.carbon.identity.auth.otp.core; version="${identity.auth.otp.commons.version.range}",
                             org.wso2.carbon.identity.auth.otp.core.constant; version="${identity.auth.otp.commons.version.range}",
                             org.wso2.carbon.identity.auth.otp.core.model; version="${identity.auth.otp.commons.version.range}",
+                            org.wso2.carbon.identity.user.registration.engine.exception;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.user.registration.engine.graph;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.user.registration.engine.model;
+                            version="${carbon.identity.framework.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
