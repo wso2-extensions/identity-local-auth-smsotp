@@ -44,7 +44,6 @@ public class SMSOTPConstants {
     public static final String PASSWORD = "password";
     public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
 
-
     // OTP generation.
     public static final String SMS_OTP_NUMERIC_CHAR_SET = "9245378016";
     public static final String SMS_OTP_ALPHA_NUMERIC_CHAR_SET = "KIGXHOYSPRWCEFMVUQLZDNABJT9245378016";
@@ -153,7 +152,6 @@ public class SMSOTPConstants {
             public static final String SEND_TO = "send to";
         }
     }
-
 
     /**
      * Enum which contains the error codes and corresponding error messages.
