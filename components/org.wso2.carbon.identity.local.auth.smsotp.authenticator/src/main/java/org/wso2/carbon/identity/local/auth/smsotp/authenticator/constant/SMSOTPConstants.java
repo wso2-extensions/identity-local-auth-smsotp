@@ -42,7 +42,7 @@ public class SMSOTPConstants {
     public static final String USERNAME = "username";
     public static final String DISPLAY_USERNAME = "Username";
     public static final String PASSWORD = "password";
-
+    public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
 
     // OTP generation.
     public static final String SMS_OTP_NUMERIC_CHAR_SET = "9245378016";
@@ -114,6 +114,7 @@ public class SMSOTPConstants {
         public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
         public static final String SMS_OTP_FAILED_ATTEMPTS_CLAIM =
                 "http://wso2.org/claims/identity/failedSmsOtpAttempts";
+        public static final String VERIFIED_MOBILE_NUMBERS_CLAIM = "http://wso2.org/claims/verifiedMobileNumbers";
     }
 
     /**
@@ -123,6 +124,33 @@ public class SMSOTPConstants {
 
         public static final String DEFAULT = "DEFAULT";
         public static final String CUSTOM = "CUSTOM";
+    }
+
+    /**
+     * Constants related to log management.
+     */
+    public static class LogConstants {
+
+        public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
+
+        /**
+         * Define action IDs for diagnostic logs.
+         */
+        public static class ActionIDs {
+
+            public static final String SEND_SMS_OTP = "send-sms-otp";
+        }
+
+        /**
+         * Define common and reusable Input keys for diagnostic logs.
+         */
+        public static class InputKeys {
+
+            private InputKeys() {
+            }
+
+            public static final String SEND_TO = "send to";
+        }
     }
 
     /**
