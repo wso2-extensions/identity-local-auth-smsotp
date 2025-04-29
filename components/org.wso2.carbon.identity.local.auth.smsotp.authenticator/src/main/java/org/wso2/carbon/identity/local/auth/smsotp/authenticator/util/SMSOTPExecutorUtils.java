@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.local.auth.smsotp.authenticator.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
@@ -59,7 +58,7 @@ public class SMSOTPExecutorUtils {
             validityTime = Long.parseLong(value);
         } catch (NumberFormatException e) {
             LOG.error(String.format("SMS OTP validity period value: %s configured in tenant : %s is not a " +
-                            "number. Therefore, default validity period: %s (milli-seconds) will be used", value,
+                            "number. Therefore, default validity period: %s (milli-seconds) will be used.", value,
                     tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
             return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
         }
@@ -67,7 +66,7 @@ public class SMSOTPExecutorUtils {
         if (validityTime < 0) {
             LOG.error(String.format("SMS OTP validity period value: %s configured in tenant : %s cannot be a " +
                     "negative number. Therefore, default validity period: %s (milli-seconds) will " +
-                    "be used", value, tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
+                    "be used.", value, tenantDomain, SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS));
             return SMSOTPConstants.DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS;
         }
         // Converting to milliseconds since the config is provided in seconds.
@@ -93,7 +92,7 @@ public class SMSOTPExecutorUtils {
             otpLength = Integer.parseInt(value);
         } catch (NumberFormatException e) {
             LOG.error(String.format("SMS OTP length value: %s configured in tenant : %s is not a number. " +
-                            "Therefore, default OTP length: %s will be used", value, tenantDomain,
+                            "Therefore, default OTP length: %s will be used.", value, tenantDomain,
                     SMSOTPConstants.DEFAULT_OTP_LENGTH));
             return SMSOTPConstants.DEFAULT_OTP_LENGTH;
         }
@@ -130,15 +129,13 @@ public class SMSOTPExecutorUtils {
             throws RegistrationEngineServerException {
 
         try {
-            Property[] connectorConfigs;
             IdentityGovernanceService governanceService = AuthenticatorDataHolder.getIdentityGovernanceService();
-            connectorConfigs = governanceService.getConfiguration(new String[]{key}, tenantDomain);
-            return connectorConfigs[0].getValue();
+            return governanceService.getConfiguration(new String[]{key}, tenantDomain)[0].getValue();
         } catch (IdentityGovernanceException e) {
             throw new RegistrationEngineServerException(
                     SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG.getCode(),
                     SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG.getMessage(),
-                    "Error getting SMS OTP authenticator config", e);
+                    "Error getting SMS OTP authenticator config.", e);
         }
     }
 }
