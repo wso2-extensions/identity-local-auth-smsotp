@@ -22,11 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceException;
 import org.wso2.carbon.identity.governance.IdentityGovernanceService;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
 
 /**
  * Utility functions for SMS OTP Executor.
@@ -44,9 +44,9 @@ public class SMSOTPExecutorUtils {
      *
      * @param tenantDomain Tenant domain.
      * @return OTP validity period in milliseconds.
-     * @throws RegistrationEngineServerException If an error occurred while getting the config value.
+     * @throws FlowEngineServerException If an error occurred while getting the config value.
      */
-    public static long getOTPValidityPeriod(String tenantDomain) throws RegistrationEngineServerException {
+    public static long getOTPValidityPeriod(String tenantDomain) throws FlowEngineServerException {
 
         String value = getSMSAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                 tenantDomain);
@@ -78,9 +78,9 @@ public class SMSOTPExecutorUtils {
      *
      * @param tenantDomain Tenant domain.
      * @return OTP length.
-     * @throws RegistrationEngineServerException If an error occurred while getting the config value.
+     * @throws FlowEngineServerException If an error occurred while getting the config value.
      */
-    public static int getOTPLength(String tenantDomain) throws RegistrationEngineServerException {
+    public static int getOTPLength(String tenantDomain) throws FlowEngineServerException {
 
         String value = getSMSAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH,
                 tenantDomain);
@@ -104,9 +104,9 @@ public class SMSOTPExecutorUtils {
      *
      * @param tenantDomain Tenant domain.
      * @return OTP charset.
-     * @throws RegistrationEngineServerException If an error occurred while getting the config value.
+     * @throws FlowEngineServerException If an error occurred while getting the config value.
      */
-    public static String getOTPCharset(String tenantDomain) throws RegistrationEngineServerException {
+    public static String getOTPCharset(String tenantDomain) throws FlowEngineServerException {
 
         String value = getSMSAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS,
                 tenantDomain);
@@ -123,16 +123,16 @@ public class SMSOTPExecutorUtils {
      * @param key          Authenticator config key.
      * @param tenantDomain Tenant domain.
      * @return Value associated with the given config key.
-     * @throws RegistrationEngineServerException If an error occurred while getting th config value.
+     * @throws FlowEngineServerException If an error occurred while getting th config value.
      */
     public static String getSMSAuthenticatorConfig(String key, String tenantDomain)
-            throws RegistrationEngineServerException {
+            throws FlowEngineServerException {
 
         try {
             IdentityGovernanceService governanceService = AuthenticatorDataHolder.getIdentityGovernanceService();
             return governanceService.getConfiguration(new String[]{key}, tenantDomain)[0].getValue();
         } catch (IdentityGovernanceException e) {
-            throw new RegistrationEngineServerException(
+            throw new FlowEngineServerException(
                     SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG.getCode(),
                     SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG.getMessage(),
                     "Error getting SMS OTP authenticator config.", e);

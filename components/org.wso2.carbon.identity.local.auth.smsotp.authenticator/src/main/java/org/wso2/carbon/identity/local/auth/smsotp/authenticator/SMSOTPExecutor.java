@@ -25,13 +25,13 @@ import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineException;
+import org.wso2.carbon.identity.flow.execution.engine.exception.FlowEngineServerException;
+import org.wso2.carbon.identity.flow.execution.engine.model.ExecutorResponse;
+import org.wso2.carbon.identity.flow.execution.engine.model.FlowExecutionContext;
 import org.wso2.carbon.identity.governance.service.notification.NotificationChannels;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.SMSOTPExecutorUtils;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineException;
-import org.wso2.carbon.identity.user.registration.engine.exception.RegistrationEngineServerException;
-import org.wso2.carbon.identity.user.registration.engine.model.ExecutorResponse;
-import org.wso2.carbon.identity.user.registration.engine.model.RegistrationContext;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.util.ArrayList;
@@ -59,11 +59,17 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
+    public ExecutorResponse rollback(FlowExecutionContext flowExecutionContext) throws FlowEngineException {
+
+        return null;
+    }
+
+    @Override
     protected Event getSendOTPEvent(OTPExecutorConstants.OTPScenarios scenario, OTP otp,
-                                    RegistrationContext registrationContext) throws RegistrationEngineServerException {
+                                    FlowExecutionContext registrationContext) throws FlowEngineServerException {
 
         Map<String, Object> metaProperties = new HashMap<>();
-        String mobile = String.valueOf(registrationContext.getRegisteringUser()
+        String mobile = String.valueOf(registrationContext.getFlowUser()
                 .getClaim(SMSOTPConstants.Claims.MOBILE_CLAIM));
 
         metaProperties.put(IdentityEventConstants.EventProperty.NOTIFICATION_CHANNEL,
@@ -91,9 +97,9 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    protected void handleClaimUpdate(RegistrationContext registrationContext, ExecutorResponse executorResponse) {
+    protected void handleClaimUpdate(FlowExecutionContext registrationContext, ExecutorResponse executorResponse) {
 
-        String mobileNumber = (String) registrationContext.getRegisteringUser()
+        String mobileNumber = (String) registrationContext.getFlowUser()
                 .getClaim(SMSOTPConstants.Claims.MOBILE_CLAIM);
         Map<String, Object> updatedClaims = new HashMap<>();
         updatedClaims.put(SMSOTPConstants.Claims.VERIFIED_MOBILE_NUMBERS_CLAIM, mobileNumber);
@@ -107,31 +113,31 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    protected int getOTPLength(String tenantDomain) throws RegistrationEngineException {
+    protected int getOTPLength(String tenantDomain) throws FlowEngineException {
 
         return SMSOTPExecutorUtils.getOTPLength(tenantDomain);
     }
 
     @Override
-    protected String getOTPCharset(String tenantDomain) throws RegistrationEngineException {
+    protected String getOTPCharset(String tenantDomain) throws FlowEngineException {
 
         return SMSOTPExecutorUtils.getOTPCharset(tenantDomain);
     }
 
     @Override
-    protected int getMaxRetryCount(RegistrationContext registrationContext) {
+    protected int getMaxRetryCount(FlowExecutionContext registrationContext) {
 
         return 3;
     }
 
     @Override
-    protected long getOTPValidityPeriod(String tenantDomain) throws RegistrationEngineException {
+    protected long getOTPValidityPeriod(String tenantDomain) throws FlowEngineException {
 
         return SMSOTPExecutorUtils.getOTPValidityPeriod(tenantDomain);
     }
 
     @Override
-    protected int getMaxResendCount(RegistrationContext registrationContext) {
+    protected int getMaxResendCount(FlowExecutionContext registrationContext) {
 
         return 3;
     }
