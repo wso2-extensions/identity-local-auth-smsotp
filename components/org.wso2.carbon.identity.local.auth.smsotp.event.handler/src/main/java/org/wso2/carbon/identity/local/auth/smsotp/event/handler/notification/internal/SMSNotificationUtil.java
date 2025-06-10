@@ -78,6 +78,7 @@ public class SMSNotificationUtil {
         OTP otp = (OTP) dataMap.get(SMSNotificationConstants.OTP_TOKEN_PROPERTY_NAME);
         if (otp != null) {
             notificationData.put(SMSNotificationConstants.PLACE_HOLDER_CONFIRMATION_CODE, otp.getValue());
+            notificationData.put(SMSNotificationConstants.PLACE_HOLDER_OTP_TOKEN, otp.getValue());
             notificationData.put(SMSNotificationConstants.PLACE_HOLDER_OTP_EXPIRY_TIME,
                     String.valueOf(TimeUnit.MILLISECONDS.toMinutes(otp.getValidityPeriodInMillis())));
         } else {
