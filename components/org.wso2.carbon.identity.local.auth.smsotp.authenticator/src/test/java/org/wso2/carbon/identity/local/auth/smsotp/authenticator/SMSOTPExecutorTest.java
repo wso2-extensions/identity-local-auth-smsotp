@@ -25,6 +25,7 @@ public class SMSOTPExecutorTest {
 
     private static final String CARBON_SUPER = "carbon.super";
     private static final SMSOTPExecutor smsotpExecutor = new SMSOTPExecutor();
+    private static final String REGISTRATION = "REGISTRATION";
 
     private static FlowExecutionContext flowExecutionContext;
     private static MockedStatic<SMSOTPExecutorUtils> mockedSMSOTPExecutorUtils;
@@ -73,6 +74,7 @@ public class SMSOTPExecutorTest {
 
         mockedSMSOTPExecutorUtils.when(() -> SMSOTPExecutorUtils.getOTPValidityPeriod(CARBON_SUPER)).thenReturn(600000L);
 
+        flowExecutionContext.setFlowType(REGISTRATION);
         Event event = smsotpExecutor.getSendOTPEvent(OTPExecutorConstants.OTPScenarios.INITIAL_OTP, otp, flowExecutionContext);
 
         Assert.assertEquals(event.getEventName(), SMSOTPConstants.EVENT_TRIGGER_NAME);
