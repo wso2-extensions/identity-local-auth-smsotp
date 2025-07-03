@@ -47,9 +47,7 @@ import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.
  */
 public class SMSOTPExecutor extends AbstractOTPExecutor {
 
-    private static final String PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
     private static final String REGISTRATION = "REGISTRATION";
-    private static final String ASK_PASSWORD = "ASK_PASSWORD";
 
     @Override
     public String getName() {
@@ -66,7 +64,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    public ExecutorResponse rollback(FlowExecutionContext flowExecutionContext) throws FlowEngineException {
+    public ExecutorResponse rollback(FlowExecutionContext flowExecutionContext) {
 
         return null;
     }
@@ -167,11 +165,8 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         switch (flowExecutionContext.getFlowType()) {
             case REGISTRATION:
                 return SMS_OTP_VERIFICATION_TEMPLATE;
-            case PASSWORD_RECOVERY:
-            case ASK_PASSWORD:
-                return PASSWORD_RESET_TEMPLATE;
             default:
-                return null;
+                return PASSWORD_RESET_TEMPLATE;
         }
     }
 }
