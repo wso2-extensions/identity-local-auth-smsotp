@@ -39,10 +39,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PASSWORD_RESET_TEMPLATE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE;
+
 /**
  * SMS OTP executor class.
  */
 public class SMSOTPExecutor extends AbstractOTPExecutor {
+
+    private static final String REGISTRATION = "REGISTRATION";
 
     @Override
     public String getName() {
@@ -59,17 +64,18 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    public ExecutorResponse rollback(FlowExecutionContext flowExecutionContext) throws FlowEngineException {
+    public ExecutorResponse rollback(FlowExecutionContext flowExecutionContext) {
 
         return null;
     }
 
     @Override
     protected Event getSendOTPEvent(OTPExecutorConstants.OTPScenarios scenario, OTP otp,
-                                    FlowExecutionContext registrationContext) throws FlowEngineServerException {
+                                    FlowExecutionContext flowExecutionContext) throws FlowEngineServerException {
 
         Map<String, Object> metaProperties = new HashMap<>();
-        String mobile = String.valueOf(registrationContext.getFlowUser()
+        String smsTemplate = resolveOTPTemplate(flowExecutionContext);
+        String mobile = String.valueOf(flowExecutionContext.getFlowUser()
                 .getClaim(SMSOTPConstants.Claims.MOBILE_CLAIM));
 
         metaProperties.put(IdentityEventConstants.EventProperty.NOTIFICATION_CHANNEL,
@@ -77,9 +83,9 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         metaProperties.put(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO, mobile);
         metaProperties.put(SMSOTPConstants.OTP_TOKEN, otp);
         metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME, String.valueOf(
-                SMSOTPExecutorUtils.getOTPValidityPeriod(registrationContext.getTenantDomain()) / 60000));
-        metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE);
-        metaProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, registrationContext.getTenantDomain());
+                SMSOTPExecutorUtils.getOTPValidityPeriod(flowExecutionContext.getTenantDomain()) / 60000));
+        metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, smsTemplate);
+        metaProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, flowExecutionContext.getTenantDomain());
 
         if (LoggerUtils.isDiagnosticLogsEnabled()) {
             DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
@@ -97,9 +103,9 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    protected void handleClaimUpdate(FlowExecutionContext registrationContext, ExecutorResponse executorResponse) {
+    protected void handleClaimUpdate(FlowExecutionContext flowExecutionContext, ExecutorResponse executorResponse) {
 
-        String mobileNumber = (String) registrationContext.getFlowUser()
+        String mobileNumber = (String) flowExecutionContext.getFlowUser()
                 .getClaim(SMSOTPConstants.Claims.MOBILE_CLAIM);
         Map<String, Object> updatedClaims = new HashMap<>();
         updatedClaims.put(SMSOTPConstants.Claims.VERIFIED_MOBILE_NUMBERS_CLAIM, mobileNumber);
@@ -125,7 +131,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    protected int getMaxRetryCount(FlowExecutionContext registrationContext) {
+    protected int getMaxRetryCount(FlowExecutionContext flowExecutionContext) {
 
         return 3;
     }
@@ -137,7 +143,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
-    protected int getMaxResendCount(FlowExecutionContext registrationContext) {
+    protected int getMaxResendCount(FlowExecutionContext flowExecutionContext) {
 
         return 3;
     }
@@ -152,5 +158,15 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     protected String getPostOTPValidatedEventName() {
 
         return IdentityEventConstants.Event.POST_VALIDATE_SMS_OTP;
+    }
+
+    private String resolveOTPTemplate(FlowExecutionContext flowExecutionContext) {
+
+        switch (flowExecutionContext.getFlowType()) {
+            case REGISTRATION:
+                return SMS_OTP_VERIFICATION_TEMPLATE;
+            default:
+                return PASSWORD_RESET_TEMPLATE;
+        }
     }
 }
