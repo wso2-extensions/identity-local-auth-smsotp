@@ -25,10 +25,12 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorMessage;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -49,11 +51,14 @@ import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.Authenticat
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -303,6 +308,61 @@ public class SMSOTPAuthenticatorTest {
                     "Parameter order should match.");
             Assert.assertEquals(actualParam.isConfidential(), expectedParam.isConfidential(),
                     "Parameter mandatory status should match.");
+        }
+    }
+
+    /**
+     * Data provider for testSetMaskedMobileNumberMessage method in SMSOTPAuthenticator.
+     * @return Object[][] containing current step and masked mobile configuration.
+     */
+    @DataProvider(name = "getCurrentStepAndMaskedMobileConfig")
+    public Object[][] getCurrentStepAndMaskedMobile() {
+        return new Object[][]{
+                {1, "true"},
+                {2, "false"},
+                {3, "true"},
+                {3, null}
+        };
+    }
+
+    /**
+     * Test for setMaskedMobileNumberMessage method in SMSOTPAuthenticator.
+     * This test checks if the masked mobile number message is set correctly in the AuthenticatorData object.
+     */
+    @Test   (dataProvider = "getCurrentStepAndMaskedMobile")
+    public void testSetMaskedMobileNumberMessage(int currentStep, String sendMaskedMobileInAppNativeMFA) {
+        // Arrange
+        SMSOTPAuthenticator smsotpAuthenticator = Mockito.spy(new SMSOTPAuthenticator());
+        when(context.getCurrentStep()).thenReturn(currentStep);
+
+        String maskedMobileNumber = "XXXXXX1234"; // Masked mobile number
+        String message = "The code is successfully sent to the mobile number: " + maskedMobileNumber;
+        Map<String, String> messageContext = new HashMap<>();
+        messageContext.put("maskedMobileNumber", maskedMobileNumber);
+
+        AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(FrameworkConstants.
+                AuthenticatorMessageType.INFO, "SMSOTPSent", message, messageContext);
+
+        context.setProperty("authenticatorMessage", authenticatorMessage);
+
+        Optional<AuthenticatorData> authenticatorData = smsotpAuthenticator.getAuthInitiationData(context);
+        when(context.getProperty("authenticatorMessage")).thenReturn(authenticatorMessage);
+
+        if (currentStep != 1) {
+            // If the current step is not 1, we should set the masked mobile number message only if the configuration
+            // is enabled.
+            if (Boolean.parseBoolean(sendMaskedMobileInAppNativeMFA)) {
+                Assert.assertTrue(authenticatorData.isPresent(), "AuthenticatorData should be present.");
+                AuthenticatorData data = authenticatorData.get();
+                Assert.assertEquals(data.getMessage().getMessage(), message, "The message should match the expected message.");
+            } else {
+                // If the configuration is disabled, the authenticatorData should not contain the masked mobile
+                // number message.
+                Assert.assertFalse(authenticatorData.isPresent(), "AuthenticatorData should not be present.");
+            }
+        } else {
+            // Masked mobile is not returned for passwordless authentication
+            Assert.assertFalse(authenticatorData.isPresent(), "AuthenticatorData should not be present.");
         }
     }
 

@@ -364,7 +364,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                 String.valueOf(getOtpValidityPeriodInMillis(authenticationContext.getTenantDomain()) / 60000));
         metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
-        setAuthenticatorMessage(authenticationContext, mobileNumber);
+        String maskedMobileNumber = getMaskedUserClaimValue(authenticatedUser, tenantDomain, isInitialFederationAttempt,
+                authenticationContext);
+        setAuthenticatorMessage(authenticationContext, maskedMobileNumber);
         /* SaaS apps are created at the super tenant level and they can be accessed by users of other organizations.
         If users of other organizations try to login to a saas app, the sms notification should be triggered from the
         sms provider configured for that organization. Hence, we need to start a new tenanted flow here. */
@@ -432,6 +434,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         context.setProperty(AUTHENTICATOR_MESSAGE, authenticatorMessage);
     }
+
+    private boolean doSendMaskedMobileInAppNativeMFA() {
+
+        // If the parameter is not set, default to false.
+        String value =
+                getAuthenticatorConfig().getParameterMap().get(SMSOTPConstants.SEND_MASKED_MOBILE_IN_APPNATIVE_MFA);
+        return Boolean.parseBoolean(value);
+    }
+
 
     /**
      * Retrieve the claim dialect of the federated authenticator.
@@ -761,6 +772,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                     1, Boolean.TRUE, SMSOTPConstants.CODE_PARAM);
             authenticatorParamMetadataList.add(codeMetadata);
             requiredParams.add(CODE);
+        }
+
+        // If the configuration is enabled, and if it is a MFA Option, IS will send the masked mobile number.
+        if (context != null && context.getProperty(AUTHENTICATOR_MESSAGE) != null && doSendMaskedMobileInAppNativeMFA()
+                && !isOTPAsFirstFactor(context)) {
+            authenticatorData.setMessage((AuthenticatorMessage) context.getProperty(AUTHENTICATOR_MESSAGE));
         }
         authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.USER_PROMPT);
         authenticatorData.setRequiredParams(requiredParams);
