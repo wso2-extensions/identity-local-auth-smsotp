@@ -311,7 +311,10 @@ public class SMSOTPAuthenticatorTest {
         }
     }
 
-    // Insert a dataprovider for getCurrentStep and SMSOTPConstants.SEND_MASKED_MOBILE_IN_APPNATIVE_MFA
+    /**
+     * Data provider for testSetMaskedMobileNumberMessage method in SMSOTPAuthenticator.
+     * @return Object[][] containing current step and masked mobile configuration.
+     */
     @DataProvider(name = "getCurrentStepAndMaskedMobileConfig")
     public Object[][] getCurrentStepAndMaskedMobile() {
         return new Object[][]{
@@ -321,6 +324,7 @@ public class SMSOTPAuthenticatorTest {
                 {3, null}
         };
     }
+
     /**
      * Test for setMaskedMobileNumberMessage method in SMSOTPAuthenticator.
      * This test checks if the masked mobile number message is set correctly in the AuthenticatorData object.
@@ -329,9 +333,9 @@ public class SMSOTPAuthenticatorTest {
     public void testSetMaskedMobileNumberMessage(int currentStep, String sendMaskedMobileInAppNativeMFA) {
         // Arrange
         SMSOTPAuthenticator smsotpAuthenticator = Mockito.spy(new SMSOTPAuthenticator());
-        when(context.getCurrentStep()).thenReturn(currentStep); // Simulate that the current step is 1
+        when(context.getCurrentStep()).thenReturn(currentStep);
 
-        String maskedMobileNumber = "XXXXXX1234"; // Example masked mobile number
+        String maskedMobileNumber = "XXXXXX1234"; // Masked mobile number
         String message = "The code is successfully sent to the mobile number: " + maskedMobileNumber;
         Map<String, String> messageContext = new HashMap<>();
         messageContext.put("maskedMobileNumber", maskedMobileNumber);
@@ -345,11 +349,15 @@ public class SMSOTPAuthenticatorTest {
         when(context.getProperty("authenticatorMessage")).thenReturn(authenticatorMessage);
 
         if (currentStep != 1) {
+            // If the current step is not 1, we should set the masked mobile number message only if the configuration
+            // is enabled.
             if (Boolean.parseBoolean(sendMaskedMobileInAppNativeMFA)) {
                 Assert.assertTrue(authenticatorData.isPresent(), "AuthenticatorData should be present.");
                 AuthenticatorData data = authenticatorData.get();
                 Assert.assertEquals(data.getMessage().getMessage(), message, "The message should match the expected message.");
             } else {
+                // If the configuration is disabled, the authenticatorData should not contain the masked mobile
+                // number message.
                 Assert.assertFalse(authenticatorData.isPresent(), "AuthenticatorData should not be present.");
             }
         } else {
