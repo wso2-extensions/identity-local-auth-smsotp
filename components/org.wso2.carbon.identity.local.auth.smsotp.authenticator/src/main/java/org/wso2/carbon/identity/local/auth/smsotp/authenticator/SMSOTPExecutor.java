@@ -56,6 +56,12 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
     }
 
     @Override
+    public String getAMRValue() {
+
+        return SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
+    }
+
+    @Override
     public List<String> getInitiationData() {
 
         List<String> initiationData = new ArrayList<>();
