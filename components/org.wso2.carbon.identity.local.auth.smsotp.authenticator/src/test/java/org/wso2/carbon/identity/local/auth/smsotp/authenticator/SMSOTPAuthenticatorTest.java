@@ -25,6 +25,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -41,9 +42,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.event.IdentityEventException;
-import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.AuthenticatorUtils;
@@ -56,15 +54,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator.ENABLE_RETRY_FROM_AUTHENTICATOR;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
@@ -176,9 +173,41 @@ public class SMSOTPAuthenticatorTest {
                 AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP);
     }
 
-    @Test
-    public void testRetryAuthenticationEnabled() {
-        assertTrue(true, "Test case not implemented yet");
+    @DataProvider
+    public Object[][] retryAuthenticationData() {
+
+        return new Object[][]{
+                {Boolean.TRUE, true},
+                {Boolean.FALSE, false},
+                {null, true}    // Empty config map -> method returns true by default.
+        };
+    }
+
+    @Test(dataProvider = "retryAuthenticationData")
+    public void testRetryAuthenticationEnabled(Boolean isRetryEnabled, boolean expected) {
+
+        AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
+        Map<String, String> params = new HashMap<>();
+        if (isRetryEnabled != null) {
+            params.put(ENABLE_RETRY_FROM_AUTHENTICATOR, isRetryEnabled.toString());
+        }
+        when(authenticatorConfig.getParameterMap()).thenReturn(params);
+
+        FileBasedConfigurationBuilder fileBasedConfigurationBuilder = mock(FileBasedConfigurationBuilder.class);
+        when(fileBasedConfigurationBuilder.getAuthenticatorBean(anyString())).thenReturn(authenticatorConfig);
+
+        SMSOTPAuthenticator smsotpAuthenticator = new SMSOTPAuthenticator();
+
+        try (MockedStatic<FileBasedConfigurationBuilder> mocked =
+                     mockStatic(FileBasedConfigurationBuilder.class)) {
+
+            mocked.when(FileBasedConfigurationBuilder::getInstance)
+                    .thenReturn(fileBasedConfigurationBuilder);
+
+            boolean actual = smsotpAuthenticator.retryAuthenticationEnabled();
+            Assert.assertEquals(actual, expected,
+                    "The retry authentication enabled value should match the expected value: " + expected);
+        }
     }
 
     @Test

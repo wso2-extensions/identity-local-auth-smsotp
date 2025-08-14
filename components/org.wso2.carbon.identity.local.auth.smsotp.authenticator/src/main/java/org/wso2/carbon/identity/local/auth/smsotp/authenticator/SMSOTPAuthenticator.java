@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -165,6 +166,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     @Override
     public boolean retryAuthenticationEnabled() {
 
+        Map<String, String> parameterMap = getAuthenticatorConfig().getParameterMap();
+        if (MapUtils.isNotEmpty(parameterMap)) {
+            return Boolean.parseBoolean(parameterMap.get(ENABLE_RETRY_FROM_AUTHENTICATOR));
+        }
         return true;
     }
 

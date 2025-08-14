@@ -75,6 +75,7 @@
         <com.twilio.sdk.version>9.14.0.wso2v1</com.twilio.sdk.version>
 
         <org.apache.commons.logging.range>[1.2.0,2.0.0)</org.apache.commons.logging.range>
+        <commons-collections.wso2.osgi.version.range>[3.2.0,4.0.0)</commons-collections.wso2.osgi.version.range>
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
         <carbon.kernel.package.import.version.range>[4.6.0, 5.0.0)</carbon.kernel.package.import.version.range>
