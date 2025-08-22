@@ -71,6 +71,10 @@
             <artifactId>org.wso2.carbon.identity.governance</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.governance</groupId>
+            <artifactId>org.wso2.carbon.identity.captcha</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity.event.handler.accountlock</groupId>
             <artifactId>org.wso2.carbon.identity.handler.event.account.lock</artifactId>
         </dependency>
@@ -110,7 +114,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <version>7.4.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -159,6 +163,7 @@
                             org.wso2.carbon.identity.handler.event.account.lock.*; version="${carbon.identity.account.lock.handler.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config.dto; version="${identity.event.handler.notification.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config; version="${identity.event.handler.notification.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.captcha.*; version="${identity.governance.imp.pkg.version.range}",
 
                             org.wso2.carbon.idp.mgt.*; version="${carbon.identity.framework.imp.pkg.version.range}",
 
@@ -196,6 +201,19 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M9</version>
+                <configuration>
+                    <testNGArtifactName>org.testng:testng</testNGArtifactName>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*TestCase.java</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
