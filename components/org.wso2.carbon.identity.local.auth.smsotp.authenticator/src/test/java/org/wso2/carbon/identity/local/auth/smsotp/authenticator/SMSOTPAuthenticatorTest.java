@@ -345,7 +345,7 @@ public class SMSOTPAuthenticatorTest {
      * Data provider for testSetMaskedMobileNumberMessage method in SMSOTPAuthenticator.
      * @return Object[][] containing current step and masked mobile configuration.
      */
-    @DataProvider(name = "getCurrentStepAndMaskedMobileConfig")
+    @DataProvider(name = "getCurrentStepAndMaskedMobile")
     public Object[][] getCurrentStepAndMaskedMobile() {
         return new Object[][]{
                 {1, "true"},
