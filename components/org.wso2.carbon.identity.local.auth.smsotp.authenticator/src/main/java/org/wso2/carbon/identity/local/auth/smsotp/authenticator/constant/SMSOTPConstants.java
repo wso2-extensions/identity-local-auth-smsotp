@@ -95,7 +95,7 @@ public class SMSOTPConstants {
     public static final String REMAINING_NUMBER_OF_SMS_OTP_ATTEMPTS_QUERY = "&remainingNumberOfSMSOtpAttempts=";
     public static final String CONF_SHOW_AUTH_FAILURE_REASON = "showAuthFailureReason";
     public static final String SEND_MASKED_MOBILE_IN_APPNATIVE_MFA = "sendMaskedMobileInAppNativeMFA";
-
+    public static final String IS_REDIRECT_TO_SMS_OTP = "isRedirectToSmsOTP";
     /**
      * Authenticator config related configurations.
      */

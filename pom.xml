@@ -55,17 +55,17 @@
         <carbon.kernel.version>4.9.16</carbon.kernel.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
         <carbon.identity.framework.version>7.8.403</carbon.identity.framework.version>
-        <identity.governance.version>1.11.11</identity.governance.version>
+        <identity.governance.version>1.11.126</identity.governance.version>
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>
-        <identity.auth.otp.commons.version>1.0.16</identity.auth.otp.commons.version>
+        <identity.auth.otp.commons.version>1.0.17</identity.auth.otp.commons.version>
         <identity.event.handler.notification.version>1.7.17</identity.event.handler.notification.version>
         <identity.notification.sender.tenant.config.version>1.7.10</identity.notification.sender.tenant.config.version>
         <identity.organization.management.core.version>1.0.93</identity.organization.management.core.version>
 
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
 
-        <testng.version>6.9.10</testng.version>
+        <testng.version>7.10.1</testng.version>
         <mockito.version>3.8.0</mockito.version>
         <powermock.version>1.7.4</powermock.version>
 
@@ -169,6 +169,18 @@
                 <groupId>org.wso2.carbon.identity.governance</groupId>
                 <artifactId>org.wso2.carbon.identity.governance</artifactId>
                 <version>${identity.governance.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.governance</groupId>
+                <artifactId>org.wso2.carbon.identity.captcha</artifactId>
+                <version>${identity.governance.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>annotations</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

@@ -44,6 +44,9 @@ import org.wso2.carbon.identity.auth.otp.core.AbstractOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.PasswordlessOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
+import org.wso2.carbon.identity.captcha.connector.recaptcha.AbstractOTPCaptchaConnector;
+import org.wso2.carbon.identity.captcha.connector.recaptcha.LocalSMSOTPCaptchaConnector;
+import org.wso2.carbon.identity.captcha.exception.CaptchaException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -799,6 +802,45 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         } catch (SMSOTPAuthenticatorServerException exception) {
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
         }
+    }
+
+    @Override
+    protected String getCaptchaParams(HttpServletRequest request, AuthenticationContext context, String tenantDomain,
+                                      AuthenticatedUser authenticatedUser) {
+
+        String captchaParams = StringUtils.EMPTY;
+        AbstractOTPCaptchaConnector smsOTPCaptchaConnector = new LocalSMSOTPCaptchaConnector();
+        smsOTPCaptchaConnector.init(AuthenticatorDataHolder.getIdentityGovernanceService());
+        try {
+            if (smsOTPCaptchaConnector.isRecaptchaEnabled(request) && isOTPAsFirstFactor(context)) {
+                captchaParams = "&reCaptcha=true";
+            }
+        } catch (CaptchaException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Failed to determine if recaptcha for Email OTP is enabled", e);
+            }
+        }
+
+        return captchaParams;
+    }
+
+    @Override
+    protected void redirectToOTPLoginPage(AuthenticatedUser authenticatedUser, String tenantDomain,
+                                          boolean isInitialFederationAttempt, HttpServletResponse response,
+                                          HttpServletRequest request, AuthenticationContext context)
+            throws AuthenticationFailedException {
+
+        super.redirectToOTPLoginPage(authenticatedUser, tenantDomain, isInitialFederationAttempt, response,
+                request, context);
+        context.setProperty(SMSOTPConstants.IS_REDIRECT_TO_SMS_OTP, "true");
+    }
+
+    @Override
+    protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
+                                                 AuthenticationContext context) throws AuthenticationFailedException {
+
+        context.removeProperty(SMSOTPConstants.IS_REDIRECT_TO_SMS_OTP);
+        super.processAuthenticationResponse(request, response, context);
     }
 
 }
