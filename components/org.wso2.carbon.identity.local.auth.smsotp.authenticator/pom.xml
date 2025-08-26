@@ -173,6 +173,8 @@
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
 
                             org.owasp.encoder; version="${encoder.wso2.import.version.range}",
+
+                            javax.servlet; version="${imp.pkg.version.javax.servlet}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
 
                             org.wso2.carbon.identity.auth.otp.core; version="${identity.auth.otp.commons.version.range}",
