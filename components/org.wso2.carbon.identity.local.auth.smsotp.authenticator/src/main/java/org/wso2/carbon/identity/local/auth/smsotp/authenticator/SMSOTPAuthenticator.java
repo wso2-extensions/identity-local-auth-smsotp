@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.auth.otp.core.PasswordlessOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.AbstractOTPCaptchaConnector;
-import org.wso2.carbon.identity.captcha.connector.recaptcha.LocalEmailOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.LocalSMSOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.exception.CaptchaException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
