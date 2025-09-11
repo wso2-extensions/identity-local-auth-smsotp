@@ -23,9 +23,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -61,6 +63,8 @@ public class HTTPPublisher {
             String json = smsData.getBody();
             URL url = new URL(publisherURL);
             connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(getConnectionTimeout());
+            connection.setReadTimeout(getReadTimeout());
 
             Map<String, String> headers = smsData.getHeaders();
             for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -128,5 +132,19 @@ public class HTTPPublisher {
         } catch (MalformedURLException e) {
             throw new PublisherException("", e);
         }
+    }
+
+    private int getConnectionTimeout() {
+
+        return ProviderUtil.parsePositiveOrDefault(
+                IdentityUtil.getProperty(Constants.HTTP_URL_CONNECTION_TIMEOUT_CONFIG),
+                Constants.DEFAULT_HTTP_URL_CONNECTION_TIMEOUT);
+    }
+
+    private int getReadTimeout() {
+
+        return ProviderUtil.parsePositiveOrDefault(
+                IdentityUtil.getProperty(Constants.HTTP_URL_CONNECTION_READ_TIMEOUT_CONFIG),
+                Constants.DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT);
     }
 }

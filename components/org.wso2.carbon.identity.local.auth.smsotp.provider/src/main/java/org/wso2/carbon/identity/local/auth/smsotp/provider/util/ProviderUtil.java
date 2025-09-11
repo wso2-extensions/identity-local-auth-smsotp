@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,6 +55,26 @@ public class ProviderUtil {
         } catch (NoSuchAlgorithmException ex) {
             LOG.error("Error while hashing the telephone number.", ex);
             return "---";
+        }
+    }
+
+    /**
+     * Parse a positive integer value, or return the given default when blank/invalid/non-positive.
+     *
+     * @param value        String to parse.
+     * @param defaultValue Default value to return on failure.
+     * @return Parsed positive int, or defaultValue.
+     */
+    public static int parsePositiveOrDefault(String value, int defaultValue) {
+
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed > 0 ? parsed : defaultValue;
+        } catch (NumberFormatException exception) {
+            return defaultValue;
         }
     }
 }
