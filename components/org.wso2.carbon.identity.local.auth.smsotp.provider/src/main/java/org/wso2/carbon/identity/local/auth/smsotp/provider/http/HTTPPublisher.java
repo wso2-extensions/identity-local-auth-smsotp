@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -91,6 +92,10 @@ public class HTTPPublisher {
         } catch (MalformedURLException e) {
             throw new PublisherException("Error while creating the URL object", e);
         } catch (IOException e) {
+            if (e instanceof SocketTimeoutException) {
+                log.warn("Timeout while publishing SMS to provider: " + publisherURL + " (connectTimeout=" +
+                        getConnectionTimeout() + "ms, readTimeout=" + getReadTimeout() + "ms)");
+            }
             throw new PublisherException("Error while opening the connection", e);
         } finally {
             if (connection != null) {
