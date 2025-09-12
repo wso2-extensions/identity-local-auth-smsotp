@@ -38,4 +38,12 @@ public class Constants {
     public static final String HTTP_BODY = "body";
     public static final String TO_PLACEHOLDER = "{{mobile}}";
     public static final String BODY_PLACEHOLDER = "{{body}}";
+
+    public static final String HTTP_URL_CONNECTION_TIMEOUT_CONFIG =
+            "NotificationChannel.SMS.Custom.ConnectionTimeout";
+    public static final String HTTP_URL_CONNECTION_READ_TIMEOUT_CONFIG =
+            "NotificationChannel.SMS.Custom.ConnectionReadTimeout";
+
+    public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 5000;
+    public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
 }
