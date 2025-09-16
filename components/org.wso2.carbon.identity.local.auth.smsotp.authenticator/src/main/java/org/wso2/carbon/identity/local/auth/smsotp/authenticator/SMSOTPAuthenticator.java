@@ -372,6 +372,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         metaProperties.put(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME,
                 String.valueOf(getOtpValidityPeriodInMillis(authenticationContext.getTenantDomain()) / 60000));
         metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, SMSOTPConstants.EVENT_NAME);
+        /*
+         Reading the SMS Template type from the runtime params if exists which is set from the
+         authentication script.
+        */
+        Map<String, String> smsOtpAuthenticatorParams = getRuntimeParams(authenticationContext);
+        String smsTemplateType = smsOtpAuthenticatorParams.get(SMSOTPConstants.SMS_TEMPLATE_TYPE);
+        if (StringUtils.isNotEmpty(smsTemplateType)) {
+            metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, smsTemplateType);
+        }
         String maskedMobileNumber = getMaskedUserClaimValue(authenticatedUser, tenantDomain, isInitialFederationAttempt,
                 authenticationContext);
         setAuthenticatorMessage(authenticationContext, maskedMobileNumber);
@@ -381,13 +390,19 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         if (authenticationContext.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
             try {
                 FrameworkUtils.startTenantFlow(authenticatedUser.getTenantDomain());
-                triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+                triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
             } finally {
                 FrameworkUtils.endTenantFlow();
             }
         } else {
-            triggerEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+            triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
         }
+    }
+
+    protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser, Map<String,
+            Object> eventProperties) throws AuthenticationFailedException {
+
+        triggerEvent(eventName, authenticatedUser, eventProperties);
     }
 
     @Override
