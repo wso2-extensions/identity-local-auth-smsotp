@@ -26,7 +26,9 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -34,10 +36,12 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorMessage;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
+import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -45,8 +49,13 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.internal.AuthenticatorDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.AuthenticatorUtils;
+import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,9 +63,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -82,9 +100,19 @@ public class SMSOTPAuthenticatorTest {
     @Mock
     private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
+    @Mock
+    private RealmService mockedRealmService = mock(RealmService.class);
+
+    @Mock
+    private UserRealm userRealm = mock(UserRealm.class);
+
+    @Mock
+    private AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+
     @BeforeTest
     public void createNewObject() {
         smsotpAuthenticator = new SMSOTPAuthenticator();
+        AuthenticatorDataHolder.setRealmService(mockedRealmService);
     }
 
     @Test
@@ -432,6 +460,65 @@ public class SMSOTPAuthenticatorTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
 
+        }
+    }
+
+    @DataProvider
+    public static Object[][] CustomNotificationTemplateAvailable() {
+        return new Object[][] {
+                {true, false},
+                {true, true},
+                {false, false},
+                {false, true}
+        };
+    }
+
+    @Test(dataProvider = "CustomNotificationTemplateAvailable")
+    public void testSendOtpForNonSaasAppsWithCustomNotificationTemplates(boolean isCustomTemplateAvailable,
+                                                                         boolean isSaaSApp) throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        OTP otp = mock(OTP.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
+
+        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
+             MockedStatic<MultitenantUtils> multitenantUtilsMockedStatic = mockStatic(MultitenantUtils.class);
+             MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
+
+            identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).
+                    thenReturn(-1234);
+            when(mockedRealmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+
+            multitenantUtilsMockedStatic.when(() -> MultitenantUtils.getTenantAwareUsername(anyString())).
+                    thenReturn("tenantAwareUsername");
+            when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
+            when(context.getTenantDomain()).thenReturn("carbon.super");
+            when(context.getServiceProviderName()).thenReturn("sp1");
+            when(context.getSequenceConfig()).thenReturn(Mockito.mock(SequenceConfig.class));
+            when(context.getSequenceConfig().getApplicationConfig()).thenReturn(mock(ApplicationConfig.class));
+            when(context.getSequenceConfig().getApplicationConfig().isSaaSApp()).thenReturn(isSaaSApp);
+            if (isCustomTemplateAvailable) {
+                Map<String, String> authenticatorParams = new HashMap<>();
+                authenticatorParams.put("notificationTemplate", "customNotificationTemplate");
+                when(context.getAuthenticatorParams(anyString())).thenReturn(authenticatorParams);
+            }
+            doReturn(6000L).when(authenticator).getOtpValidityPeriodInMillis(anyString());
+            doReturn("XXXXXX7890").when(authenticator).getMaskedUserClaimValue(any(AuthenticatedUser.class),
+                    anyString(), anyBoolean(), any());
+            doNothing().when(authenticator).triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+            authenticator.sendOtp(user, otp, false, request, response, context);
+            if (!isSaaSApp) {
+                // Verify triggerOtpEvent is called
+                verify(authenticator).triggerOtpEvent(anyString(), eq(user), anyMap());
+            } else {
+                frameworkUtilsMockedStatic.verify(() -> FrameworkUtils.startTenantFlow(user.getTenantDomain()),
+                        Mockito.times(1));
+                frameworkUtilsMockedStatic.verify(FrameworkUtils::endTenantFlow, Mockito.times(1));
+            }
         }
     }
 }

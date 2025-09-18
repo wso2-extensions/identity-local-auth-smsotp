@@ -44,6 +44,7 @@ public class SMSOTPConstants {
     public static final String PASSWORD = "password";
     public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
     public static final String PASSWORD_RESET_TEMPLATE = "passwordReset";
+    public static final String SMS_TEMPLATE_TYPE = "notificationTemplate";
 
     // OTP generation.
     public static final String SMS_OTP_NUMERIC_CHAR_SET = "9245378016";
