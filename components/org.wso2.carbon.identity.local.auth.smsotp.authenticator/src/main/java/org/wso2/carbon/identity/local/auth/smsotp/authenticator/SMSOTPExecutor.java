@@ -166,6 +166,12 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         return IdentityEventConstants.Event.POST_VALIDATE_SMS_OTP;
     }
 
+    @Override
+    protected boolean validateInitiation(FlowExecutionContext context) {
+
+        return context.getFlowUser().getClaim(SMSOTPConstants.Claims.MOBILE_CLAIM) != null;
+    }
+
     private String resolveOTPTemplate(FlowExecutionContext flowExecutionContext) {
 
         switch (flowExecutionContext.getFlowType()) {
