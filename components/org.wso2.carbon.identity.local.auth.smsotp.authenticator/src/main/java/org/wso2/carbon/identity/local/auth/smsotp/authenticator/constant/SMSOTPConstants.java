@@ -66,6 +66,8 @@ public class SMSOTPConstants {
     // Endpoint URLs.
     public static final String ERROR_PAGE = "authenticationendpoint/smsOtpError.jsp";
     public static final String SMS_OTP_PAGE = "authenticationendpoint/smsOtp.jsp";
+    public static final String SMS_OTP_AUTHENTICATION_ENDPOINT_URL_CONFIG = "SMSOTPAuthenticationEndpointURL";
+    public static final String SMS_OTP_ERROR_PAGE_URL_CONFIG = "SMSOTPAuthenticationEndpointErrorPage";
 
     public static final String OIDC_DIALECT_URI = "http://wso2.org/oidc/claim";
     public static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims";

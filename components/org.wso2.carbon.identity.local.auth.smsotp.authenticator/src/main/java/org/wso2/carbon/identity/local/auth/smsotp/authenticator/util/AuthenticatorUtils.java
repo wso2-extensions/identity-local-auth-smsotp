@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.authenticator.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -96,6 +97,25 @@ public class AuthenticatorUtils {
     }
 
     /**
+     * Get sms OTP login page URL.
+     *
+     * @param otpPageUrl SMS OTP Page URL.
+     * @return URL of the OTP login page.
+     * @throws AuthenticationFailedException If an error occurred while getting the login page url.
+     */
+    public static String getSMSOTPLoginPageUrl(String otpPageUrl) throws AuthenticationFailedException {
+
+        try {
+            if (StringUtils.isBlank(otpPageUrl)) {
+                return getSMSOTPLoginPageUrl();
+            }
+            return ServiceURLBuilder.create().addPath(otpPageUrl).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new AuthenticationFailedException("Error building sms OTP login page URL", e);
+        }
+    }
+
+    /**
      * Get SMS OTP error page URL.
      *
      * @return URL of the OTP error page.
@@ -107,6 +127,25 @@ public class AuthenticatorUtils {
             return ServiceURLBuilder.create().addPath(SMSOTPConstants.ERROR_PAGE).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw new AuthenticationFailedException("Error building sms OTP error page URL", e);
+        }
+    }
+
+    /**
+     * Get SMS OTP error page URL.
+     *
+     * @param errorPageUrl SMS OTP error page URL.
+     * @return URL of the OTP error page.
+     * @throws AuthenticationFailedException If an error occurred while getting the error page url.
+     */
+    public static String getSMSOTPErrorPageUrl(String errorPageUrl) throws AuthenticationFailedException {
+
+        try {
+            if (StringUtils.isBlank(errorPageUrl)) {
+                return getSMSOTPErrorPageUrl();
+            }
+            return ServiceURLBuilder.create().addPath(errorPageUrl).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new AuthenticationFailedException("Error building sms OTP login page URL", e);
         }
     }
 
