@@ -79,7 +79,9 @@ import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATION_ENDPOINT_URL_CONFIG;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_ERROR_PAGE_URL_CONFIG;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 
@@ -184,7 +186,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     @Override
     protected String getErrorPageURL(AuthenticationContext authenticationContext)
             throws AuthenticationFailedException {
-        return AuthenticatorUtils.getSMSOTPErrorPageUrl();
+        return AuthenticatorUtils.getSMSOTPErrorPageUrl(
+                getAuthenticatorConfig().getParameterMap().get(SMS_OTP_ERROR_PAGE_URL_CONFIG));
     }
 
     @Override
@@ -210,7 +213,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     @Override
     protected String getOTPLoginPageURL(AuthenticationContext authenticationContext)
             throws AuthenticationFailedException {
-        return AuthenticatorUtils.getSMSOTPLoginPageUrl();
+        return AuthenticatorUtils.getSMSOTPLoginPageUrl(
+                getAuthenticatorConfig().getParameterMap().get(SMS_OTP_AUTHENTICATION_ENDPOINT_URL_CONFIG));
     }
 
     @Override
