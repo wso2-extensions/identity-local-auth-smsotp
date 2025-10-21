@@ -19,10 +19,14 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
@@ -34,6 +38,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 public class CustomProviderTest {
@@ -44,6 +49,21 @@ public class CustomProviderTest {
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
+    private static MockedStatic<LoggerUtils> mockedLoggerUtils;
+
+    @BeforeClass
+    public void setUp() {
+
+        mockedLoggerUtils = mockStatic(LoggerUtils.class);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        if (mockedLoggerUtils != null) {
+            mockedLoggerUtils.close();
+        }
+    }
 
     @BeforeTest
     public void init() {

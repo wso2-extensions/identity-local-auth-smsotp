@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
