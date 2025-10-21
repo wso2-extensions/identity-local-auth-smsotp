@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderExc
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 /**
  * Implementation for the Vonage SMS provider for Vonage SMS gateway.
@@ -72,10 +73,14 @@ public class VonageProvider implements Provider {
             SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
 
             if (response.getMessages().get(0).getStatus() != MessageStatus.OK) {
+                MessageStatus status = response.getMessages().get(0).getStatus();
+                String errorText = response.getMessages().get(0).getErrorText();
+                ProviderUtil.triggerDiagnosticLogEvent(
+                        String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
+                        smsData.getToNumber(), Constants.VONAGE, DiagnosticLog.ResultStatus.FAILED);
                 LOG.warn("Error occurred while sending SMS to "
-                        + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage"
-                        + " Status: " + response.getMessages().get(0).getStatus() + " Message: "
-                        + response.getMessages().get(0).getErrorText());
+                        + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage."
+                        + " Status: " + response.getMessages().get(0).getStatus() + ". Error: " + errorText);
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Vonage");
