@@ -21,6 +21,12 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.external.api.client.api.exception.APIClientInvocationException;
+import org.wso2.carbon.identity.external.api.client.api.model.APIAuthentication;
+import org.wso2.carbon.identity.external.api.client.api.model.APIClientConfig;
+import org.wso2.carbon.identity.external.api.token.handler.api.TokenAcquirerService;
+import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenRequestContext;
+import org.wso2.carbon.identity.external.api.token.handler.api.model.TokenResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -35,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 public class ProviderUtil {
 
     private static final Log LOG = LogFactory.getLog(ProviderUtil.class);
+    private static final TokenAcquirerService tokenAcquirerService = new TokenAcquirerService(buildAPIClientConfig());
 
     /**
      * Hash the given telephone number using SHA-256 to print in logs. This is to avoid printing the telephone
@@ -76,5 +83,31 @@ public class ProviderUtil {
         } catch (NumberFormatException exception) {
             return defaultValue;
         }
+    }
+
+    private static TokenRequestContext buildTokenRequestContext() {
+
+        APIAuthentication.BasicAuthBuilder authBuilder = new APIAuthentication.BasicAuthBuilder(
+                "clientId", "clientSecret");
+
+        TokenRequestContext.Builder builder = new TokenRequestContext.Builder()
+                .apiAuthentication(authBuilder.build())
+                .endpointUrl("https://customauth.free.beeceptor.com")
+                .payload("{\"grant_type\":\"client_credentials\"}");
+
+        return builder.build();
+    }
+
+    private static APIClientConfig buildAPIClientConfig() {
+
+        APIClientConfig.Builder configBuilder = new APIClientConfig.Builder();
+        return configBuilder.build();
+    }
+
+    public static String getToken() throws APIClientInvocationException {
+
+        tokenAcquirerService.setTokenRequestContext(buildTokenRequestContext());
+        TokenResponse token = tokenAcquirerService.getToken();
+        return token.getAccessToken();
     }
 }

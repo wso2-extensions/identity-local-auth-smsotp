@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.external.api.client.api.exception.APIClientInvocationException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
@@ -35,6 +36,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil.getToken;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -69,6 +72,12 @@ public class CustomProvider implements Provider {
             smsData.setContentType(Constants.APPLICATION_JSON);
         } else if (Constants.FORM.equals(smsSenderDTO.getContentType())) {
             smsData.setContentType(Constants.APPLICATION_FORM);
+        }
+
+        try {
+            getToken();
+        } catch (APIClientInvocationException e) {
+            throw new ProviderException("Error while acquiring token for the custom provider", e);
         }
 
         smsData.setHeaders(constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS)));

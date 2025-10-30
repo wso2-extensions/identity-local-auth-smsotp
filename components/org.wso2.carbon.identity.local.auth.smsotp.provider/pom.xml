@@ -73,6 +73,10 @@
             <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.external.api.token.handler</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -94,6 +98,10 @@
                             org.wso2.carbon.identity.local.auth.smsotp.provider.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
+                            org.wso2.carbon.identity.external.api.token.handler.*; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.model; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.external.api.client.api.service; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.apache.commons.logging; version="${org.apache.commons.logging.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
