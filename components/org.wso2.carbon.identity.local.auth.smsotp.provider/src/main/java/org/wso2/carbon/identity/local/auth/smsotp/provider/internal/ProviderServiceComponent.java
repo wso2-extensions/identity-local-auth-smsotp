@@ -24,10 +24,14 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.CustomProvider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.TwilioProvider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.VonageProvider;
+import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 
 /**
  * Service component for SMS OTP Provider.
@@ -63,5 +67,25 @@ public class ProviderServiceComponent {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Provider Service Component bundle is deactivated.");
         }
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.notification.sender.tenant.config",
+            service = NotificationSenderManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetNotificationSenderManagementService"
+    )
+    protected void setNotificationSenderManagementService(
+            NotificationSenderManagementService notificationSenderManagementService) {
+
+        SMSNotificationProviderDataHolder.getInstance()
+                .setNotificationSenderManagementService(notificationSenderManagementService);
+    }
+
+    protected void unsetNotificationSenderManagementService(
+            NotificationSenderManagementService notificationSenderManagementService) {
+
+        SMSNotificationProviderDataHolder.getInstance().setNotificationSenderManagementService(null);
     }
 }

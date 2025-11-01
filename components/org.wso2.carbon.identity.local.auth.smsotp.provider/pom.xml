@@ -54,6 +54,10 @@
             <groupId>org.wso2.carbon.identity.event.handler.notification</groupId>
             <artifactId>org.wso2.carbon.identity.notification.sender.tenant.config</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
@@ -103,12 +107,14 @@
                             org.wso2.carbon.identity.external.api.client.api.exception; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.external.api.client.api.service; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.apache.commons.logging; version="${org.apache.commons.logging.range}",
+                            org.apache.http.*; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.event.handler; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config; version="${identity.event.handler.notification.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config.dto; version="${identity.event.handler.notification.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.notification.sender.tenant.config.exception; version="${identity.event.handler.notification.imp.pkg.version.range}",
 
                             com.vonage.client,
                             com.vonage.client.sms,
