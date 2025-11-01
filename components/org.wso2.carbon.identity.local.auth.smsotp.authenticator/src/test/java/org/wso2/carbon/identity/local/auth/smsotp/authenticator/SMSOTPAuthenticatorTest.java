@@ -510,7 +510,7 @@ public class SMSOTPAuthenticatorTest {
                     anyString(), anyBoolean(), any());
             doNothing().when(authenticator).triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
 
-            authenticator.sendOtp(user, otp, false, request, response, context);
+            authenticator.sendOtp(null, user, otp, false, request, response, context);
             if (!isSaaSApp) {
                 // Verify triggerOtpEvent is called
                 verify(authenticator).triggerOtpEvent(anyString(), eq(user), anyMap());

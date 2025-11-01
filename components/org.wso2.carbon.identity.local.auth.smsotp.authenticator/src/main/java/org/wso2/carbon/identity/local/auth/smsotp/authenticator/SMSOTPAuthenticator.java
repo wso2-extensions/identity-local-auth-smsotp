@@ -354,7 +354,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     @Override
-    protected void sendOtp(AuthenticatedUser authenticatedUser, OTP otp, boolean isInitialFederationAttempt,
+    protected void sendOtp(String mobile, AuthenticatedUser authenticatedUser, OTP otp, boolean isInitialFederationAttempt,
                            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                            AuthenticationContext authenticationContext) throws AuthenticationFailedException {
 
@@ -363,8 +363,14 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         authenticationContext.setProperty(SMSOTPConstants.OTP_EXPIRED, Boolean.toString(false));
 
         String tenantDomain = authenticationContext.getTenantDomain();
-        String mobileNumber = resolveMobileNoOfAuthenticatedUser(authenticatedUser, tenantDomain,
-                authenticationContext, isInitialFederationAttempt);
+
+        String mobileNumber;
+        if (mobile == null) {
+            mobileNumber = resolveMobileNoOfAuthenticatedUser(authenticatedUser, tenantDomain,
+                    authenticationContext, isInitialFederationAttempt);
+        } else {
+            mobileNumber = mobile;
+        }
 
         Map<String, Object> metaProperties = new HashMap<>();
         metaProperties.put(IdentityEventConstants.EventProperty.NOTIFICATION_CHANNEL,
@@ -385,8 +391,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         if (StringUtils.isNotEmpty(smsTemplateType)) {
             metaProperties.put(SMSOTPConstants.TEMPLATE_TYPE, smsTemplateType);
         }
-        String maskedMobileNumber = getMaskedUserClaimValue(authenticatedUser, tenantDomain, isInitialFederationAttempt,
-                authenticationContext);
+
+        String maskedMobileNumber;
+        if (mobile == null) {
+            maskedMobileNumber = getMaskedUserClaimValue(authenticatedUser, tenantDomain, isInitialFederationAttempt,
+                    authenticationContext);
+        } else {
+            maskedMobileNumber = getMaskedMobile(mobile);
+        }
+
         setAuthenticatorMessage(authenticationContext, maskedMobileNumber);
         /* SaaS apps are created at the super tenant level and they can be accessed by users of other organizations.
         If users of other organizations try to login to a saas app, the sms notification should be triggered from the
@@ -844,12 +857,12 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     @Override
-    protected void redirectToOTPLoginPage(AuthenticatedUser authenticatedUser, String tenantDomain,
+    protected void redirectToOTPLoginPage(String mobile, AuthenticatedUser authenticatedUser, String tenantDomain,
                                           boolean isInitialFederationAttempt, HttpServletResponse response,
                                           HttpServletRequest request, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        super.redirectToOTPLoginPage(authenticatedUser, tenantDomain, isInitialFederationAttempt, response,
+        super.redirectToOTPLoginPage(mobile, authenticatedUser, tenantDomain, isInitialFederationAttempt, response,
                 request, context);
         context.setProperty(SMSOTPConstants.IS_REDIRECT_TO_SMS_OTP, "true");
     }
@@ -862,4 +875,17 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         super.processAuthenticationResponse(request, response, context);
     }
 
+    private String getMaskedMobile(String mobile) {
+
+        if (StringUtils.isBlank(mobile)) {
+            return null;
+        }
+        int screenAttributeLength = mobile.length();
+        String screenValue = mobile.substring(screenAttributeLength - SMSOTPConstants.MASKED_DIGITS,
+                screenAttributeLength);
+        String hiddenScreenValue = mobile.substring(0, screenAttributeLength - SMSOTPConstants.MASKED_DIGITS);
+        screenValue = new String(new char[hiddenScreenValue.length()]).
+                replace("\0", SMSOTPConstants.MOBILE_NUMBER_MASKING_CHARACTER).concat(screenValue);
+        return screenValue;
+    }
 }
