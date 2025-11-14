@@ -46,4 +46,13 @@ public class Constants {
 
     public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 5000;
     public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
+    public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
+
+    /**
+     * Define action IDs for diagnostic logs.
+     */
+    public static class ActionIDs {
+
+        public static final String SEND_SMS = "send-sms";
+    }
 }

@@ -20,14 +20,19 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 public class VonageProviderTest {
@@ -36,6 +41,21 @@ public class VonageProviderTest {
 
     @Mock
     private SMSSenderDTO smsSenderDTO = Mockito.mock(SMSSenderDTO.class);
+    private static MockedStatic<LoggerUtils> mockedLoggerUtils;
+
+    @BeforeClass
+    public void setUp() {
+
+        mockedLoggerUtils = mockStatic(LoggerUtils.class);
+    }
+
+    @AfterClass
+    public void tearDown() {
+
+        if (mockedLoggerUtils != null) {
+            mockedLoggerUtils.close();
+        }
+    }
 
     @BeforeTest
     public void createNewObject() {

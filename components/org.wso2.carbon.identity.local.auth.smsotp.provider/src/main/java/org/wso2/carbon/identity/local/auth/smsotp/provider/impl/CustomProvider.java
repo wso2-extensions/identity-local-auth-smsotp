@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -85,7 +86,13 @@ public class CustomProvider implements Provider {
             HTTPPublisher publisher = new HTTPPublisher();
             publisher.publish(smsData, smsSenderDTO.getProviderURL());
         } catch (PublisherException e) {
-            throw new ProviderException("Error occurred while publishing the SMS data to the custom provider", e);
+            String errorText = StringUtils.isNotBlank(e.getMessage()) ? e.getMessage() : e.getCause().getMessage();
+            ProviderUtil.triggerDiagnosticLogEvent(
+                    String.format("Error occurred while sending SMS. Error: %s", errorText), smsData.getToNumber(),
+                    smsSenderDTO.getProvider(), DiagnosticLog.ResultStatus.FAILED);
+            LOG.warn("Error occurred while sending SMS to "
+                    + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
+                    + ". Error: " + errorText);
         }
     }
 

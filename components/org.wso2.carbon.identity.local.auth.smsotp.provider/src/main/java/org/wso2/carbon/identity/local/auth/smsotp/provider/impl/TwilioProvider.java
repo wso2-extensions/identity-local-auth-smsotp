@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import com.twilio.Twilio;
+import com.twilio.exception.ApiException;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import org.apache.commons.lang.StringUtils;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderExc
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 /**
  * Implementation for the Twilio SMS provider for Twilio SMS gateway.
@@ -69,13 +71,29 @@ public class TwilioProvider implements Provider {
             Message message = Message.creator(to, from, smsData.getBody()).create();
 
             if (message.getStatus() == Message.Status.FAILED) {
+                Message.Status status = message.getStatus();
+                String errorText = message.getErrorMessage();
+
+                ProviderUtil.triggerDiagnosticLogEvent(
+                        String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
+                        smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
-                        + " Status: " + message.getStatus() + " (Error): " + message.getErrorMessage());
+                        + " Status: " + status + ". Error: " + errorText);
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Twilio." + " Status: " + message.getStatus());
             }
+        } catch (ApiException e) {
+            Integer status = e.getStatusCode();
+            String errorText = StringUtils.isNotBlank(e.getMessage()) ? e.getMessage() : e.getCause().getMessage();
+
+            ProviderUtil.triggerDiagnosticLogEvent(
+                    String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
+                    smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
+            LOG.warn("Error occurred while sending SMS to "
+                    + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
+                    + " Status: " + e.getStatusCode() + ". Error: " + errorText);
         } catch (Exception e) {
             throw new ProviderException("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
