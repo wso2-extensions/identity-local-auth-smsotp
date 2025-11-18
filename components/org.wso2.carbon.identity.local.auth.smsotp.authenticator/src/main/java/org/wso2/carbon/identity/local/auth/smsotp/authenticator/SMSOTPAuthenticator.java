@@ -449,7 +449,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     @Override
-    protected boolean isUserBasedSMSResendBlockingEnabled() throws AuthenticationFailedException {
+    protected boolean isUserBasedOTPResendBlockingEnabled() throws AuthenticationFailedException {
 
         return true;
     }
