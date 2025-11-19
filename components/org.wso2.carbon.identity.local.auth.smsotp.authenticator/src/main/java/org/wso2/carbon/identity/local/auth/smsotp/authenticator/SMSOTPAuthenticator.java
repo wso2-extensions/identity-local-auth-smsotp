@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.auth.otp.core.AbstractOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.PasswordlessOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
+import org.wso2.carbon.identity.auth.otp.core.model.OTPResendClaims;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.AbstractOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.LocalSMSOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.exception.CaptchaException;
@@ -76,6 +77,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.CODE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.Claims.SMS_OTP_LAST_SENT_TIME_CLAIM;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.Claims.SMS_OTP_RESEND_ATTEMPTS_CLAIM;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_CODE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DISPLAY_USERNAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.RESEND;
@@ -422,6 +425,33 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         } catch (SMSOTPAuthenticatorServerException exception) {
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
         }
+    }
+
+    @Override
+    protected OTPResendClaims getOTPResendClaims() {
+
+        return new OTPResendClaims(SMS_OTP_RESEND_ATTEMPTS_CLAIM, SMS_OTP_LAST_SENT_TIME_CLAIM);
+    }
+
+    @Override
+    protected int getOTPResendBlockDuration(String tenantDomain) throws AuthenticationFailedException {
+
+        try {
+            String allowedResendCount = AuthenticatorUtils.getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig
+                    .SMS_OTP_RESEND_BLOCK_DURATION, tenantDomain);
+            if (NumberUtils.isNumber(allowedResendCount)) {
+                return Integer.parseInt(allowedResendCount);
+            }
+            return SMSOTPConstants.DEFAULT_OTP_RESEND_BLOCK_DURATION;
+        } catch (SMSOTPAuthenticatorServerException e) {
+            throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
+        }
+    }
+
+    @Override
+    protected boolean isUserBasedOTPResendBlockingEnabled() throws AuthenticationFailedException {
+
+        return true;
     }
 
     /**
