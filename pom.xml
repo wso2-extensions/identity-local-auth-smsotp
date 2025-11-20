@@ -54,13 +54,13 @@
 
         <carbon.kernel.version>4.9.16</carbon.kernel.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
-        <carbon.identity.framework.version>7.8.403</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.8.618</carbon.identity.framework.version>
         <identity.governance.version>1.11.126</identity.governance.version>
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>
         <identity.auth.otp.commons.version>1.0.22</identity.auth.otp.commons.version>
         <identity.event.handler.notification.version>1.7.17</identity.event.handler.notification.version>
-        <identity.notification.sender.tenant.config.version>1.7.10</identity.notification.sender.tenant.config.version>
+        <identity.notification.sender.tenant.config.version>1.9.75-SNAPSHOT</identity.notification.sender.tenant.config.version>
         <identity.organization.management.core.version>1.0.93</identity.organization.management.core.version>
         <httpcomponents-httpclient.wso2.version>4.5.13.wso2v1</httpcomponents-httpclient.wso2.version>
         <httpcomponents-httpclient.imp.pkg.version.range>[4.3.1.wso2v2,5.0.0)</httpcomponents-httpclient.imp.pkg.version.range>
@@ -164,11 +164,6 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.flow.execution.engine</artifactId>
-                <version>${carbon.identity.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.external.api.token.handler</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <dependency>

@@ -121,8 +121,10 @@ public class HTTPPublisher {
                 log.debug("JSON data: " + json);
             }
         } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            log.warn("Unauthorized access while publishing the sms data to the: " + publisherURL
-                    + ". Response code: " + responseCode);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Unauthorized access while publishing the sms data to the: %s. " +
+                        "Response code: %s.", publisherURL, responseCode));
+            }
             throw new PublisherException(UNAUTHORIZED_ACCESS_ERROR_MSG);
         } else {
             log.warn("Error occurred while publishing the sms data to the: " + publisherURL

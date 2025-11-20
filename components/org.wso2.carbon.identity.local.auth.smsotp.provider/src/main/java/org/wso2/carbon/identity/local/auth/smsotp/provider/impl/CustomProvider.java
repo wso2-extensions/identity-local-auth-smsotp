@@ -107,19 +107,21 @@ public class CustomProvider implements Provider {
         for (int attempt = 0; attempt <= getRetryCountAtAuthFailure(); attempt++) {
             try {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + "." );
+                    LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + ".");
                 }
                 publisher.publish(smsData, smsSenderDTO.getProviderURL());
             } catch (PublisherException e) {
                 if (attempt > getRetryCountAtAuthFailure() || !UNAUTHORIZED_ACCESS_ERROR_MSG.equals(e.getMessage())) {
                     throw e;
                 }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Authentication failed, attempting to rebuild authentication header. Attempt: "
-                            + (attempt + 1));
-                }
                 Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
                         .getNotificationSenderManagementService().rebuildAuthenticationHeader(smsSenderDTO);
+                if (newAuthHeader == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Rebuilt authentication header is null. Cannot retry publishing SMS.");
+                    }
+                    throw e;
+                }
                 headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
                 smsData.setHeaders(headers);
             }
@@ -127,16 +129,16 @@ public class CustomProvider implements Provider {
     }
 
     private void addAuthHeader(Map<String, String> headers, SMSSenderDTO smsSenderDTO)
-            throws ProviderException, NotificationSenderManagementException {
+            throws ProviderException {
 
-        if (smsSenderDTO.getAuthentication() == null || smsSenderDTO.getAuthentication().getAuthHeader() == null) {
-            return;
-        }
         try {
+            if (smsSenderDTO.getAuthentication() == null || smsSenderDTO.getAuthentication().getAuthHeader() == null) {
+                return;
+            }
             headers.put(
                     smsSenderDTO.getAuthentication().getAuthHeader().getName(),
                     smsSenderDTO.getAuthentication().getAuthHeader().getValue());
-        } catch (Exception e) {
+        } catch (NotificationSenderManagementServerException e) {
             throw new ProviderException("Error while retrieving the authentication header for custom provider", e);
         }
     }

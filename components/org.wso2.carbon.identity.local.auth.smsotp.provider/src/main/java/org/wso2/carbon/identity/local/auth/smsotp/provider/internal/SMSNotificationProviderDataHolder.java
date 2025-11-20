@@ -22,7 +22,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 
 /**
- * SMS Notification Provider service component's value holder.
+ * SMS Notification Provider service component's component holder.
  */
 @SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class SMSNotificationProviderDataHolder {
@@ -34,17 +34,32 @@ public class SMSNotificationProviderDataHolder {
     private SMSNotificationProviderDataHolder() {
     }
 
+    /**
+     * Get SMSNotificationProviderDataHolder instance.
+     *
+     * @return SMSNotificationProviderDataHolder instance.
+     */
     public static SMSNotificationProviderDataHolder getInstance() {
 
         return instance;
     }
 
+    /**
+     * Set NotificationSenderManagementService.
+     *
+     * @param notificationSenderManagementService NotificationSenderManagementService.
+     */
     public void setNotificationSenderManagementService(
             NotificationSenderManagementService notificationSenderManagementService) {
 
         this.notificationSenderManagementService = notificationSenderManagementService;
     }
 
+    /**
+     * Get NotificationSenderManagementService.
+     *
+     * @return NotificationSenderManagementService.
+     */
     public NotificationSenderManagementService getNotificationSenderManagementService() {
 
         return notificationSenderManagementService;
