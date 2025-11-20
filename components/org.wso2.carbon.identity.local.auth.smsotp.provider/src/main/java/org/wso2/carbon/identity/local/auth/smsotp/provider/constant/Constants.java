@@ -43,9 +43,14 @@ public class Constants {
             "NotificationChannel.SMS.Custom.ConnectionTimeout";
     public static final String HTTP_URL_CONNECTION_READ_TIMEOUT_CONFIG =
             "NotificationChannel.SMS.Custom.ConnectionReadTimeout";
+    public static final String RETRY_COUNT_AT_AUTH_FAILURE =
+            "NotificationChannel.SMS.Custom.RetryCountAtAuthFailure";
 
     public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 5000;
     public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
+
+    public static final String UNAUTHORIZED_ACCESS_ERROR_MSG = "Unauthorized Access - Invalid Credentials provided.";
+
     public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
 
     /**
