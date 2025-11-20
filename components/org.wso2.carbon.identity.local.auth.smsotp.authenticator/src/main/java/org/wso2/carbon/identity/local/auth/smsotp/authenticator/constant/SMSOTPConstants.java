@@ -29,6 +29,7 @@ public class SMSOTPConstants {
     private static final String SMS_AUTHENTICATOR_ERROR_PREFIX = "SMSOTP";
     public static final int DEFAULT_OTP_LENGTH = 6;
     public static final int DEFAULT_OTP_RESEND_ATTEMPTS = 5;
+    public static final int DEFAULT_OTP_RESEND_BLOCK_DURATION = 5;
     public static final int MASKED_DIGITS = 4;
     public static final long DEFAULT_SMS_OTP_VALIDITY_IN_MILLIS = 300000;
     public static final String MOBILE_NUMBER = "MOBILE_NUMBER";
@@ -108,6 +109,7 @@ public class SMSOTPConstants {
         public static final String SMS_OTP_LENGTH = "SmsOTP.OTPLength";
         public static final String SMS_OTP_USE_NUMERIC_CHARS = "SmsOTP.OtpRegex.UseNumericChars";
         public static final String SMS_OTP_RESEND_ATTEMPTS_COUNT = "SmsOTP.ResendAttemptsCount";
+        public static final String SMS_OTP_RESEND_BLOCK_DURATION = "SmsOTP.ResendBlockDuration";
     }
 
     /**
@@ -120,6 +122,10 @@ public class SMSOTPConstants {
         public static final String SMS_OTP_FAILED_ATTEMPTS_CLAIM =
                 "http://wso2.org/claims/identity/failedSmsOtpAttempts";
         public static final String VERIFIED_MOBILE_NUMBERS_CLAIM = "http://wso2.org/claims/verifiedMobileNumbers";
+        public static final String SMS_OTP_RESEND_ATTEMPTS_CLAIM =
+                "http://wso2.org/claims/identity/smsOtpResendAttempts";
+        public static final String SMS_OTP_LAST_SENT_TIME_CLAIM =
+                "http://wso2.org/claims/identity/smsOtpLastSentTime";
     }
 
     /**

@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.local.auth.smsotp</groupId>
         <artifactId>identity-local-auth-smsotp</artifactId>
-        <version>1.0.41-SNAPSHOT</version>
+        <version>1.0.43-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -102,11 +102,13 @@
                             org.apache.http; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.event.handler; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config; version="${identity.event.handler.notification.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config.dto; version="${identity.event.handler.notification.imp.pkg.version.range}",
                             org.wso2.carbon.identity.notification.sender.tenant.config.exception; version="${identity.event.handler.notification.imp.pkg.version.range}",
+                            org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
 
                             com.vonage.client,
                             com.vonage.client.sms,
@@ -114,6 +116,7 @@
 
                             com.twilio,
                             com.twilio.rest.api.v2010.account,
+                            com.twilio.exception,
                             com.twilio.type,
                         </Import-Package>
                     </instructions>

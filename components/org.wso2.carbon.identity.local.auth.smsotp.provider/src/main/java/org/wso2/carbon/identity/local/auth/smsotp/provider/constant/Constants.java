@@ -50,4 +50,14 @@ public class Constants {
     public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
 
     public static final String UNAUTHORIZED_ACCESS_ERROR_MSG = "Unauthorized Access - Invalid Credentials provided.";
+
+    public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
+
+    /**
+     * Define action IDs for diagnostic logs.
+     */
+    public static class ActionIDs {
+
+        public static final String SEND_SMS = "send-sms";
+    }
 }

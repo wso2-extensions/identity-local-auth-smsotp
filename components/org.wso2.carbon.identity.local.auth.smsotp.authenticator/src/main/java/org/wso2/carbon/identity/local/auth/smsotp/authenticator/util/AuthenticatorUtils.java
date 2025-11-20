@@ -74,6 +74,9 @@ public class AuthenticatorUtils {
             Property[] connectorConfigs;
             IdentityGovernanceService governanceService = AuthenticatorDataHolder.getIdentityGovernanceService();
             connectorConfigs = governanceService.getConfiguration(new String[]{key}, tenantDomain);
+            if (connectorConfigs == null || connectorConfigs.length == 0) {
+                return null;
+            }
             return connectorConfigs[0].getValue();
         } catch (IdentityGovernanceException e) {
             throw handleServerException(SMSOTPConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG, e,

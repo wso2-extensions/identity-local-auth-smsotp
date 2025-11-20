@@ -21,6 +21,10 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -76,5 +80,31 @@ public class ProviderUtil {
         } catch (NumberFormatException exception) {
             return defaultValue;
         }
+    }
+
+    /**
+     * Trigger Diagnostic Log Event.
+     *
+     * @param resultMessage Result message.
+     * @param resultStatus  Result status.
+     * @param provider      SMS provider name.
+     * @param mobile        Mobile number.
+     */
+    public static void triggerDiagnosticLogEvent(String resultMessage, String mobile, String provider,
+                                                 DiagnosticLog.ResultStatus resultStatus) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                Constants.SMS_OTP_SERVICE, Constants.ActionIDs.SEND_SMS);
+        diagnosticLogBuilder
+                .resultMessage(resultMessage)
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .configParam("provider", provider)
+                .resultStatus(resultStatus)
+                .inputParam(LogConstants.InputKeys.SUBJECT,
+                        LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(mobile) : mobile);
+        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
     }
 }
