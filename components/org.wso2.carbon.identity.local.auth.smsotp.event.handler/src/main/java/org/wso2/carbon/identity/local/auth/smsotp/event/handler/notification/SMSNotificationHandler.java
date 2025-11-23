@@ -91,14 +91,6 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                                 + smsSenderDTO.getName());
                     }
 
-                    // We expect that all the providers will require the mobile number (To number) to proceed. Hence,
-                    // validating the mobile number at this level.
-                    String toNumber = (String) event.getEventProperties()
-                            .get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME);
-                    if (StringUtils.isBlank(toNumber)) {
-                        throw new IdentityEventException(ERROR_CODE_MISSING_SMS_SENDER,
-                                "To number is null or blank. Cannot send SMS");
-                    }
                     provider.send(constructSMSOTPPayload(event), smsSenderDTO, tenantDomain);
                 }
             }
@@ -113,9 +105,8 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
     protected SMSData constructSMSOTPPayload(Event event) throws IdentityEventException {
 
         SMSData smsData = new SMSData();
-        Map<String, Object> eventProperties = event.getEventProperties();
         smsData.setBody(constructTemplatedSMSBody(event));
-        smsData.setToNumber((String) eventProperties.get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME));
+        smsData.setToNumber(resolveMobileNumber(event));
         return smsData;
     }
 
@@ -137,5 +128,22 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                     SMSNotificationConstants.ERROR_MESSAGE_TEMPLATE_NOT_FOUND);
         }
         return SMSNotificationUtil.replacePlaceholders(template, notificationData);
+    }
+
+    private String resolveMobileNumber(Event event) throws IdentityEventException {
+
+        // We expect that all the providers will require the mobile number (To number) to proceed. Hence,
+        // validating the mobile number at this level.
+        String toNumber = (String) event.getEventProperties()
+                .get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME);
+        if (StringUtils.isBlank(toNumber)) {
+            Map<String, String> arbitraryDataMap = buildNotificationData(event);
+            toNumber = arbitraryDataMap.get(SMSNotificationConstants.SMS_MASSAGE_TO_NAME);
+        }
+        if (StringUtils.isBlank(toNumber)) {
+            throw new IdentityEventException(ERROR_CODE_MISSING_SMS_SENDER,
+                    "To number is null or blank. Cannot send SMS");
+        }
+        return toNumber;
     }
 }

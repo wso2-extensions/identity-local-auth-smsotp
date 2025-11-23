@@ -39,7 +39,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.UNAUTHORIZED_ACCESS_ERROR_MSG;
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS;
 
 /**
  * This class will be used to publish the SMS to the custom SMS provider using the HTTP protocol.
@@ -125,7 +125,7 @@ public class HTTPPublisher {
                 log.debug(String.format("Unauthorized access while publishing the sms data to the: %s. " +
                         "Response code: %s.", publisherURL, responseCode));
             }
-            throw new PublisherException(UNAUTHORIZED_ACCESS_ERROR_MSG);
+            throw new PublisherException(ERROR_UNAUTHORIZED_ACCESS.getCode(),  ERROR_UNAUTHORIZED_ACCESS.getMessage());
         } else {
             log.warn("Error occurred while publishing the sms data to the: " + publisherURL
                     + ". Response code: " + responseCode);

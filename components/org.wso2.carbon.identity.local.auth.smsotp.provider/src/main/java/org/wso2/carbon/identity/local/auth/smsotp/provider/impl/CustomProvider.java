@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.UNAUTHORIZED_ACCESS_ERROR_MSG;
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -118,19 +118,19 @@ public class CustomProvider implements Provider {
                 }
                 publisher.publish(smsData, smsSenderDTO.getProviderURL());
             } catch (PublisherException e) {
-                if (attempt > getRetryCountAtAuthFailure() || !UNAUTHORIZED_ACCESS_ERROR_MSG.equals(e.getMessage())) {
-                    throw e;
-                }
-                Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
-                        .getNotificationSenderManagementService().rebuildAuthenticationHeader(smsSenderDTO);
-                if (newAuthHeader == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Rebuilt authentication header is null. Cannot retry publishing SMS.");
+                /* If we receive an authentication failure from the notification provider, attempt to rebuild the
+                 authentication header and resend the SMS. */
+                if (attempt <= getRetryCountAtAuthFailure() &&
+                        !ERROR_UNAUTHORIZED_ACCESS.getCode().equals(e.getErrorCode())) {
+                    Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
+                            .getNotificationSenderManagementService().rebuildAuthHeaderWithNewToken(smsSenderDTO);
+                    if (newAuthHeader == null) {
+                        throw e;
                     }
-                    throw e;
+                    headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
+                    smsData.setHeaders(headers);
                 }
-                headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
-                smsData.setHeaders(headers);
+                throw e;
             }
         }
     }

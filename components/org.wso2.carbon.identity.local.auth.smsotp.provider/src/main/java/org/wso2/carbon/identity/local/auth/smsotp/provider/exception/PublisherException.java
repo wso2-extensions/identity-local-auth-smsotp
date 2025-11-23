@@ -27,6 +27,14 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.exception;
  */
 public class PublisherException extends Exception {
 
+    private String errorCode;
+
+    public PublisherException(String errorCode, String message) {
+
+        super(message);
+        this.errorCode = errorCode;
+    }
+
     /**
      * Constructs a new exception with the specified detail message.
      *
@@ -65,5 +73,10 @@ public class PublisherException extends Exception {
     public PublisherException(String message, Throwable cause, boolean enableSuppression,
                               boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
     }
 }
