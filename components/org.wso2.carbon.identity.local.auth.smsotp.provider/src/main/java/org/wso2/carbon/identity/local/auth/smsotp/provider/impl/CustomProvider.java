@@ -111,29 +111,32 @@ public class CustomProvider implements Provider {
             throws PublisherException, NotificationSenderManagementException {
 
         HTTPPublisher publisher = new HTTPPublisher();
-        for (int attempt = 0; attempt <= getRetryCountAtAuthFailure(); attempt++) {
+        int allowedAttempts = getRetryCountAtAuthFailure() + 1;
+
+        for (int attempt = 1; attempt <= allowedAttempts;) {
             try {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + ".");
                 }
                 publisher.publish(smsData, smsSenderDTO.getProviderURL());
+                return;
             } catch (PublisherException e) {
-                /* If we receive an authentication failure from the notification provider, attempt to rebuild the
-                 authentication header and resend the SMS. */
-                if (attempt <= getRetryCountAtAuthFailure() &&
-                        !ERROR_UNAUTHORIZED_ACCESS.getCode().equals(e.getErrorCode())) {
-                    Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
-                            .getNotificationSenderManagementService().rebuildAuthHeaderWithNewToken(smsSenderDTO);
-                    if (newAuthHeader == null) {
-                        throw e;
-                    }
-                    headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
-                    smsData.setHeaders(headers);
+                if (!ERROR_UNAUTHORIZED_ACCESS.getCode().equals(e.getErrorCode()) || attempt >= allowedAttempts) {
+                    throw e;
                 }
-                throw e;
+                Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
+                        .getNotificationSenderManagementService()
+                        .rebuildAuthHeaderWithNewToken(smsSenderDTO);
+                if (newAuthHeader == null) {
+                    throw e;
+                }
+                headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
+                smsData.setHeaders(headers);
             }
+            attempt++;
         }
     }
+
 
     private void addAuthHeader(Map<String, String> headers, SMSSenderDTO smsSenderDTO)
             throws ProviderException {
