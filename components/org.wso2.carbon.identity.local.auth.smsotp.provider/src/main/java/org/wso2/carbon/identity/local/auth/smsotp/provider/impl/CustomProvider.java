@@ -21,14 +21,19 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.internal.SMSNotificationProviderDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
+import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
+import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementServerException;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.UnsupportedEncodingException;
@@ -36,6 +41,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -72,7 +79,9 @@ public class CustomProvider implements Provider {
             smsData.setContentType(Constants.APPLICATION_FORM);
         }
 
-        smsData.setHeaders(constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS)));
+        Map<String, String> headers = constructHeaders(smsSenderDTO.getProperties().get(Constants.HTTP_HEADERS));
+        addAuthHeader(headers, smsSenderDTO);
+        smsData.setHeaders(headers);
         smsData.setHttpMethod(smsSenderDTO.getProperties().get(Constants.HTTP_METHOD));
 
         // If we have additional payload to be sent to the custom provider, we will append it to the SMS body.
@@ -83,8 +92,7 @@ public class CustomProvider implements Provider {
         smsData.setBody(resolveTemplate(smsData.getContentType(), template, smsData.getToNumber(), smsData.getBody()));
 
         try {
-            HTTPPublisher publisher = new HTTPPublisher();
-            publisher.publish(smsData, smsSenderDTO.getProviderURL());
+            publish(smsData, smsSenderDTO, headers);
         } catch (PublisherException e) {
             String errorText = StringUtils.isNotBlank(e.getMessage()) ? e.getMessage() : e.getCause().getMessage();
             ProviderUtil.triggerDiagnosticLogEvent(
@@ -93,6 +101,55 @@ public class CustomProvider implements Provider {
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
                     + ". Error: " + errorText);
+        } catch (NotificationSenderManagementException e) {
+            throw new ProviderException(
+                    "Error occurred while building authentication header for the notification provider", e);
+        }
+    }
+
+    private void publish(SMSData smsData, SMSSenderDTO smsSenderDTO, Map<String, String> headers)
+            throws PublisherException, NotificationSenderManagementException {
+
+        HTTPPublisher publisher = new HTTPPublisher();
+        int allowedAttempts = getRetryCountAtAuthFailure() + 1;
+
+        for (int attempt = 1; attempt <= allowedAttempts;) {
+            try {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + ".");
+                }
+                publisher.publish(smsData, smsSenderDTO.getProviderURL());
+                return;
+            } catch (PublisherException e) {
+                if (!ERROR_UNAUTHORIZED_ACCESS.getCode().equals(e.getErrorCode()) || attempt >= allowedAttempts) {
+                    throw e;
+                }
+                Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()
+                        .getNotificationSenderManagementService()
+                        .rebuildAuthHeaderWithNewToken(smsSenderDTO);
+                if (newAuthHeader == null) {
+                    throw e;
+                }
+                headers.put(newAuthHeader.getName(), newAuthHeader.getValue());
+                smsData.setHeaders(headers);
+            }
+            attempt++;
+        }
+    }
+
+
+    private void addAuthHeader(Map<String, String> headers, SMSSenderDTO smsSenderDTO)
+            throws ProviderException {
+
+        try {
+            if (smsSenderDTO.getAuthentication() == null || smsSenderDTO.getAuthentication().getAuthHeader() == null) {
+                return;
+            }
+            headers.put(
+                    smsSenderDTO.getAuthentication().getAuthHeader().getName(),
+                    smsSenderDTO.getAuthentication().getAuthHeader().getValue());
+        } catch (NotificationSenderManagementServerException e) {
+            throw new ProviderException("Error while retrieving the authentication header for custom provider", e);
         }
     }
 
@@ -130,5 +187,10 @@ public class CustomProvider implements Provider {
         return template
                 .replace(Constants.TO_PLACEHOLDER, "\"" + to + "\"")
                 .replace(Constants.BODY_PLACEHOLDER, "\"" + body + "\"");
+    }
+
+    private int getRetryCountAtAuthFailure() {
+
+        return ProviderUtil.parsePositiveOrDefault(IdentityUtil.getProperty(Constants.RETRY_COUNT_AT_AUTH_FAILURE), 1);
     }
 }

@@ -43,9 +43,12 @@ public class Constants {
             "NotificationChannel.SMS.Custom.ConnectionTimeout";
     public static final String HTTP_URL_CONNECTION_READ_TIMEOUT_CONFIG =
             "NotificationChannel.SMS.Custom.ConnectionReadTimeout";
+    public static final String RETRY_COUNT_AT_AUTH_FAILURE =
+            "NotificationChannel.SMS.Custom.RetryCountAtAuthFailure";
 
     public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 5000;
     public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
+
     public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
 
     /**
@@ -55,4 +58,29 @@ public class Constants {
 
         public static final String SEND_SMS = "send-sms";
     }
+
+    /**
+     * Enum for error messages.
+     */
+    public enum ErrorMessage {
+
+        ERROR_UNAUTHORIZED_ACCESS("SMS-65001", "Unauthorized Access - Invalid Credentials provided.");
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
 }
