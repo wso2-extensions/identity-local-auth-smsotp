@@ -79,7 +79,6 @@ public class CustomProviderTest {
 
     @BeforeTest
     public void init() {
-        propertiesMap.put(Constants.HTTP_HEADERS, "Authorization: Basic QUNiMziOTIyNT");
         propertiesMap.put(Constants.HTTP_BODY, "Body={{body}}&To={{mobile}}");
         propertiesMap.put(Constants.HTTP_METHOD, "POST");
     }
@@ -307,6 +306,52 @@ public class CustomProviderTest {
             
             // Verify that rebuildAuthHeaderWithNewToken was called
             verify(notificationService, times(1)).rebuildAuthHeaderWithNewToken(smsSenderDTO);
+        }
+    }
+
+    @Test
+    public void testSendWithApiKeyAuthAndNullAuthHeader() throws NotificationSenderManagementException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(Authentication.Type.NONE.getName(), "test-api-key-value");
+
+        // Create authentication with API_KEY type (not CLIENT_CREDENTIAL)
+        Authentication authentication = new Authentication.AuthenticationBuilder(
+                Authentication.Type.NONE.toString(), authProperties).build();
+
+        // Mock the data holder and notification service
+        SMSNotificationProviderDataHolder dataHolder = Mockito.mock(SMSNotificationProviderDataHolder.class);
+        NotificationSenderManagementService notificationService =
+                Mockito.mock(NotificationSenderManagementService.class);
+
+        when(dataHolder.getNotificationSenderManagementService()).thenReturn(notificationService);
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(authentication);
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        try (MockedStatic<SMSNotificationProviderDataHolder> mockedDataHolder =
+                mockStatic(SMSNotificationProviderDataHolder.class)) {
+            mockedDataHolder.when(SMSNotificationProviderDataHolder::getInstance).thenReturn(dataHolder);
+
+            try {
+                customProvider.send(smsData, smsSenderDTO, "carbon.super");
+            } catch (ProviderException e) {
+                // Expected to fail at publish since no auth header is set
+                Assert.assertEquals(e.getMessage(),
+                        "Error occurred while publishing the SMS data to the custom provider");
+            }
+
+            // Verify that rebuildAuthHeaderWithNewToken was NOT called for API_KEY auth
+            verify(notificationService, times(0)).rebuildAuthHeaderWithNewToken(smsSenderDTO);
+
+            // Verify that no Authorization header was added since auth type is not CLIENT_CREDENTIAL
+            Assert.assertNull(smsData.getHeaders().get("Authorization"));
         }
     }
 }
