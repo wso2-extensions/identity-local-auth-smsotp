@@ -31,9 +31,9 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.internal.SMSNotificationProviderDataHolder;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
+import org.wso2.carbon.identity.notification.sender.tenant.config.dto.Authentication;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
-import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementServerException;
 import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.io.UnsupportedEncodingException;
@@ -142,13 +142,20 @@ public class CustomProvider implements Provider {
             throws ProviderException {
 
         try {
-            if (smsSenderDTO.getAuthentication() == null || smsSenderDTO.getAuthentication().getAuthHeader() == null) {
+            if (smsSenderDTO.getAuthentication() == null) {
                 return;
+            }
+            if (smsSenderDTO.getAuthentication().getAuthHeader() == null) {
+                if (Authentication.Type.CLIENT_CREDENTIAL != smsSenderDTO.getAuthentication().getType()) {
+                    return;
+                }
+                SMSNotificationProviderDataHolder.getInstance().getNotificationSenderManagementService()
+                        .rebuildAuthHeaderWithNewToken(smsSenderDTO);
             }
             headers.put(
                     smsSenderDTO.getAuthentication().getAuthHeader().getName(),
                     smsSenderDTO.getAuthentication().getAuthHeader().getValue());
-        } catch (NotificationSenderManagementServerException e) {
+        } catch (NotificationSenderManagementException e) {
             throw new ProviderException("Error while retrieving the authentication header for custom provider", e);
         }
     }
