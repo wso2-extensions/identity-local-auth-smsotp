@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSe
 /**
  * SMS Notification Provider service component's component holder.
  */
-@SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP", "EI_EXPOSE_REP2"})
+@SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP"})
 public class SMSNotificationProviderDataHolder {
 
     private static final SMSNotificationProviderDataHolder instance = new SMSNotificationProviderDataHolder();
