@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * SMS Notification Handler service component's value holder.
  */
-@SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP", "EI_EXPOSE_REP2"})
+@SuppressFBWarnings({"EI_EXPOSE_RE", "MS_EXPOSE_REP"})
 public class SMSNotificationHandlerDataHolder {
 
     private static final SMSNotificationHandlerDataHolder instance = new SMSNotificationHandlerDataHolder();

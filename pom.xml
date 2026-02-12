@@ -48,10 +48,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
-
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
         <carbon.kernel.version>4.9.16</carbon.kernel.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
         <carbon.identity.framework.version>7.8.626</carbon.identity.framework.version>
@@ -68,8 +69,7 @@
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
 
         <testng.version>7.10.1</testng.version>
-        <mockito.version>3.8.0</mockito.version>
-        <powermock.version>1.7.4</powermock.version>
+        <mockito.version>5.3.1</mockito.version>
 
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
 
@@ -87,7 +87,7 @@
         <identity.governance.imp.pkg.version.range>[1.3.0, 3.0.0)</identity.governance.imp.pkg.version.range>
         <carbon.user.api.imp.pkg.version.range>[1.0.1, 2.0.0)</carbon.user.api.imp.pkg.version.range>
         <encoder.wso2.import.version.range>[1.2.0, 2.0.0)</encoder.wso2.import.version.range>
-        <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
+        <imp.pkg.version.javax.servlet>[3.1.0, 4.0.0)</imp.pkg.version.javax.servlet>
         <carbon.identity.framework.imp.pkg.version.range>[5.20.90, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
         <identity.event.handler.notification.imp.pkg.version.range>[1.3.15, 2.0.0)
@@ -98,7 +98,8 @@
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <findsecbugs-plugin.version>1.10.1</findsecbugs-plugin.version>
-        <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
+        <spotbugs.annotations.version>4.9.8</spotbugs.annotations.version>
+        <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
         <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
@@ -268,9 +269,15 @@
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-inline</artifactId>
+                <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-annotations</artifactId>
+                <version>${spotbugs.annotations.version}</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -278,6 +285,17 @@
     <build>
         <pluginManagement>
             <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>buildnumber-maven-plugin</artifactId>
