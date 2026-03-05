@@ -85,6 +85,8 @@ import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATION_ENDPOINT_URL_CONFIG;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_ERROR_PAGE_URL_CONFIG;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_RESEND_ATTEMPTS_PROPERTY_NAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.USERNAME;
 import static org.wso2.carbon.user.core.UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
 
@@ -892,4 +894,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         super.processAuthenticationResponse(request, response, context);
     }
 
+    @Override
+    protected String getResendAttemptsPropertyKey() {
+
+        return SMS_OTP_RESEND_ATTEMPTS_PROPERTY_NAME;
+    }
+
+    @Override
+    protected String getRetryAttemptsPropertyKey() {
+
+        return SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME;
+    }
 }
