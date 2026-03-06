@@ -521,4 +521,36 @@ public class SMSOTPAuthenticatorTest {
             }
         }
     }
+
+    /**
+     * Test for getResendAttemptsPropertyKey method in SMSOTPAuthenticator.
+     * This test verifies that the method returns the correct property key for SMS OTP resend attempts.
+     */
+    @Test
+    public void testGetResendAttemptsPropertyKey() {
+
+        SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
+        String resendAttemptsPropertyKey = authenticator.getResendAttemptsPropertyKey();
+
+        Assert.assertNotNull(resendAttemptsPropertyKey,
+                "Resend attempts property key should not be null");
+        Assert.assertEquals(resendAttemptsPropertyKey, SMSOTPConstants.SMS_OTP_RESEND_ATTEMPTS_PROPERTY_NAME,
+                "Resend attempts property key should match SMS_OTP_RESEND_ATTEMPTS_PROPERTY_NAME");
+    }
+
+    /**
+     * Test for getRetryAttemptsPropertyKey method in SMSOTPAuthenticator.
+     * This test verifies that the method returns the correct property key for SMS OTP retry attempts.
+     */
+    @Test
+    public void testGetRetryAttemptsPropertyKey() {
+
+        SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
+        String retryAttemptsPropertyKey = authenticator.getRetryAttemptsPropertyKey();
+
+        Assert.assertNotNull(retryAttemptsPropertyKey,
+                "Retry attempts property key should not be null");
+        Assert.assertEquals(retryAttemptsPropertyKey, SMSOTPConstants.SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME,
+                "Retry attempts property key should match SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME");
+    }
 }
