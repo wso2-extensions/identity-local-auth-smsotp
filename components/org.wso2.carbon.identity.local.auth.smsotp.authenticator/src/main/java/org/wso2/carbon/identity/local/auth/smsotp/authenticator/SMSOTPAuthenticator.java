@@ -580,7 +580,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         try {
             Resource resource = AuthenticatorDataHolder.getConfigurationManager().getResource(SMSOTPConstants.PUBLISHER,
-                    SMSOTPConstants.SMS_PROVIDER, true);
+                    SMSOTPConstants.SMS_PROVIDER);
             if (resource != null) {
                 return SMSOTPConstants.ProviderTypes.CUSTOM;
             }
