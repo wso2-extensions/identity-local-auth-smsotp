@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -102,6 +102,8 @@ public class SMSOTPConstants {
     public static final String CONF_SHOW_AUTH_FAILURE_REASON = "showAuthFailureReason";
     public static final String SEND_MASKED_MOBILE_IN_APPNATIVE_MFA = "sendMaskedMobileInAppNativeMFA";
     public static final String IS_REDIRECT_TO_SMS_OTP = "isRedirectToSmsOTP";
+    public static final String SMS_OTP_USER_BASED_RESEND_BLOCKING_ENABLED = "EnableUserBasedResendBlocking";
+
     /**
      * Authenticator config related configurations.
      */
