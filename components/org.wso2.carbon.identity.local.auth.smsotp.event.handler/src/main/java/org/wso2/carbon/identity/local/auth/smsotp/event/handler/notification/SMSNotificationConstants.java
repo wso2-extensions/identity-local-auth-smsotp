@@ -33,6 +33,7 @@ public class SMSNotificationConstants {
     public static final String OTP_TOKEN_PROPERTY_NAME = "otpToken";
     public static final String OTP_TOKEN_STRING_PROPERTY_NAME = "otpTokenString";
     public static final String BODY_TEMPLATE = "body-template";
+    public static final String VERIFICATION_OTP_EXPIRY_TIME = "verificationOtpExpiryTime";
 
     public static final String PLACE_HOLDER_REGEX = "\\{\\{([a-zA-Z0-9\\-\\.]+?)\\}\\}";
     public static final String PLACE_HOLDER_CONFIRMATION_CODE = "confirmation-code";

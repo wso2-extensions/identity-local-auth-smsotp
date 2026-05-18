@@ -103,9 +103,25 @@ public class SMSNotificationUtilTest {
                     }, new HashMap<String, String>(), "123456", "5"
                 },
                 {
-                    new HashMap<String, String>() {
+                    new HashMap<String, Object>() {
                         {
                             put(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME, "123456");
+                        }
+                    }, new HashMap<String, String>(), "123456", null
+                },
+                {
+                    new HashMap<String, Object>() {
+                        {
+                            put(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME, "123456");
+                            put(SMSNotificationConstants.VERIFICATION_OTP_EXPIRY_TIME, "10");
+                        }
+                    }, new HashMap<String, String>(), "123456", "10"
+                },
+                {
+                    new HashMap<String, Object>() {
+                        {
+                            put(SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME, "123456");
+                            put(SMSNotificationConstants.VERIFICATION_OTP_EXPIRY_TIME, "");
                         }
                     }, new HashMap<String, String>(), "123456", null
                 }

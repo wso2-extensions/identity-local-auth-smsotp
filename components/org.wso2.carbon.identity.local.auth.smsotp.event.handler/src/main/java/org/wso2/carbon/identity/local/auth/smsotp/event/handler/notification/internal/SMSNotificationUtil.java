@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.OTP_TOKEN_STRING_PROPERTY_NAME;
+import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.VERIFICATION_OTP_EXPIRY_TIME;
 import static org.wso2.carbon.identity.organization.management.service.constant.OrganizationManagementConstants.ErrorMessages.ERROR_CODE_ORGANIZATION_NOT_FOUND_FOR_TENANT;
 import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
@@ -85,6 +86,10 @@ public class SMSNotificationUtil {
             String otpCode = (String) dataMap.get(OTP_TOKEN_STRING_PROPERTY_NAME);
             if (StringUtils.isNotBlank(otpCode)) {
                 notificationData.put(SMSNotificationConstants.PLACE_HOLDER_CONFIRMATION_CODE, otpCode);
+            }
+            String verificationOtpExpiryTime = (String) dataMap.get(VERIFICATION_OTP_EXPIRY_TIME);
+            if (StringUtils.isNotBlank(verificationOtpExpiryTime)) {
+                notificationData.put(SMSNotificationConstants.PLACE_HOLDER_OTP_EXPIRY_TIME, verificationOtpExpiryTime);
             }
         }
     }
