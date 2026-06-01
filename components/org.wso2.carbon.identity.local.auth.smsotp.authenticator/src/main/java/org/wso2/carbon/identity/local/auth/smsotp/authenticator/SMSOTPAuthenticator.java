@@ -869,7 +869,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             }
         } catch (CaptchaException e) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Failed to determine if recaptcha for Email OTP is enabled", e);
+                LOG.debug("Failed to determine if recaptcha for SMS OTP is enabled", e);
             }
         }
 
