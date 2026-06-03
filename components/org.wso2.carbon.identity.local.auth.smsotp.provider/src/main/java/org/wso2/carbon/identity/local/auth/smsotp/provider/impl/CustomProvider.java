@@ -25,6 +25,7 @@ import org.apache.http.Header;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.NonBlockingProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.http.HTTPPublisher;
@@ -101,6 +102,8 @@ public class CustomProvider implements Provider {
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
                     + ". Error: " + errorText);
+            throw new NonBlockingProviderException(
+                    "Error occurred while publishing the SMS data to the custom provider", e);
         } catch (NotificationSenderManagementException e) {
             throw new ProviderException(
                     "Error occurred while building authentication header for the notification provider", e);

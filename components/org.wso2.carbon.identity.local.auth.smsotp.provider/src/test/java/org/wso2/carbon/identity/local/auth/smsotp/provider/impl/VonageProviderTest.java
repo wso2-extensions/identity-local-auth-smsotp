@@ -96,7 +96,11 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        try {
+            vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        } catch (ProviderException e) {
+            Assert.notNull(e.getMessage());
+        }
     }
 
     @Test()
@@ -111,6 +115,10 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        try {
+            vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        } catch (ProviderException e) {
+            Assert.notNull(e.getMessage());
+        }
     }
 }

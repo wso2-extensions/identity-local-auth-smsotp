@@ -55,7 +55,7 @@
         <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
         <carbon.kernel.version>4.9.16</carbon.kernel.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
-        <carbon.identity.framework.version>7.8.626</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.10.9</carbon.identity.framework.version>
         <identity.governance.version>1.11.126</identity.governance.version>
         <identity.extension.utils>1.0.12</identity.extension.utils>
         <carbon.identity.account.lock.handler.version>1.8.2</carbon.identity.account.lock.handler.version>

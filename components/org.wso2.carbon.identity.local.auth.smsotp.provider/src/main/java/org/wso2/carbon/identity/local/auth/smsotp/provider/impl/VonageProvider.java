@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.NonBlockingProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.util.ProviderUtil;
@@ -81,10 +82,17 @@ public class VonageProvider implements Provider {
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage."
                         + " Status: " + response.getMessages().get(0).getStatus() + ". Error: " + errorText);
+                throw new NonBlockingProviderException("Error occurred while sending SMS to "
+                        + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                        + " using Vonage. Status: " + status + ". Error: " + errorText);
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Vonage");
             }
+        } catch (NonBlockingProviderException e) {
+            // Re-throw explicitly: NonBlockingProviderException extends ProviderException, so without
+            // this clause it would be re-wrapped by the Throwable handler below.
+            throw e;
         } catch (Throwable throwable) {
             throw new ProviderException("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())

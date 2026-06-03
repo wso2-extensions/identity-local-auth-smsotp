@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.Provider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.CustomProvider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.TwilioProvider;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.impl.VonageProvider;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.resilience.ResilientProvider;
 import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSenderManagementService;
 
 /**
@@ -48,9 +49,12 @@ public class ProviderServiceComponent {
     protected void activate(ComponentContext context) {
 
         try {
-            context.getBundleContext().registerService(Provider.class.getName(), new TwilioProvider(), null);
-            context.getBundleContext().registerService(Provider.class.getName(), new VonageProvider(), null);
-            context.getBundleContext().registerService(Provider.class.getName(), new CustomProvider(), null);
+            context.getBundleContext().registerService(Provider.class.getName(),
+                    new ResilientProvider(new TwilioProvider()), null);
+            context.getBundleContext().registerService(Provider.class.getName(),
+                    new ResilientProvider(new VonageProvider()), null);
+            context.getBundleContext().registerService(Provider.class.getName(),
+                    new ResilientProvider(new CustomProvider()), null);
         } catch (Throwable e) {
             LOG.error("Error occurred while activating Provider Service Component", e);
             return;

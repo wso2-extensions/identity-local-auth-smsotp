@@ -46,8 +46,8 @@ public class Constants {
     public static final String RETRY_COUNT_AT_AUTH_FAILURE =
             "NotificationChannel.SMS.Custom.RetryCountAtAuthFailure";
 
-    public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 5000;
-    public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 20000;
+    public static final int DEFAULT_HTTP_URL_CONNECTION_TIMEOUT = 2000;
+    public static final int DEFAULT_HTTP_URL_CONNECTION_READ_TIMEOUT = 3000;
 
     public static final String SMS_OTP_SERVICE = "local-auth-smsotp";
 
@@ -57,6 +57,8 @@ public class Constants {
     public static class ActionIDs {
 
         public static final String SEND_SMS = "send-sms";
+        public static final String CIRCUIT_BREAKER_STATE_TRANSITION = "circuit-breaker-state-transition";
+        public static final String CIRCUIT_BREAKER_REJECTION = "circuit-breaker-rejection";
     }
 
     /**
