@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorParamMetadata;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -71,6 +72,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -552,5 +554,170 @@ public class SMSOTPAuthenticatorTest {
                 "Retry attempts property key should not be null");
         Assert.assertEquals(retryAttemptsPropertyKey, SMSOTPConstants.SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME,
                 "Retry attempts property key should match SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME");
+    }
+
+    @Test
+    public void testGetOTPPageRedirectErrorCode_NotifyDisabled_ReturnsNull() throws Exception {
+
+        SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("false");
+
+            String result = authenticator.getOTPPageRedirectErrorCode(authContext);
+            Assert.assertNull(result, "Should return null when notify SMS sending failure is disabled");
+        }
+    }
+
+    @Test
+    public void testGetOTPPageRedirectErrorCode_NotifyEnabled_NoMessage_ReturnsNull() throws Exception {
+
+        SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+        when(authContext.getProperty("authenticatorMessage")).thenReturn(null);
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("true");
+
+            String result = authenticator.getOTPPageRedirectErrorCode(authContext);
+            Assert.assertNull(result, "Should return null when no authenticatorMessage is set in context");
+        }
+    }
+
+    @Test
+    public void testGetOTPPageRedirectErrorCode_NotifyEnabled_WithProviderErrorCode_ReturnsCode() throws Exception {
+
+        SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        AuthenticatorMessage errorMessage = new AuthenticatorMessage(
+                FrameworkConstants.AuthenticatorMessageType.ERROR,
+                "SP-60001", "SMS send failed", null);
+        when(authContext.getProperty("authenticatorMessage")).thenReturn(errorMessage);
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("true");
+
+            String result = authenticator.getOTPPageRedirectErrorCode(authContext);
+            Assert.assertEquals(result, "SP-60001",
+                    "Should return the provider error code from authenticatorMessage");
+        }
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_NullContext_RethrowsException() throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+
+        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        AuthenticationFailedException thrownException =
+                new AuthenticationFailedException("SMS OTP send failed", cause);
+        doThrow(thrownException).when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+        try {
+            authenticator.triggerOtpEvent("eventName", user, new HashMap<>(), null);
+            Assert.fail("Expected AuthenticationFailedException to be rethrown");
+        } catch (AuthenticationFailedException e) {
+            Assert.assertEquals(e, thrownException, "Same exception should be rethrown when context is null");
+        }
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_NotifyDisabled_RethrowsException() throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        AuthenticationFailedException thrownException =
+                new AuthenticationFailedException("SMS OTP send failed", cause);
+        doThrow(thrownException).when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("false");
+
+            try {
+                authenticator.triggerOtpEvent("eventName", user, new HashMap<>(), authContext);
+                Assert.fail("Expected AuthenticationFailedException to be rethrown");
+            } catch (AuthenticationFailedException e) {
+                Assert.assertEquals(e, thrownException,
+                        "Exception should be rethrown when notify SMS sending failure is disabled");
+            }
+        }
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_NotifyEnabled_ProviderErrorCode_SuppressesAndSetsMessage()
+            throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        AuthenticationFailedException thrownException =
+                new AuthenticationFailedException("SMS OTP send failed", cause);
+        doThrow(thrownException).when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("true");
+
+            // Should NOT throw — exception is suppressed and authenticatorMessage is set in context.
+            authenticator.triggerOtpEvent("eventName", user, new HashMap<>(), authContext);
+
+            verify(authContext).setProperty(eq("authenticatorMessage"), any(AuthenticatorMessage.class));
+        }
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_NotifyEnabled_NonProviderErrorCode_RethrowsException()
+            throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        // Error code does NOT start with "SP-" prefix.
+        IdentityEventException cause = new IdentityEventException("OTHER-001", "Some other error");
+        AuthenticationFailedException thrownException =
+                new AuthenticationFailedException("SMS OTP send failed", cause);
+        doThrow(thrownException).when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("true");
+
+            try {
+                authenticator.triggerOtpEvent("eventName", user, new HashMap<>(), authContext);
+                Assert.fail("Expected AuthenticationFailedException to be rethrown for non-provider error code");
+            } catch (AuthenticationFailedException e) {
+                Assert.assertEquals(e, thrownException,
+                        "Exception should be rethrown when error code does not start with SP- prefix");
+            }
+        }
     }
 }

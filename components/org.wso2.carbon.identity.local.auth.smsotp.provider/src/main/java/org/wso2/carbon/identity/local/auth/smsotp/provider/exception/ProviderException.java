@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,6 +26,8 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.exception;
  */
 public class ProviderException extends Exception {
 
+    private final String errorCode;
+
     /**
      * Constructs a new exception with the specified detail message.
      *
@@ -34,6 +36,7 @@ public class ProviderException extends Exception {
     public ProviderException(String message) {
 
         super(message);
+        this.errorCode = null;
     }
 
     /**
@@ -45,6 +48,32 @@ public class ProviderException extends Exception {
     public ProviderException(String message, Throwable cause) {
 
         super(message, cause);
+        this.errorCode = null;
+    }
+
+    /**
+     * Constructs a new exception with the specified error code, detail message and cause.
+     *
+     * @param errorCode The error code.
+     * @param message   The detail message.
+     * @param cause     The cause.
+     */
+    public ProviderException(String errorCode, String message, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * Constructs a new exception with the specified error code and detail message.
+     *
+     * @param errorCode The error code.
+     * @param message   The detail message.
+     */
+    public ProviderException(String errorCode, String message) {
+
+        super(message);
+        this.errorCode = errorCode;
     }
 
     /**
@@ -55,6 +84,7 @@ public class ProviderException extends Exception {
     public ProviderException(Throwable cause) {
 
         super(cause);
+        this.errorCode = null;
     }
 
     /**
@@ -69,5 +99,16 @@ public class ProviderException extends Exception {
                              boolean writableStackTrace) {
 
         super(message, cause, enableSuppression, writableStackTrace);
+        this.errorCode = null;
+    }
+
+    /**
+     * Returns the error code associated with this exception.
+     *
+     * @return The error code, or null if not set.
+     */
+    public String getErrorCode() {
+
+        return errorCode;
     }
 }

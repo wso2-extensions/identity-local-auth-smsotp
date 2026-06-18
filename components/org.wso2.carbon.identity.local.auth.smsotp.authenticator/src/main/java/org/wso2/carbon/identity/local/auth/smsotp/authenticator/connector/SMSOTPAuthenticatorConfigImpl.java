@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,6 +32,7 @@ import java.util.Properties;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_RESEND_ATTEMPTS_COUNT;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_RESEND_BLOCK_DURATION;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_USE_NUMERIC_CHARS;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DEFAULT_OTP_LENGTH;
@@ -85,6 +86,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         nameMapping.put(SMS_OTP_RESEND_ATTEMPTS_COUNT, "Number of allowed resend attempts");
         nameMapping.put(
                 SMS_OTP_RESEND_BLOCK_DURATION, "Blocking duration in minutes upon exceeding allowed resend attempts");
+        nameMapping.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "Notify SMS sending failure");
         return nameMapping;
     }
 
@@ -99,6 +101,8 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         descriptionMapping.put(SMS_OTP_RESEND_ATTEMPTS_COUNT, "Number of allowed resend attempts of a user");
         descriptionMapping.put(SMS_OTP_RESEND_BLOCK_DURATION, "Time in minutes to block OTP resend " +
                 "functionality upon exceeding allowed resend attempts");
+        descriptionMapping.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE,
+                "Enable notifying connection failure errors when connecting to the SMS provider");
         return descriptionMapping;
     }
 
@@ -111,6 +115,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         properties.add(SMS_OTP_USE_NUMERIC_CHARS);
         properties.add(SMS_OTP_RESEND_ATTEMPTS_COUNT);
         properties.add(SMS_OTP_RESEND_BLOCK_DURATION);
+        properties.add(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE);
         return properties.toArray(new String[0]);
     }
 
@@ -123,12 +128,14 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         String otpLength = Integer.toString(DEFAULT_OTP_LENGTH);
         String resendAttempts = Integer.toString(DEFAULT_OTP_RESEND_ATTEMPTS);
         String blockingTime = Integer.toString(DEFAULT_OTP_RESEND_BLOCK_DURATION);
+        String notifySmsSendingFailure = "false";
 
         String otpExpiryTimeProperty = IdentityUtil.getProperty(OTP_EXPIRY_TIME);
         String useNumericCharsProperty = IdentityUtil.getProperty(SMS_OTP_USE_NUMERIC_CHARS);
         String otpLengthProperty = IdentityUtil.getProperty(SMS_OTP_LENGTH);
         String resendAttemptsProperty = IdentityUtil.getProperty(SMS_OTP_RESEND_ATTEMPTS_COUNT);
         String blockingTimeProperty = IdentityUtil.getProperty(SMS_OTP_RESEND_BLOCK_DURATION);
+        String notifySmsSendingFailureProperty = IdentityUtil.getProperty(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE);
 
         if (StringUtils.isNotBlank(otpExpiryTimeProperty)) {
             otpExpiryTime = otpExpiryTimeProperty;
@@ -145,12 +152,16 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         if (StringUtils.isNotBlank(blockingTimeProperty)) {
             blockingTime = blockingTimeProperty;
         }
+        if (StringUtils.isNotBlank(notifySmsSendingFailureProperty)) {
+            notifySmsSendingFailure = notifySmsSendingFailureProperty;
+        }
         Map<String, String> defaultProperties = new HashMap<>();
         defaultProperties.put(OTP_EXPIRY_TIME, otpExpiryTime);
         defaultProperties.put(SMS_OTP_USE_NUMERIC_CHARS, useNumericChars);
         defaultProperties.put(SMS_OTP_LENGTH, otpLength);
         defaultProperties.put(SMS_OTP_RESEND_ATTEMPTS_COUNT, resendAttempts);
         defaultProperties.put(SMS_OTP_RESEND_BLOCK_DURATION, blockingTime);
+        defaultProperties.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, notifySmsSendingFailure);
 
         Properties properties = new Properties();
         properties.putAll(defaultProperties);

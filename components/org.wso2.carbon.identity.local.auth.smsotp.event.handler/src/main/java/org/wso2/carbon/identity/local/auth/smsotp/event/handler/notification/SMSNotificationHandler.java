@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.local.auth.smsotp.event.handler.notification.SMSNotificationConstants.ERROR_CODE_MISSING_SMS_SENDER;
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.SMS_SEND_FAILED;
 
 /**
  * This class represents the SMS notification handler.
@@ -69,6 +70,8 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
     public void handleEvent(Event event) throws IdentityEventException {
 
         String tenantDomain = (String) event.getEventProperties().get(NotificationConstants.TENANT_DOMAIN);
+        boolean notifySpecificProviderFailures = Boolean.parseBoolean(
+            (String) event.getEventProperties().get(SMSNotificationConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES));
         if (LOG.isDebugEnabled()) {
             LOG.debug("Handling SMS notification event for " + tenantDomain);
         }
@@ -98,6 +101,15 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
             throw new IdentityEventException("Error while retrieving SMS Sender: "
                     + SMSNotificationConstants.SMS_PUBLISHER_NAME, e);
         } catch (ProviderException e) {
+            if (notifySpecificProviderFailures) {
+                String errorCode = e.getErrorCode();
+                String errorMessage = e.getMessage();
+                if (StringUtils.isNotBlank(errorCode) && StringUtils.isNotBlank(errorMessage)) {
+                    throw new IdentityEventException(errorCode, errorMessage, e);
+                } else {
+                    throw new IdentityEventException(SMS_SEND_FAILED.getCode(), SMS_SEND_FAILED.getMessage(), e);
+                }
+            }
             throw new IdentityEventException("Error while sending SMS", e);
         }
     }

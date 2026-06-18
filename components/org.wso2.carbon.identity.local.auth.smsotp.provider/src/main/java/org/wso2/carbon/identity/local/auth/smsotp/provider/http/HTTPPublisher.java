@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -39,7 +39,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS;
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.UNAUTHORIZED;
 
 /**
  * This class will be used to publish the SMS to the custom SMS provider using the HTTP protocol.
@@ -120,15 +120,38 @@ public class HTTPPublisher {
                 log.debug("Successfully published the sms data to the: " + publisherURL);
                 log.debug("JSON data: " + json);
             }
-        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            return;
+        }
+
+        if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Unauthorized access while publishing the sms data to the: %s. " +
                         "Response code: %s.", publisherURL, responseCode));
             }
-            throw new PublisherException(ERROR_UNAUTHORIZED_ACCESS.getCode(),  ERROR_UNAUTHORIZED_ACCESS.getMessage());
-        } else {
-            log.warn("Error occurred while publishing the sms data to the: " + publisherURL
+            throw new PublisherException(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage());
+        }
+
+        log.warn("Error occurred while publishing the sms data to the: " + publisherURL
                     + ". Response code: " + responseCode);
+
+        if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
+            throw new PublisherException(Constants.ErrorMessage.BAD_REQUEST.getCode(),
+                    Constants.ErrorMessage.BAD_REQUEST.getMessage());
+        } else if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
+            throw new PublisherException(Constants.ErrorMessage.FORBIDDEN.getCode(),
+                    Constants.ErrorMessage.FORBIDDEN.getMessage());
+        } else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+            throw new PublisherException(Constants.ErrorMessage.SERVICE_UNREACHABLE.getCode(),
+                    Constants.ErrorMessage.SERVICE_UNREACHABLE.getMessage());
+        } else if (responseCode == 429) {
+            throw new PublisherException(Constants.ErrorMessage.TOO_MANY_REQUESTS.getCode(),
+                    Constants.ErrorMessage.TOO_MANY_REQUESTS.getMessage());
+        } else if (responseCode >= HttpURLConnection.HTTP_INTERNAL_ERROR) {
+            throw new PublisherException(Constants.ErrorMessage.SERVER_ERROR.getCode(),
+                    Constants.ErrorMessage.SERVER_ERROR.getMessage());
+        } else {
+            throw new PublisherException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
+                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
         }
     }
 
@@ -144,7 +167,8 @@ public class HTTPPublisher {
                 throw new PublisherException("Invalid protocol. Protocol should be either http or https.");
             }
         } catch (MalformedURLException e) {
-            throw new PublisherException("", e);
+            throw new PublisherException(Constants.ErrorMessage.INVALID_CONFIGURATION.getCode(),
+                    Constants.ErrorMessage.INVALID_CONFIGURATION.getMessage(), e);
         }
     }
 

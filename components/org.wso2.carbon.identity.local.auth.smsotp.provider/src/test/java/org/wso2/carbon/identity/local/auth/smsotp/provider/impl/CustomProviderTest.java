@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -280,8 +280,8 @@ public class CustomProviderTest {
         // Mock HTTPPublisher to throw unauthorized error on first attempt, then continue failing
         try (MockedConstruction<HTTPPublisher> mockedPublisher = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException(
-                        Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS.getCode(),
-                        Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS.getMessage()))
+                        Constants.ErrorMessage.UNAUTHORIZED.getCode(),
+                        Constants.ErrorMessage.UNAUTHORIZED.getMessage()))
                         .when(mock).publish(smsData, "https://localhost:8888"));
              MockedStatic<SMSNotificationProviderDataHolder> mockedDataHolder = 
                 mockStatic(SMSNotificationProviderDataHolder.class)) {

@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.governance.service.notification.NotificationChannels;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants;
 import org.wso2.carbon.identity.local.auth.smsotp.authenticator.exception.SMSOTPAuthenticatorServerException;
@@ -168,6 +169,18 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 return Integer.parseInt(configuredOTPLength);
             }
             return SMSOTPConstants.DEFAULT_OTP_LENGTH;
+        } catch (SMSOTPAuthenticatorServerException exception) {
+            throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
+        }
+    }
+
+    private boolean isNotifySmsSendingFailureEnabled(String tenantDomain) throws AuthenticationFailedException {
+
+        try {
+            String config = AuthenticatorUtils
+                    .getSmsAuthenticatorConfig(SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE,
+                            tenantDomain);
+            return Boolean.parseBoolean(config);
         } catch (SMSOTPAuthenticatorServerException exception) {
             throw handleAuthErrorScenario(AuthenticatorConstants.ErrorMessages.ERROR_CODE_ERROR_GETTING_CONFIG);
         }
@@ -393,25 +406,70 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         String maskedMobileNumber = getMaskedUserClaimValue(authenticatedUser, tenantDomain, isInitialFederationAttempt,
                 authenticationContext);
         setAuthenticatorMessage(authenticationContext, maskedMobileNumber);
+        if (isNotifySmsSendingFailureEnabled(tenantDomain)) {
+            metaProperties.put(SMSOTPConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES, Boolean.TRUE.toString());
+        }
         /* SaaS apps are created at the super tenant level and they can be accessed by users of other organizations.
         If users of other organizations try to login to a saas app, the sms notification should be triggered from the
         sms provider configured for that organization. Hence, we need to start a new tenanted flow here. */
         if (authenticationContext.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
             try {
                 FrameworkUtils.startTenantFlow(authenticatedUser.getTenantDomain());
-                triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+                triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties,
+                        authenticationContext);
             } finally {
                 FrameworkUtils.endTenantFlow();
             }
         } else {
-            triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties);
+            triggerOtpEvent(SMSOTPConstants.EVENT_TRIGGER_NAME, authenticatedUser, metaProperties,
+                    authenticationContext);
         }
     }
 
-    protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser, Map<String,
-            Object> eventProperties) throws AuthenticationFailedException {
+    protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser,
+            Map<String, Object> eventProperties) throws AuthenticationFailedException {
 
         triggerEvent(eventName, authenticatedUser, eventProperties);
+    }
+
+    protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser,
+            Map<String, Object> eventProperties, AuthenticationContext context) throws AuthenticationFailedException {
+
+        try {
+            triggerOtpEvent(eventName, authenticatedUser, eventProperties);
+        } catch (AuthenticationFailedException e) {
+            if (context != null
+                    && isNotifySmsSendingFailureEnabled(context.getTenantDomain())
+                    && e.getCause() instanceof IdentityEventException) {
+                IdentityEventException cause = (IdentityEventException) e.getCause();
+                String providerErrorCode = cause.getErrorCode();
+                if (StringUtils.isNotBlank(providerErrorCode)
+                        && providerErrorCode.startsWith(SMSOTPConstants.SMS_PROVIDER_ERROR_CODE_PREFIX)) {
+                    AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(
+                            FrameworkConstants.AuthenticatorMessageType.ERROR,
+                            providerErrorCode, cause.getMessage(), null);
+                    setAuthenticatorMessage(authenticatorMessage, context);
+                    return;
+                }
+            }
+            throw e;
+        }
+    }
+
+    @Override
+    protected String getOTPPageRedirectErrorCode(AuthenticationContext context) throws AuthenticationFailedException {
+
+        if (isNotifySmsSendingFailureEnabled(context.getTenantDomain())) {
+            AuthenticatorMessage authenticatorMessage =
+                (AuthenticatorMessage) context.getProperty(AUTHENTICATOR_MESSAGE);
+            if (authenticatorMessage != null
+                    && FrameworkConstants.AuthenticatorMessageType.ERROR.equals(authenticatorMessage.getType())
+                    && authenticatorMessage.getCode() != null
+                    && authenticatorMessage.getCode().startsWith(SMSOTPConstants.SMS_PROVIDER_ERROR_CODE_PREFIX)) {
+                return authenticatorMessage.getCode();
+            }
+        }
+        return null;
     }
 
     @Override

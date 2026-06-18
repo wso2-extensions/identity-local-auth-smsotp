@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.ERROR_UNAUTHORIZED_ACCESS;
+import static org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants.ErrorMessage.UNAUTHORIZED;
 
 /**
  * Implementation for the custom SMS provider. This provider is used to send the SMS using the custom SMS gateway.
@@ -101,6 +101,8 @@ public class CustomProvider implements Provider {
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
                     + ". Error: " + errorText);
+            throw new ProviderException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
+                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage(), e);
         } catch (NotificationSenderManagementException e) {
             throw new ProviderException(
                     "Error occurred while building authentication header for the notification provider", e);
@@ -121,7 +123,7 @@ public class CustomProvider implements Provider {
                 publisher.publish(smsData, smsSenderDTO.getProviderURL());
                 return;
             } catch (PublisherException e) {
-                if (!ERROR_UNAUTHORIZED_ACCESS.getCode().equals(e.getErrorCode()) || attempt >= allowedAttempts) {
+                if (!UNAUTHORIZED.getCode().equals(e.getErrorCode()) || attempt >= allowedAttempts) {
                     throw e;
                 }
                 Header newAuthHeader = SMSNotificationProviderDataHolder.getInstance()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
+import com.vonage.client.sms.MessageStatus;
 import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -25,15 +26,20 @@ import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.ProviderException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.exception.PublisherException;
 import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
+import java.lang.reflect.Method;
+
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 
 public class VonageProviderTest {
 
@@ -112,5 +118,33 @@ public class VonageProviderTest {
         smsData.setToNumber("1234567890");
 
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+    }
+
+    @DataProvider(name = "vonageErrorStatuses")
+    public Object[][] vonageErrorStatuses() {
+
+        return new Object[][]{
+                {null, Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED},
+                {MessageStatus.THROTTLED, Constants.ErrorMessage.TOO_MANY_REQUESTS},
+                {MessageStatus.INVALID_CREDENTIALS, Constants.ErrorMessage.UNAUTHORIZED},
+                {MessageStatus.INTERNAL_ERROR, Constants.ErrorMessage.SERVER_ERROR},
+                {MessageStatus.PARTNER_QUOTA_EXCEEDED, Constants.ErrorMessage.ACCOUNT_LIMIT_EXCEEDED},
+                {MessageStatus.NUMBER_BARRED, Constants.ErrorMessage.NUMBER_BARRED},
+                {MessageStatus.MISSING_PARAMS, Constants.ErrorMessage.INVALID_CONFIGURATION},
+                {MessageStatus.INVALID_PARAMS, Constants.ErrorMessage.INVALID_CONFIGURATION},
+                {MessageStatus.PARTNER_ACCOUNT_BARRED, Constants.ErrorMessage.ACCOUNT_SUSPENDED},
+                {MessageStatus.UNKNOWN, Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED},
+        };
+    }
+
+    @Test(dataProvider = "vonageErrorStatuses")
+    public void testResolveVonageError(MessageStatus status, Constants.ErrorMessage expected) throws Exception {
+
+        Method method = VonageProvider.class.getDeclaredMethod("resolveVonageError", MessageStatus.class);
+        method.setAccessible(true);
+
+        Constants.ErrorMessage result = (Constants.ErrorMessage) method.invoke(vonageProvider, status);
+        assertEquals(result, expected,
+                "resolveVonageError(" + status + ") should return " + expected);
     }
 }
