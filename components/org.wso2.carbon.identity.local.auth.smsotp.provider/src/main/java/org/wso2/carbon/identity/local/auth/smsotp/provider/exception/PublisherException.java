@@ -36,6 +36,19 @@ public class PublisherException extends Exception {
     }
 
     /**
+     * Constructs a new exception with the specified error code, detail message and cause.
+     *
+     * @param errorCode The error code.
+     * @param message   The detail message.
+     * @param cause     The cause.
+     */
+    public PublisherException(String errorCode, String message, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    /**
      * Constructs a new exception with the specified detail message.
      *
      * @param message The detail message.

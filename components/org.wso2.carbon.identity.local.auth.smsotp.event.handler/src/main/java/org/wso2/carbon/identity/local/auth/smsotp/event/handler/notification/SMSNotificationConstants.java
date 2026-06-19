@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -34,6 +34,7 @@ public class SMSNotificationConstants {
     public static final String OTP_TOKEN_STRING_PROPERTY_NAME = "otpTokenString";
     public static final String BODY_TEMPLATE = "body-template";
     public static final String VERIFICATION_OTP_EXPIRY_TIME = "verificationOtpExpiryTime";
+    public static final String NOTIFY_SPECIFIC_PROVIDER_FAILURES = "notifySpecificProviderFailures";
 
     public static final String PLACE_HOLDER_REGEX = "\\{\\{([a-zA-Z0-9\\-\\.]+?)\\}\\}";
     public static final String PLACE_HOLDER_CONFIRMATION_CODE = "confirmation-code";
@@ -50,4 +51,5 @@ public class SMSNotificationConstants {
     public static final String ERROR_CODE_TEMPLATE_NOT_FOUND = "40002";
 
     public static final String ERROR_MESSAGE_TEMPLATE_NOT_FOUND = "SMS template not found.";
+    public static final String SMS_PROVIDER_ERROR_CODE_PREFIX = "SP-";
 }

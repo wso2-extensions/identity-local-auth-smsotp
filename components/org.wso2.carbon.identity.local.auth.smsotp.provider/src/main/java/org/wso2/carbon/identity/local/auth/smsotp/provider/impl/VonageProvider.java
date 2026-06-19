@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -81,14 +81,45 @@ public class VonageProvider implements Provider {
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage."
                         + " Status: " + response.getMessages().get(0).getStatus() + ". Error: " + errorText);
+                Constants.ErrorMessage error = resolveVonageError(status);
+                throw new ProviderException(error.getCode(), error.getMessage());
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Vonage");
             }
+        } catch (ProviderException e) {
+            // Re-throw without wrapping so the structured SP- error code is preserved for the caller.
+            throw e;
         } catch (Throwable throwable) {
             throw new ProviderException("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                     + " using Vonage", throwable);
+        }
+    }
+
+    private Constants.ErrorMessage resolveVonageError(MessageStatus status) {
+
+        if (status == null) {
+            return Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED;
+        }
+        switch (status) {
+            case THROTTLED:
+                return Constants.ErrorMessage.TOO_MANY_REQUESTS;
+            case INVALID_CREDENTIALS:
+                return Constants.ErrorMessage.UNAUTHORIZED;
+            case INTERNAL_ERROR:
+                return Constants.ErrorMessage.SERVER_ERROR;
+            case PARTNER_QUOTA_EXCEEDED:
+                return Constants.ErrorMessage.ACCOUNT_LIMIT_EXCEEDED;
+            case NUMBER_BARRED:
+                return Constants.ErrorMessage.NUMBER_BARRED;
+            case MISSING_PARAMS:
+            case INVALID_PARAMS:
+                return Constants.ErrorMessage.INVALID_CONFIGURATION;
+            case PARTNER_ACCOUNT_BARRED:
+                return Constants.ErrorMessage.ACCOUNT_SUSPENDED;
+            default:
+                return Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED;
         }
     }
 }

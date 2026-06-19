@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2023-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -72,6 +72,7 @@ public class TwilioProvider implements Provider {
 
             if (message.getStatus() == Message.Status.FAILED) {
                 Message.Status status = message.getStatus();
+                Integer errorCode = message.getErrorCode();
                 String errorText = message.getErrorMessage();
 
                 ProviderUtil.triggerDiagnosticLogEvent(
@@ -80,6 +81,8 @@ public class TwilioProvider implements Provider {
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                         + " Status: " + status + ". Error: " + errorText);
+                Constants.ErrorMessage error = resolveTwilioMessageError(errorCode);
+                throw new ProviderException(error.getCode(), error.getMessage());
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                         + " using Twilio." + " Status: " + message.getStatus());
@@ -94,10 +97,56 @@ public class TwilioProvider implements Provider {
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                     + " Status: " + e.getStatusCode() + ". Error: " + errorText);
+            Constants.ErrorMessage error = resolveTwilioApiError(status);
+            throw new ProviderException(error.getCode(), error.getMessage(), e);
         } catch (Exception e) {
             throw new ProviderException("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
                     + " using Twilio", e);
+        }
+    }
+
+    private Constants.ErrorMessage resolveTwilioMessageError(Integer twilioErrorCode) {
+
+        if (twilioErrorCode == null) {
+            return Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED;
+        }
+        switch (twilioErrorCode) {
+            case 30001:
+                return Constants.ErrorMessage.TOO_MANY_REQUESTS;
+            case 30002:
+                return Constants.ErrorMessage.ACCOUNT_SUSPENDED;
+            case 30003:
+            case 30005:
+            case 30006:
+                return Constants.ErrorMessage.UNDELIVERABLE_NUMBER;
+            case 30004:
+            case 30007:
+                return Constants.ErrorMessage.CARRIER_FILTERED;
+            default:
+                return Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED;
+        }
+    }
+
+    private Constants.ErrorMessage resolveTwilioApiError(Integer httpStatus) {
+
+        if (httpStatus == null) {
+            return Constants.ErrorMessage.SMS_SEND_FAILED;
+        }
+        if (httpStatus >= 500) {
+            return Constants.ErrorMessage.SERVER_ERROR;
+        }
+        switch (httpStatus) {
+            case 400:
+                return Constants.ErrorMessage.BAD_REQUEST;
+            case 401:
+                return Constants.ErrorMessage.UNAUTHORIZED;
+            case 403:
+                return Constants.ErrorMessage.FORBIDDEN;
+            case 429:
+                return Constants.ErrorMessage.TOO_MANY_REQUESTS;
+            default:
+                return Constants.ErrorMessage.SMS_SEND_FAILED;
         }
     }
 }

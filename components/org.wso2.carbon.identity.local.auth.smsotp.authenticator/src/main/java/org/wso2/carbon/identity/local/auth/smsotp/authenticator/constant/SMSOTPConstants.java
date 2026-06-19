@@ -103,6 +103,9 @@ public class SMSOTPConstants {
     public static final String SEND_MASKED_MOBILE_IN_APPNATIVE_MFA = "sendMaskedMobileInAppNativeMFA";
     public static final String IS_REDIRECT_TO_SMS_OTP = "isRedirectToSmsOTP";
     public static final String SMS_OTP_USER_BASED_RESEND_BLOCKING_ENABLED = "EnableUserBasedResendBlocking";
+    public static final String SMS_PROVIDER_ERROR_CODE_PREFIX = "SP-";
+    public static final String NOTIFY_SPECIFIC_PROVIDER_FAILURES = "notifySpecificProviderFailures";
+    public static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
 
     /**
      * Authenticator config related configurations.
@@ -114,6 +117,7 @@ public class SMSOTPConstants {
         public static final String SMS_OTP_USE_NUMERIC_CHARS = "SmsOTP.OtpRegex.UseNumericChars";
         public static final String SMS_OTP_RESEND_ATTEMPTS_COUNT = "SmsOTP.ResendAttemptsCount";
         public static final String SMS_OTP_RESEND_BLOCK_DURATION = "SmsOTP.ResendBlockDuration";
+        public static final String SMS_OTP_NOTIFY_SMS_SENDING_FAILURE = "SmsOTP.NotifySmsSendingFailure";
     }
 
     /**
