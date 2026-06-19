@@ -105,6 +105,7 @@ public class SMSOTPConstants {
     public static final String SMS_OTP_USER_BASED_RESEND_BLOCKING_ENABLED = "EnableUserBasedResendBlocking";
     public static final String SMS_PROVIDER_ERROR_CODE_PREFIX = "SP-";
     public static final String NOTIFY_SPECIFIC_PROVIDER_FAILURES = "notifySpecificProviderFailures";
+    public static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
 
     /**
      * Authenticator config related configurations.

@@ -88,6 +88,7 @@ public class VonageProvider implements Provider {
                         + " using Vonage");
             }
         } catch (ProviderException e) {
+            // Re-throw without wrapping so the structured SP- error code is preserved for the caller.
             throw e;
         } catch (Throwable throwable) {
             throw new ProviderException("Error occurred while sending SMS to "

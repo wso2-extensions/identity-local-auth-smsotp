@@ -113,6 +113,12 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
                 if (StringUtils.isNotBlank(errorCode) &&
                     StringUtils.startsWith(errorCode, SMSNotificationConstants.SMS_PROVIDER_ERROR_CODE_PREFIX)) {
                     // Provider failure notification is disabled; suppress provider-specific errors silently.
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format(
+                                "Suppressed SMS provider failure (code: %s, tenant: %s). "
+                                        + "Enable SmsOTP.NotifySmsSendingFailure to surface this error to the UI.",
+                                errorCode, tenantDomain), e);
+                    }
                     return;
                 }
             }

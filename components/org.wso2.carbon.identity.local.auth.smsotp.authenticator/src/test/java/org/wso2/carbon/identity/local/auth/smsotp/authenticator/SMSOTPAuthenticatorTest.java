@@ -399,8 +399,8 @@ public class SMSOTPAuthenticatorTest {
         AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(FrameworkConstants.
                 AuthenticatorMessageType.INFO, "SMSOTPSent", message, messageContext);
         messageContext.put("maskedMobileNumber", maskedMobileNumber);
-        context.setProperty("authenticatorMessage", authenticatorMessage);
-        when(context.getProperty("authenticatorMessage")).thenReturn(authenticatorMessage);
+        context.setProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE, authenticatorMessage);
+        when(context.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE)).thenReturn(authenticatorMessage);
 
         AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
         Map<String, String> params = new HashMap<>();
@@ -583,7 +583,7 @@ public class SMSOTPAuthenticatorTest {
         SMSOTPAuthenticator authenticator = new SMSOTPAuthenticator();
         AuthenticationContext authContext = mock(AuthenticationContext.class);
         when(authContext.getTenantDomain()).thenReturn("carbon.super");
-        when(authContext.getProperty("authenticatorMessage")).thenReturn(null);
+        when(authContext.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE)).thenReturn(null);
 
         try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
             mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
@@ -605,7 +605,7 @@ public class SMSOTPAuthenticatorTest {
         AuthenticatorMessage errorMessage = new AuthenticatorMessage(
                 FrameworkConstants.AuthenticatorMessageType.ERROR,
                 "SP-60001", "SMS send failed", null);
-        when(authContext.getProperty("authenticatorMessage")).thenReturn(errorMessage);
+        when(authContext.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE)).thenReturn(errorMessage);
 
         try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
             mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
@@ -690,7 +690,7 @@ public class SMSOTPAuthenticatorTest {
             // Should NOT throw — exception is suppressed and authenticatorMessage is set in context.
             authenticator.triggerOtpEvent("eventName", user, new HashMap<>(), authContext);
 
-            verify(authContext).setProperty(eq("authenticatorMessage"), any(AuthenticatorMessage.class));
+            verify(authContext).setProperty(eq(SMSOTPConstants.AUTHENTICATOR_MESSAGE), any(AuthenticatorMessage.class));
         }
     }
 

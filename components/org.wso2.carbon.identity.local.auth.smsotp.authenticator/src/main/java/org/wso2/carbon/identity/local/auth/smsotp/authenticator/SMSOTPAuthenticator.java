@@ -99,7 +99,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     private static final Log LOG = LogFactory.getLog(SMSOTPAuthenticator.class);
     private static final long serialVersionUID = 850244886656426295L;
-    private static final String AUTHENTICATOR_MESSAGE = "authenticatorMessage";
+
     private static final String SMS_OTP_SENT = "SMSOTPSent";
     private static final String MASKED_MOBILE_NUMBER = "maskedMobileNumber";
 
@@ -461,7 +461,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         if (isNotifySmsSendingFailureEnabled(context.getTenantDomain())) {
             AuthenticatorMessage authenticatorMessage =
-                (AuthenticatorMessage) context.getProperty(AUTHENTICATOR_MESSAGE);
+                (AuthenticatorMessage) context.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE);
             if (authenticatorMessage != null
                     && FrameworkConstants.AuthenticatorMessageType.ERROR.equals(authenticatorMessage.getType())
                     && authenticatorMessage.getCode() != null
@@ -550,7 +550,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(FrameworkConstants.
                 AuthenticatorMessageType.INFO, SMS_OTP_SENT, message, messageContext);
 
-        context.setProperty(AUTHENTICATOR_MESSAGE, authenticatorMessage);
+        context.setProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE, authenticatorMessage);
     }
 
     private boolean doSendMaskedMobileInAppNativeMFA() {
@@ -719,7 +719,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     private static void setAuthenticatorMessage(AuthenticatorMessage errorMessage, AuthenticationContext context) {
 
-        context.setProperty(AUTHENTICATOR_MESSAGE, errorMessage);
+        context.setProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE, errorMessage);
     }
 
 
@@ -893,9 +893,9 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         }
 
         // If the configuration is enabled, and if it is a MFA Option, IS will send the masked mobile number.
-        if (context != null && context.getProperty(AUTHENTICATOR_MESSAGE) != null && doSendMaskedMobileInAppNativeMFA()
+        if (context != null && context.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE) != null && doSendMaskedMobileInAppNativeMFA()
                 && !isOTPAsFirstFactor(context)) {
-            authenticatorData.setMessage((AuthenticatorMessage) context.getProperty(AUTHENTICATOR_MESSAGE));
+            authenticatorData.setMessage((AuthenticatorMessage) context.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE));
         }
         authenticatorData.setPromptType(FrameworkConstants.AuthenticatorPromptType.USER_PROMPT);
         authenticatorData.setRequiredParams(requiredParams);
