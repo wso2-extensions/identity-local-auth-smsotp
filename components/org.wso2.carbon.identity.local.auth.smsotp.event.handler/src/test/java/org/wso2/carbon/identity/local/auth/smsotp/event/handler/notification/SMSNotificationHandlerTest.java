@@ -227,7 +227,7 @@ public class SMSNotificationHandlerTest {
             }
             @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
                     throws ProviderException {
-                throw new ProviderException("SP-60001", "SMS send failed due to authentication failure");
+                throw new ProviderException("SP-65001", "SMS send failed due to authentication failure");
             }
         };
         SMSNotificationHandlerDataHolder.getInstance().addProvider(providerName, failingProvider);
@@ -247,7 +247,7 @@ public class SMSNotificationHandlerTest {
         try {
             smsNotificationHandler.handleEvent(event);
         } catch (IdentityEventException e) {
-            Assert.assertEquals(e.getErrorCode(), "SP-60001",
+            Assert.assertEquals(e.getErrorCode(), "SP-65001",
                     "IdentityEventException should carry the provider error code");
             throw e;
         }
@@ -284,7 +284,7 @@ public class SMSNotificationHandlerTest {
         try {
             smsNotificationHandler.handleEvent(event);
         } catch (IdentityEventException e) {
-            Assert.assertEquals(e.getErrorCode(), "SP-60006",
+            Assert.assertEquals(e.getErrorCode(), "SP-65006",
                     "Should use SMS_SEND_FAILED code when provider exception has no error code");
             throw e;
         }
@@ -301,7 +301,7 @@ public class SMSNotificationHandlerTest {
             }
             @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
                     throws ProviderException {
-                throw new ProviderException("SP-60001", "SMS send failed");
+                throw new ProviderException("SP-65001", "SMS send failed");
             }
         };
         SMSNotificationHandlerDataHolder.getInstance().addProvider(providerName, suppressedProvider);

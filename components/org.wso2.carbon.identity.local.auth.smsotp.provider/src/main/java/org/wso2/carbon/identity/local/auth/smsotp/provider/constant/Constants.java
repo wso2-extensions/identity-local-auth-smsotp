@@ -64,46 +64,46 @@ public class Constants {
      */
     public enum ErrorMessage {
 
-        UNAUTHORIZED("SP-60001",
+        UNAUTHORIZED("SP-65001",
                 "The SMS could not be sent because authentication with the SMS service failed. "
                         + "Please contact your administrator."),
-        FORBIDDEN("SP-60002",
+        FORBIDDEN("SP-65002",
                 "The SMS could not be sent because the account does not have the required permissions. "
                         + "Please contact your administrator."),
-        BAD_REQUEST("SP-60003",
+        BAD_REQUEST("SP-65003",
                 "The SMS could not be sent because the SMS service did not accept the request. "
                         + "Please contact your administrator."),
-        TOO_MANY_REQUESTS("SP-60004",
+        TOO_MANY_REQUESTS("SP-65004",
                 "The SMS could not be sent because the SMS service is temporarily busy. "
                         + "Please try again in a few moments."),
-        SERVER_ERROR("SP-60005",
+        SERVER_ERROR("SP-65005",
                 "The SMS could not be sent because the SMS service encountered an unexpected error. "
                         + "Please try again or contact support."),
-        SMS_SEND_FAILED("SP-60006",
+        SMS_SEND_FAILED("SP-65006",
                 "The SMS could not be sent due to an unexpected error. "
                         + "Please try again or contact your administrator."),
-        MESSAGE_DELIVERY_FAILED("SP-60007",
+        MESSAGE_DELIVERY_FAILED("SP-65007",
                 "The SMS could not be delivered. "
                         + "Please try again or contact your administrator."),
-        INVALID_CONFIGURATION("SP-60008",
+        INVALID_CONFIGURATION("SP-65008",
                 "The SMS could not be sent because the SMS service is not configured correctly. "
                         + "Please contact your administrator."),
-        SERVICE_UNREACHABLE("SP-60009",
+        SERVICE_UNREACHABLE("SP-65009",
                 "The SMS could not be sent because the SMS service cannot be reached. "
                         + "Please contact your administrator."),
-        ACCOUNT_SUSPENDED("SP-60010",
+        ACCOUNT_SUSPENDED("SP-65010",
                 "The SMS could not be sent because the messaging account has been suspended. "
                         + "Please contact your administrator."),
-        ACCOUNT_LIMIT_EXCEEDED("SP-60011",
+        ACCOUNT_LIMIT_EXCEEDED("SP-65011",
                 "The SMS could not be sent because the account limit has been reached. "
                         + "Please contact your administrator."),
-        UNDELIVERABLE_NUMBER("SP-60012",
+        UNDELIVERABLE_NUMBER("SP-65012",
                 "The SMS could not be delivered. The recipient's number may be switched off, "
                         + "out of coverage, or not a mobile number. Please check the number and try again."),
-        CARRIER_FILTERED("SP-60013",
+        CARRIER_FILTERED("SP-65013",
                 "The SMS was blocked by the mobile carrier. This can happen due to content filtering "
                         + "or sender restrictions. Please contact your administrator."),
-        NUMBER_BARRED("SP-60014",
+        NUMBER_BARRED("SP-65014",
                 "The SMS could not be delivered because the recipient's number is not permitted. "
                         + "Please contact your administrator.");
 

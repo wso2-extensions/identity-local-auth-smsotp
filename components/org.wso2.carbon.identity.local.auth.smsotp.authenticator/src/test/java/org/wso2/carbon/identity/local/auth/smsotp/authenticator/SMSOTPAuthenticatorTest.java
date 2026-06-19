@@ -604,7 +604,7 @@ public class SMSOTPAuthenticatorTest {
 
         AuthenticatorMessage errorMessage = new AuthenticatorMessage(
                 FrameworkConstants.AuthenticatorMessageType.ERROR,
-                "SP-60001", "SMS send failed", null);
+                "SP-65001", "SMS send failed", null);
         when(authContext.getProperty(SMSOTPConstants.AUTHENTICATOR_MESSAGE)).thenReturn(errorMessage);
 
         try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
@@ -613,7 +613,7 @@ public class SMSOTPAuthenticatorTest {
                     .thenReturn("true");
 
             String result = authenticator.getOTPPageRedirectErrorCode(authContext);
-            Assert.assertEquals(result, "SP-60001",
+            Assert.assertEquals(result, "SP-65001",
                     "Should return the provider error code from authenticatorMessage");
         }
     }
@@ -624,7 +624,7 @@ public class SMSOTPAuthenticatorTest {
         SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
         AuthenticatedUser user = mock(AuthenticatedUser.class);
 
-        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        IdentityEventException cause = new IdentityEventException("SP-65001", "SMS failed");
         AuthenticationFailedException thrownException =
                 new AuthenticationFailedException("SMS OTP send failed", cause);
         doThrow(thrownException).when(authenticator)
@@ -646,7 +646,7 @@ public class SMSOTPAuthenticatorTest {
         AuthenticationContext authContext = mock(AuthenticationContext.class);
         when(authContext.getTenantDomain()).thenReturn("carbon.super");
 
-        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        IdentityEventException cause = new IdentityEventException("SP-65001", "SMS failed");
         AuthenticationFailedException thrownException =
                 new AuthenticationFailedException("SMS OTP send failed", cause);
         doThrow(thrownException).when(authenticator)
@@ -676,7 +676,7 @@ public class SMSOTPAuthenticatorTest {
         AuthenticationContext authContext = mock(AuthenticationContext.class);
         when(authContext.getTenantDomain()).thenReturn("carbon.super");
 
-        IdentityEventException cause = new IdentityEventException("SP-60001", "SMS failed");
+        IdentityEventException cause = new IdentityEventException("SP-65001", "SMS failed");
         AuthenticationFailedException thrownException =
                 new AuthenticationFailedException("SMS OTP send failed", cause);
         doThrow(thrownException).when(authenticator)
