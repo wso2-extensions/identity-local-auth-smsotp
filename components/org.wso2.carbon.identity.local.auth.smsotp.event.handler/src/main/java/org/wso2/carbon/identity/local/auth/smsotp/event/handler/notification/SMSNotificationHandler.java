@@ -101,13 +101,19 @@ public class SMSNotificationHandler extends DefaultNotificationHandler {
             throw new IdentityEventException("Error while retrieving SMS Sender: "
                     + SMSNotificationConstants.SMS_PUBLISHER_NAME, e);
         } catch (ProviderException e) {
+            String errorCode = e.getErrorCode();
             if (notifySpecificProviderFailures) {
-                String errorCode = e.getErrorCode();
                 String errorMessage = e.getMessage();
                 if (StringUtils.isNotBlank(errorCode) && StringUtils.isNotBlank(errorMessage)) {
                     throw new IdentityEventException(errorCode, errorMessage, e);
                 } else {
                     throw new IdentityEventException(SMS_SEND_FAILED.getCode(), SMS_SEND_FAILED.getMessage(), e);
+                }
+            } else {
+                if (StringUtils.isNotBlank(errorCode) &&
+                    StringUtils.startsWith(errorCode, SMSNotificationConstants.SMS_PROVIDER_ERROR_CODE_PREFIX)) {
+                    // Provider failure notification is disabled; suppress provider-specific errors silently.
+                    return;
                 }
             }
             throw new IdentityEventException("Error while sending SMS", e);

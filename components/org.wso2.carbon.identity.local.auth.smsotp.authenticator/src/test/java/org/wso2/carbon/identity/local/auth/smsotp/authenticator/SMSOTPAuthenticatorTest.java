@@ -486,10 +486,14 @@ public class SMSOTPAuthenticatorTest {
         HttpServletResponse response = mock(HttpServletResponse.class);
         AuthenticationContext context = mock(AuthenticationContext.class);
 
-        try (MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
+        try (MockedStatic<AuthenticatorUtils> authenticatorUtilsMockedStatic = mockStatic(AuthenticatorUtils.class);
+             MockedStatic<IdentityTenantUtil> identityTenantUtilMockedStatic = mockStatic(IdentityTenantUtil.class);
              MockedStatic<MultitenantUtils> multitenantUtilsMockedStatic = mockStatic(MultitenantUtils.class);
              MockedStatic<FrameworkUtils> frameworkUtilsMockedStatic = mockStatic(FrameworkUtils.class)) {
 
+            authenticatorUtilsMockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("false");
             identityTenantUtilMockedStatic.when(() -> IdentityTenantUtil.getTenantId("carbon.super")).
                     thenReturn(-1234);
             when(mockedRealmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);

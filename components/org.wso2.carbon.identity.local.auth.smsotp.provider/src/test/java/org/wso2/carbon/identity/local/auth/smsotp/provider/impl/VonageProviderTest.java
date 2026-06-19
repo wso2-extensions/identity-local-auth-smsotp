@@ -18,9 +18,14 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
+import com.vonage.client.VonageClient;
 import com.vonage.client.sms.MessageStatus;
+import com.vonage.client.sms.SmsClient;
+import com.vonage.client.sms.SmsSubmissionResponse;
+import com.vonage.client.sms.SmsSubmissionResponseMessage;
 import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterClass;
@@ -36,7 +41,11 @@ import org.wso2.carbon.identity.local.auth.smsotp.provider.model.SMSData;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -90,7 +99,7 @@ public class VonageProviderTest {
         vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
     }
 
-    @Test()
+    @Test
     public void testInitSuccess() throws ProviderException {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
@@ -102,10 +111,26 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        VonageClient mockClient = Mockito.mock(VonageClient.class);
+        SmsClient mockSmsClient = Mockito.mock(SmsClient.class);
+        SmsSubmissionResponse mockResponse = Mockito.mock(SmsSubmissionResponse.class);
+        SmsSubmissionResponseMessage mockSmsMessage = Mockito.mock(SmsSubmissionResponseMessage.class);
+        when(mockSmsMessage.getStatus()).thenReturn(MessageStatus.OK);
+        when(mockResponse.getMessages()).thenReturn(Arrays.asList(mockSmsMessage));
+        when(mockSmsClient.submitMessage(any())).thenReturn(mockResponse);
+        when(mockClient.getSmsClient()).thenReturn(mockSmsClient);
+
+        try (MockedConstruction<VonageClient.Builder> mockedBuilder = mockConstruction(VonageClient.Builder.class,
+                (mock, context) -> {
+                    when(mock.apiKey(anyString())).thenReturn(mock);
+                    when(mock.apiSecret(anyString())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockClient);
+                })) {
+            vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
     }
 
-    @Test()
+    @Test
     public void testSend() throws ProviderException {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("http://localhost:8080");
@@ -117,7 +142,23 @@ public class VonageProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        VonageClient mockClient = Mockito.mock(VonageClient.class);
+        SmsClient mockSmsClient = Mockito.mock(SmsClient.class);
+        SmsSubmissionResponse mockResponse = Mockito.mock(SmsSubmissionResponse.class);
+        SmsSubmissionResponseMessage mockSmsMessage = Mockito.mock(SmsSubmissionResponseMessage.class);
+        when(mockSmsMessage.getStatus()).thenReturn(MessageStatus.OK);
+        when(mockResponse.getMessages()).thenReturn(Arrays.asList(mockSmsMessage));
+        when(mockSmsClient.submitMessage(any())).thenReturn(mockResponse);
+        when(mockClient.getSmsClient()).thenReturn(mockSmsClient);
+
+        try (MockedConstruction<VonageClient.Builder> mockedBuilder = mockConstruction(VonageClient.Builder.class,
+                (mock, context) -> {
+                    when(mock.apiKey(anyString())).thenReturn(mock);
+                    when(mock.apiSecret(anyString())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockClient);
+                })) {
+            vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
     }
 
     @DataProvider(name = "vonageErrorStatuses")

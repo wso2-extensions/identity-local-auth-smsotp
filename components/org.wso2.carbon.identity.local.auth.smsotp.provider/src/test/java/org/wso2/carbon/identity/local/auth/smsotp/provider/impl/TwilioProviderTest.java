@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.rest.api.v2010.account.MessageCreator;
+import com.twilio.type.PhoneNumber;
 import io.jsonwebtoken.lang.Assert;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -36,6 +40,8 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderD
 
 import java.lang.reflect.Method;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
@@ -101,7 +107,18 @@ public class TwilioProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+        MessageCreator mockCreator = Mockito.mock(MessageCreator.class);
+        Message mockMessage = Mockito.mock(Message.class);
+        when(mockMessage.getStatus()).thenReturn(Message.Status.SENT);
+        when(mockCreator.create()).thenReturn(mockMessage);
+
+        try (MockedStatic<Twilio> mockedTwilio = mockStatic(Twilio.class);
+             MockedStatic<Message> mockedMessage = mockStatic(Message.class)) {
+            mockedMessage.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class),
+                            nullable(String.class)))
+                    .thenReturn(mockCreator);
+            twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
     }
 
     @Test
@@ -116,7 +133,18 @@ public class TwilioProviderTest {
         SMSData smsData = new SMSData();
         smsData.setToNumber("1234567890");
 
-        twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+        MessageCreator mockCreator = Mockito.mock(MessageCreator.class);
+        Message mockMessage = Mockito.mock(Message.class);
+        when(mockMessage.getStatus()).thenReturn(Message.Status.SENT);
+        when(mockCreator.create()).thenReturn(mockMessage);
+
+        try (MockedStatic<Twilio> mockedTwilio = mockStatic(Twilio.class);
+             MockedStatic<Message> mockedMessage = mockStatic(Message.class)) {
+            mockedMessage.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class),
+                            nullable(String.class)))
+                    .thenReturn(mockCreator);
+            twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
     }
 
     @DataProvider(name = "twilioMessageErrorCodes")

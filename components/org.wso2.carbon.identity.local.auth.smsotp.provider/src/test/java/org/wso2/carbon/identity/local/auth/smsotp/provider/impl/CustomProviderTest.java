@@ -157,7 +157,7 @@ public class CustomProviderTest {
         try {
             customProvider.send(smsData, smsSenderDTO, "carbon.super");
         } catch (ProviderException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while publishing the SMS data to the custom provider");
+            Assert.assertEquals(e.getMessage(), Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
         }
     }
 
@@ -214,7 +214,7 @@ public class CustomProviderTest {
             customProvider.send(smsData, smsSenderDTO, "carbon.super");
             Assert.assertEquals(smsData.getHeaders().get("authorization"), "Bearer test-token-value");
         } catch (ProviderException e) {
-            Assert.assertEquals(e.getMessage(), "Error occurred while publishing the SMS data to the custom provider");
+            Assert.assertEquals(e.getMessage(), Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
         }
     }
 
@@ -310,6 +310,59 @@ public class CustomProviderTest {
     }
 
     @Test
+    public void testSendPropagatesPublisherExceptionErrorCodeAndMessage() {
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(null);
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        String specificErrorCode = Constants.ErrorMessage.FORBIDDEN.getCode();
+        String specificErrorMessage = Constants.ErrorMessage.FORBIDDEN.getMessage();
+
+        try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
+                (mock, context) -> doThrow(new PublisherException(specificErrorCode, specificErrorMessage))
+                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+            try {
+                customProvider.send(smsData, smsSenderDTO, "carbon.super");
+                Assert.fail("Expected ProviderException to be thrown");
+            } catch (ProviderException e) {
+                Assert.assertEquals(e.getErrorCode(), specificErrorCode);
+                Assert.assertEquals(e.getMessage(), specificErrorMessage);
+            }
+        }
+    }
+
+    @Test
+    public void testSendFallsBackToDefaultErrorWhenPublisherExceptionLacksErrorCode() {
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(null);
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
+                (mock, context) -> doThrow(new PublisherException("SMS send failed"))
+                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+            try {
+                customProvider.send(smsData, smsSenderDTO, "carbon.super");
+                Assert.fail("Expected ProviderException to be thrown");
+            } catch (ProviderException e) {
+                Assert.assertEquals(e.getErrorCode(), Constants.ErrorMessage.SMS_SEND_FAILED.getCode());
+                Assert.assertEquals(e.getMessage(), Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
+            }
+        }
+    }
+
+    @Test
     public void testSendWithApiKeyAuthAndNullAuthHeader() throws NotificationSenderManagementException {
 
         Map<String, String> authProperties = new HashMap<>();
@@ -343,8 +396,7 @@ public class CustomProviderTest {
                 customProvider.send(smsData, smsSenderDTO, "carbon.super");
             } catch (ProviderException e) {
                 // Expected to fail at publish since no auth header is set
-                Assert.assertEquals(e.getMessage(),
-                        "Error occurred while publishing the SMS data to the custom provider");
+                Assert.assertEquals(e.getMessage(), Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
             }
 
             // Verify that rebuildAuthHeaderWithNewToken was NOT called for API_KEY auth

@@ -101,8 +101,14 @@ public class CustomProvider implements Provider {
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
                     + ". Error: " + errorText);
-            throw new ProviderException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
+            String errorCode = e.getErrorCode();
+            String errorMessage = e.getMessage();
+            if (StringUtils.isNotBlank(errorCode) && StringUtils.isNotBlank(errorMessage)) {
+                throw new ProviderException(errorCode, errorMessage, e);
+            } else {
+                throw new ProviderException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
                     Constants.ErrorMessage.SMS_SEND_FAILED.getMessage(), e);
+            }
         } catch (NotificationSenderManagementException e) {
             throw new ProviderException(
                     "Error occurred while building authentication header for the notification provider", e);

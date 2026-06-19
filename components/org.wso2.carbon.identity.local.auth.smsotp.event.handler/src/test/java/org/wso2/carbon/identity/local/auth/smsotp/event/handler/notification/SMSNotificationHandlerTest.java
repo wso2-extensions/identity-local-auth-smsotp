@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -221,7 +222,9 @@ public class SMSNotificationHandlerTest {
 
         String providerName = "FailingProvider";
         Provider failingProvider = new Provider() {
-            @Override public String getName() { return providerName; }
+            @Override public String getName() {
+                return providerName;
+            }
             @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
                     throws ProviderException {
                 throw new ProviderException("SP-60001", "SMS send failed due to authentication failure");
@@ -234,9 +237,11 @@ public class SMSNotificationHandlerTest {
         smsSenderDTO.setProvider(providerName);
         List<SMSSenderDTO> senders = new ArrayList<>();
         senders.add(smsSenderDTO);
-        when(notificationSenderManagementService.getSMSSenders()).thenReturn(senders);
+        doReturn(senders).when(notificationSenderManagementService).getSMSSenders();
 
         Event event = constructSMSOTPEvent();
+        event.addEventProperty("otpToken", new OTP("874090", 300000, 300000));
+        event.addEventProperty("tenant-domain", "carbon.super");
         event.addEventProperty(SMSNotificationConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES, "true");
 
         try {
@@ -254,7 +259,9 @@ public class SMSNotificationHandlerTest {
 
         String providerName = "BlankCodeProvider";
         Provider blankCodeProvider = new Provider() {
-            @Override public String getName() { return providerName; }
+            @Override public String getName() {
+                return providerName;
+            }
             @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
                     throws ProviderException {
                 throw new ProviderException("SMS send failed with no specific code");
@@ -267,9 +274,11 @@ public class SMSNotificationHandlerTest {
         smsSenderDTO.setProvider(providerName);
         List<SMSSenderDTO> senders = new ArrayList<>();
         senders.add(smsSenderDTO);
-        when(notificationSenderManagementService.getSMSSenders()).thenReturn(senders);
+        doReturn(senders).when(notificationSenderManagementService).getSMSSenders();
 
         Event event = constructSMSOTPEvent();
+        event.addEventProperty("otpToken", new OTP("874090", 300000, 300000));
+        event.addEventProperty("tenant-domain", "carbon.super");
         event.addEventProperty(SMSNotificationConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES, "true");
 
         try {
@@ -281,35 +290,71 @@ public class SMSNotificationHandlerTest {
         }
     }
 
-    @Test(expectedExceptions = IdentityEventException.class)
-    public void testHandleEvent_NotifyDisabled_ProviderException_ThrowsGenericMessage()
+    @Test
+    public void testHandleEvent_NotifyDisabled_ProviderExceptionWithSPCode_SuppressedSilently()
             throws IdentityEventException, NotificationSenderManagementException {
 
-        String providerName = "FailingProviderDisabled";
-        Provider failingProvider = new Provider() {
-            @Override public String getName() { return providerName; }
+        String providerName = "SuppressedProvider";
+        Provider suppressedProvider = new Provider() {
+            @Override public String getName() {
+                return providerName;
+            }
             @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
                     throws ProviderException {
                 throw new ProviderException("SP-60001", "SMS send failed");
             }
         };
-        SMSNotificationHandlerDataHolder.getInstance().addProvider(providerName, failingProvider);
+        SMSNotificationHandlerDataHolder.getInstance().addProvider(providerName, suppressedProvider);
 
         SMSSenderDTO smsSenderDTO = new SMSSenderDTO();
         smsSenderDTO.setName(providerName);
         smsSenderDTO.setProvider(providerName);
         List<SMSSenderDTO> senders = new ArrayList<>();
         senders.add(smsSenderDTO);
-        when(notificationSenderManagementService.getSMSSenders()).thenReturn(senders);
+        doReturn(senders).when(notificationSenderManagementService).getSMSSenders();
 
         Event event = constructSMSOTPEvent();
+        event.addEventProperty("otpToken", new OTP("874090", 300000, 300000));
+        event.addEventProperty("tenant-domain", "carbon.super");
+        event.addEventProperty(SMSNotificationConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES, "false");
+
+        // SP-prefixed provider errors are silently suppressed when notify is disabled.
+        smsNotificationHandler.handleEvent(event);
+    }
+
+    @Test(expectedExceptions = IdentityEventException.class)
+    public void testHandleEvent_NotifyDisabled_ProviderExceptionWithNonSPCode_ThrowsGenericMessage()
+            throws IdentityEventException, NotificationSenderManagementException {
+
+        String providerName = "GenericFailureProvider";
+        Provider genericFailingProvider = new Provider() {
+            @Override public String getName() {
+                return providerName;
+            }
+            @Override public void send(SMSData smsData, SMSSenderDTO smsSenderDTO, String tenantDomain)
+                    throws ProviderException {
+                throw new ProviderException("GENERIC-001", "Some non-provider failure");
+            }
+        };
+        SMSNotificationHandlerDataHolder.getInstance().addProvider(providerName, genericFailingProvider);
+
+        SMSSenderDTO smsSenderDTO = new SMSSenderDTO();
+        smsSenderDTO.setName(providerName);
+        smsSenderDTO.setProvider(providerName);
+        List<SMSSenderDTO> senders = new ArrayList<>();
+        senders.add(smsSenderDTO);
+        doReturn(senders).when(notificationSenderManagementService).getSMSSenders();
+
+        Event event = constructSMSOTPEvent();
+        event.addEventProperty("otpToken", new OTP("874090", 300000, 300000));
+        event.addEventProperty("tenant-domain", "carbon.super");
         event.addEventProperty(SMSNotificationConstants.NOTIFY_SPECIFIC_PROVIDER_FAILURES, "false");
 
         try {
             smsNotificationHandler.handleEvent(event);
         } catch (IdentityEventException e) {
             Assert.assertTrue(e.getMessage().contains("Error while sending SMS"),
-                    "Should throw generic message when notify is disabled");
+                    "Should throw generic message when notify is disabled and error code has no SP- prefix");
             throw e;
         }
     }

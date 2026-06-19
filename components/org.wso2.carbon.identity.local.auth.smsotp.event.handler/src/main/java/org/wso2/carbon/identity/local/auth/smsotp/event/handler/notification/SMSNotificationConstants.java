@@ -51,4 +51,5 @@ public class SMSNotificationConstants {
     public static final String ERROR_CODE_TEMPLATE_NOT_FOUND = "40002";
 
     public static final String ERROR_MESSAGE_TEMPLATE_NOT_FOUND = "SMS template not found.";
+    public static final String SMS_PROVIDER_ERROR_CODE_PREFIX = "SP-";
 }
