@@ -406,4 +406,59 @@ public class CustomProviderTest {
             Assert.assertNull(smsData.getHeaders().get("Authorization"));
         }
     }
+
+    @Test
+    public void testSendWithPasswordCredentialAuthFetchesTokenOnFirstUse()
+            throws NotificationSenderManagementException {
+
+        Map<String, String> authProperties = new HashMap<>();
+        authProperties.put(Authentication.Property.CLIENT_ID.getName(), "test-client-id");
+        authProperties.put(Authentication.Property.CLIENT_SECRET.getName(), "test-client-secret");
+        authProperties.put(Authentication.Property.USERNAME.getName(), "svc-notify");
+        authProperties.put(Authentication.Property.PASSWORD.getName(), "svc-password");
+        authProperties.put(Authentication.Property.TOKEN_ENDPOINT.getName(), "https://localhost:9443/oauth2/token");
+
+        // Real Authentication object, exactly as CustomProvider receives from SMSSenderDTO in production.
+        Authentication authentication = new Authentication.AuthenticationBuilder(
+                Authentication.Type.PASSWORD_CREDENTIAL.toString(), authProperties).build();
+
+        SMSNotificationProviderDataHolder dataHolder = Mockito.mock(SMSNotificationProviderDataHolder.class);
+        NotificationSenderManagementService notificationService =
+                Mockito.mock(NotificationSenderManagementService.class);
+        when(dataHolder.getNotificationSenderManagementService()).thenReturn(notificationService);
+
+        // Mirror TokenManager's real side effect: rebuildAuthHeaderWithNewToken caches the fetched
+        // access token on the same Authentication instance before returning the header.
+        when(notificationService.rebuildAuthHeaderWithNewToken(smsSenderDTO)).thenAnswer(invocation -> {
+            authentication.addInternalProperty("accessToken", "password-grant-access-token");
+            return authentication.buildAuthenticationHeader();
+        });
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(authentication);
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        try (MockedStatic<SMSNotificationProviderDataHolder> mockedDataHolder =
+                mockStatic(SMSNotificationProviderDataHolder.class)) {
+            mockedDataHolder.when(SMSNotificationProviderDataHolder::getInstance).thenReturn(dataHolder);
+
+            try {
+                customProvider.send(smsData, smsSenderDTO, "carbon.super");
+            } catch (ProviderException e) {
+                // Expected to fail at the actual HTTP publish step (no real endpoint) — the auth
+                // header must already be attached by that point, which is what this test verifies.
+                Assert.assertEquals(e.getMessage(), Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
+            }
+
+            // The key regression this test guards: on first use (no cached token), PASSWORD_CREDENTIAL
+            // must trigger a token fetch just like CLIENT_CREDENTIAL already does.
+            verify(notificationService, times(1)).rebuildAuthHeaderWithNewToken(smsSenderDTO);
+            Assert.assertEquals(smsData.getHeaders().get("authorization"), "Bearer password-grant-access-token");
+        }
+    }
 }

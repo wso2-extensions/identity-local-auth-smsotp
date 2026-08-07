@@ -154,7 +154,9 @@ public class CustomProvider implements Provider {
                 return;
             }
             if (smsSenderDTO.getAuthentication().getAuthHeader() == null) {
-                if (Authentication.Type.CLIENT_CREDENTIAL != smsSenderDTO.getAuthentication().getType()) {
+                Authentication.Type authType = smsSenderDTO.getAuthentication().getType();
+                if (Authentication.Type.CLIENT_CREDENTIAL != authType
+                        && Authentication.Type.PASSWORD_CREDENTIAL != authType) {
                     return;
                 }
                 SMSNotificationProviderDataHolder.getInstance().getNotificationSenderManagementService()
