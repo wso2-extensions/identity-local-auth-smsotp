@@ -93,6 +93,23 @@ public class ProviderUtil {
     public static void triggerDiagnosticLogEvent(String resultMessage, String mobile, String provider,
                                                  DiagnosticLog.ResultStatus resultStatus) {
 
+        triggerDiagnosticLogEvent(resultMessage, mobile, provider, null, resultStatus);
+    }
+
+    /**
+     * Trigger Diagnostic Log Event including the status returned by the SMS provider. The provider status is added
+     * as a separate input parameter so that the response of the SMS provider can be traced for a given SMS.
+     *
+     * @param resultMessage  Result message.
+     * @param mobile         Mobile number.
+     * @param provider       SMS provider name.
+     * @param providerStatus Status returned by the SMS provider. Can be null if the provider did not return one.
+     * @param resultStatus   Result status.
+     */
+    public static void triggerDiagnosticLogEvent(String resultMessage, String mobile, String provider,
+                                                 String providerStatus,
+                                                 DiagnosticLog.ResultStatus resultStatus) {
+
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
             return;
         }
@@ -105,6 +122,9 @@ public class ProviderUtil {
                 .resultStatus(resultStatus)
                 .inputParam(LogConstants.InputKeys.SUBJECT,
                         LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(mobile) : mobile);
+        if (StringUtils.isNotBlank(providerStatus)) {
+            diagnosticLogBuilder.inputParam(Constants.InputKeys.PROVIDER_STATUS, providerStatus);
+        }
         LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
     }
 }

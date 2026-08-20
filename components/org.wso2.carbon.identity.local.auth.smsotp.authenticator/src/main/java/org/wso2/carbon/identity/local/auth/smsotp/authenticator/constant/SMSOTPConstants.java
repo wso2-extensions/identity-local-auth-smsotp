@@ -169,6 +169,7 @@ public class SMSOTPConstants {
             }
 
             public static final String SEND_TO = "send to";
+            public static final String PROVIDER_ERROR_CODE = "provider error code";
         }
     }
 

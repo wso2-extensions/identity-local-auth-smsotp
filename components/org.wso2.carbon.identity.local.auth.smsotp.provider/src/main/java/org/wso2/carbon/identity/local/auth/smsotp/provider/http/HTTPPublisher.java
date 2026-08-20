@@ -55,8 +55,23 @@ public class HTTPPublisher {
      * This method will publish the {@link SMSData} as a JSON to the provided publisher URL.
      * @param smsData {@link SMSData} object
      */
-    @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
     public void publish(SMSData smsData, String publisherURL) throws PublisherException {
+
+        publishAndGetResponseCode(smsData, publisherURL);
+    }
+
+    /**
+     * This method will publish the {@link SMSData} as a JSON to the provided publisher URL and return the HTTP
+     * status code returned by the SMS provider. The status code is returned so that the response of the SMS
+     * provider can be included in the logs of the SMS sending flow.
+     *
+     * @param smsData      {@link SMSData} object.
+     * @param publisherURL URL of the SMS provider.
+     * @return HTTP status code returned by the SMS provider.
+     * @throws PublisherException If the SMS could not be published to the SMS provider.
+     */
+    @SuppressFBWarnings("URLCONNECTION_SSRF_FD")
+    public int publishAndGetResponseCode(SMSData smsData, String publisherURL) throws PublisherException {
 
         // Validate the publisher URL for the protocol and format.
         validateURL(publisherURL);
@@ -86,7 +101,7 @@ public class HTTPPublisher {
                 connection.setRequestMethod(Constants.HTTP_POST);
             }
 
-            publish(json, publisherURL, connection);
+            return publish(json, publisherURL, connection);
         } catch (JsonProcessingException e) {
             throw new PublisherException("Error while converting the SMSData object to JSON", e);
         } catch (ProtocolException e) {
@@ -106,7 +121,7 @@ public class HTTPPublisher {
         }
     }
 
-    private void publish(String json, String publisherURL, HttpURLConnection connection)
+    private int publish(String json, String publisherURL, HttpURLConnection connection)
             throws IOException, PublisherException {
 
         connection.setDoOutput(true);
@@ -120,15 +135,16 @@ public class HTTPPublisher {
                 log.debug("Successfully published the sms data to the: " + publisherURL);
                 log.debug("JSON data: " + json);
             }
-            return;
+            return responseCode;
         }
 
+        String providerStatus = String.valueOf(responseCode);
         if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Unauthorized access while publishing the sms data to the: %s. " +
                         "Response code: %s.", publisherURL, responseCode));
             }
-            throw new PublisherException(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage());
+            throw new PublisherException(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage(), providerStatus);
         }
 
         log.warn("Error occurred while publishing the sms data to the: " + publisherURL
@@ -136,22 +152,22 @@ public class HTTPPublisher {
 
         if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
             throw new PublisherException(Constants.ErrorMessage.BAD_REQUEST.getCode(),
-                    Constants.ErrorMessage.BAD_REQUEST.getMessage());
+                    Constants.ErrorMessage.BAD_REQUEST.getMessage(), providerStatus);
         } else if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
             throw new PublisherException(Constants.ErrorMessage.FORBIDDEN.getCode(),
-                    Constants.ErrorMessage.FORBIDDEN.getMessage());
+                    Constants.ErrorMessage.FORBIDDEN.getMessage(), providerStatus);
         } else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
             throw new PublisherException(Constants.ErrorMessage.SERVICE_UNREACHABLE.getCode(),
-                    Constants.ErrorMessage.SERVICE_UNREACHABLE.getMessage());
+                    Constants.ErrorMessage.SERVICE_UNREACHABLE.getMessage(), providerStatus);
         } else if (responseCode == 429) {
             throw new PublisherException(Constants.ErrorMessage.TOO_MANY_REQUESTS.getCode(),
-                    Constants.ErrorMessage.TOO_MANY_REQUESTS.getMessage());
+                    Constants.ErrorMessage.TOO_MANY_REQUESTS.getMessage(), providerStatus);
         } else if (responseCode >= HttpURLConnection.HTTP_INTERNAL_ERROR) {
             throw new PublisherException(Constants.ErrorMessage.SERVER_ERROR.getCode(),
-                    Constants.ErrorMessage.SERVER_ERROR.getMessage());
+                    Constants.ErrorMessage.SERVER_ERROR.getMessage(), providerStatus);
         } else {
             throw new PublisherException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
-                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
+                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage(), providerStatus);
         }
     }
 

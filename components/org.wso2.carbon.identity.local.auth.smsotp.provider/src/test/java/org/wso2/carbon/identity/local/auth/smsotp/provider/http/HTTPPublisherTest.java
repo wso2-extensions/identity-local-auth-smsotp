@@ -94,6 +94,9 @@ public class HTTPPublisherTest {
                     "Expected PublisherException but got: " + cause.getClass().getName());
             Assert.assertEquals(((PublisherException) cause).getErrorCode(), expectedErrorCode,
                     "Wrong error code for HTTP " + responseCode);
+            Assert.assertEquals(((PublisherException) cause).getProviderStatus(), String.valueOf(responseCode),
+                    "The status returned by the SMS provider is not available in the exception for HTTP "
+                            + responseCode);
         }
     }
 
@@ -108,7 +111,8 @@ public class HTTPPublisherTest {
                 "publish", String.class, String.class, HttpURLConnection.class);
         method.setAccessible(true);
 
-        method.invoke(httpPublisher, "{}", PUBLISHER_URL, mockConnection);
+        Assert.assertEquals(method.invoke(httpPublisher, "{}", PUBLISHER_URL, mockConnection),
+                HttpURLConnection.HTTP_OK, "The status returned by the SMS provider is not returned to the caller.");
     }
 
     @Test
@@ -122,6 +126,15 @@ public class HTTPPublisherTest {
                 "publish", String.class, String.class, HttpURLConnection.class);
         method.setAccessible(true);
 
-        method.invoke(httpPublisher, "{}", PUBLISHER_URL, mockConnection);
+        Assert.assertEquals(method.invoke(httpPublisher, "{}", PUBLISHER_URL, mockConnection),
+                HttpURLConnection.HTTP_ACCEPTED,
+                "The status returned by the SMS provider is not returned to the caller.");
+    }
+
+    @Test(expectedExceptions = PublisherException.class)
+    public void testPublishAndGetResponseCodeForInvalidURL() throws PublisherException {
+
+        SMSData smsData = new SMSData();
+        httpPublisher.publishAndGetResponseCode(smsData, "file://localhost:8080");
     }
 }

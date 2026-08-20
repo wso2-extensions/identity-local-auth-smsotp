@@ -22,6 +22,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -43,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -110,6 +113,24 @@ public class SMSOTPAuthenticatorTest {
 
     @Mock
     private AbstractUserStoreManager userStoreManager = mock(AbstractUserStoreManager.class);
+
+    private static MockedStatic<LoggerUtils> mockedLoggerUtils;
+
+    @BeforeClass
+    public void setUpClass() {
+
+        /* The authenticator writes diagnostic logs for the SMS OTP notification requests sent to the SMS provider.
+         LoggerUtils is mocked since resolving whether diagnostic logs are enabled requires a carbon context. */
+        mockedLoggerUtils = mockStatic(LoggerUtils.class);
+    }
+
+    @AfterClass
+    public void tearDownClass() {
+
+        if (mockedLoggerUtils != null) {
+            mockedLoggerUtils.close();
+        }
+    }
 
     @BeforeTest
     public void createNewObject() {

@@ -77,15 +77,21 @@ public class TwilioProvider implements Provider {
 
                 ProviderUtil.triggerDiagnosticLogEvent(
                         String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
-                        smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
+                        smsData.getToNumber(), Constants.TWILIO, String.valueOf(status),
+                        DiagnosticLog.ResultStatus.FAILED);
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                         + " Status: " + status + ". Error: " + errorText);
                 Constants.ErrorMessage error = resolveTwilioMessageError(errorCode);
                 throw new ProviderException(error.getCode(), error.getMessage());
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
-                        + " using Twilio." + " Status: " + message.getStatus());
+            } else {
+                ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.",
+                        smsData.getToNumber(), Constants.TWILIO, String.valueOf(message.getStatus()),
+                        DiagnosticLog.ResultStatus.SUCCESS);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                            + " using Twilio." + " Status: " + message.getStatus());
+                }
             }
         } catch (ApiException e) {
             Integer status = e.getStatusCode();
@@ -93,7 +99,8 @@ public class TwilioProvider implements Provider {
 
             ProviderUtil.triggerDiagnosticLogEvent(
                     String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
-                    smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
+                    smsData.getToNumber(), Constants.TWILIO, String.valueOf(status),
+                    DiagnosticLog.ResultStatus.FAILED);
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                     + " Status: " + e.getStatusCode() + ". Error: " + errorText);

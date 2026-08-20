@@ -235,7 +235,7 @@ public class CustomProviderTest {
         // Mock HTTPPublisher to throw a non-unauthorized error
         try (MockedConstruction<HTTPPublisher> mockedPublisher = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException("Server Error"))
-                        .when(mock).publish(smsData, "https://localhost:8888"))) {
+                        .when(mock).publishAndGetResponseCode(smsData, "https://localhost:8888"))) {
 
             Method publishMethod = CustomProvider.class.getDeclaredMethod(
                     "publish", SMSData.class, SMSSenderDTO.class, Map.class);
@@ -282,7 +282,7 @@ public class CustomProviderTest {
                 (mock, context) -> doThrow(new PublisherException(
                         Constants.ErrorMessage.UNAUTHORIZED.getCode(),
                         Constants.ErrorMessage.UNAUTHORIZED.getMessage()))
-                        .when(mock).publish(smsData, "https://localhost:8888"));
+                        .when(mock).publishAndGetResponseCode(smsData, "https://localhost:8888"));
              MockedStatic<SMSNotificationProviderDataHolder> mockedDataHolder = 
                 mockStatic(SMSNotificationProviderDataHolder.class)) {
             mockedDataHolder.when(SMSNotificationProviderDataHolder::getInstance).thenReturn(dataHolder);
@@ -326,7 +326,7 @@ public class CustomProviderTest {
 
         try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException(specificErrorCode, specificErrorMessage))
-                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+                        .when(mock).publishAndGetResponseCode(Mockito.any(SMSData.class), Mockito.anyString()))) {
             try {
                 customProvider.send(smsData, smsSenderDTO, "carbon.super");
                 Assert.fail("Expected ProviderException to be thrown");
@@ -351,7 +351,7 @@ public class CustomProviderTest {
 
         try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException("SMS send failed"))
-                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+                        .when(mock).publishAndGetResponseCode(Mockito.any(SMSData.class), Mockito.anyString()))) {
             try {
                 customProvider.send(smsData, smsSenderDTO, "carbon.super");
                 Assert.fail("Expected ProviderException to be thrown");

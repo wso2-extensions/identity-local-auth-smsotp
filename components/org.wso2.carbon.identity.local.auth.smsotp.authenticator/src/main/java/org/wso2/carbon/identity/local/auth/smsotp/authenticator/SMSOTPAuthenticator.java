@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.auth.otp.core.model.OTPResendClaims;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.AbstractOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.LocalSMSOTPCaptchaConnector;
 import org.wso2.carbon.identity.captcha.exception.CaptchaException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -63,6 +65,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
@@ -437,12 +440,18 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         try {
             triggerOtpEvent(eventName, authenticatedUser, eventProperties);
+            logSmsOtpNotificationRequest("SMS OTP send request was successfully initiated to the SMS provider.",
+                    authenticatedUser, eventProperties, context, null, DiagnosticLog.ResultStatus.SUCCESS);
         } catch (AuthenticationFailedException e) {
+            String providerErrorCode = e.getCause() instanceof IdentityEventException
+                    ? ((IdentityEventException) e.getCause()).getErrorCode() : null;
+            logSmsOtpNotificationRequest("SMS OTP send request to the SMS provider failed. " + e.getMessage(),
+                    authenticatedUser, eventProperties, context, providerErrorCode,
+                    DiagnosticLog.ResultStatus.FAILED);
             if (context != null
                     && isNotifySmsSendingFailureEnabled(context.getTenantDomain())
                     && e.getCause() instanceof IdentityEventException) {
                 IdentityEventException cause = (IdentityEventException) e.getCause();
-                String providerErrorCode = cause.getErrorCode();
                 if (StringUtils.isNotBlank(providerErrorCode)
                         && providerErrorCode.startsWith(SMSOTPConstants.SMS_PROVIDER_ERROR_CODE_PREFIX)) {
                     AuthenticatorMessage authenticatorMessage = new AuthenticatorMessage(
@@ -454,6 +463,59 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
             }
             throw e;
         }
+    }
+
+    /**
+     * Records the SMS OTP notification request sent from the Identity Server to the SMS provider as a diagnostic
+     * log. This provides evidence that an SMS OTP was requested from our end for the given user and application,
+     * even when the user claims that the SMS was never received.
+     *
+     * @param resultMessage     Message describing the state of the notification request.
+     * @param authenticatedUser Authenticated user for whom the OTP is sent.
+     * @param eventProperties   Properties of the SMS notification event.
+     * @param context           Authentication context. Can be null.
+     * @param providerErrorCode Error code returned by the SMS provider. Can be null.
+     * @param resultStatus      Result status of the diagnostic log.
+     */
+    private void logSmsOtpNotificationRequest(String resultMessage, AuthenticatedUser authenticatedUser,
+                                              Map<String, Object> eventProperties, AuthenticationContext context,
+                                              String providerErrorCode,
+                                              DiagnosticLog.ResultStatus resultStatus) {
+
+        if (!LoggerUtils.isDiagnosticLogsEnabled()) {
+            return;
+        }
+        DiagnosticLog.DiagnosticLogBuilder diagnosticLogBuilder = new DiagnosticLog.DiagnosticLogBuilder(
+                SMSOTPConstants.LogConstants.SMS_OTP_SERVICE,
+                SMSOTPConstants.LogConstants.ActionIDs.SEND_SMS_OTP);
+        diagnosticLogBuilder
+                .resultMessage(resultMessage)
+                .logDetailLevel(DiagnosticLog.LogDetailLevel.APPLICATION)
+                .resultStatus(resultStatus)
+                .inputParam(LogConstants.InputKeys.AUTHENTICATOR_NAME, getName());
+        if (authenticatedUser != null) {
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER,
+                    LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(authenticatedUser.getUserName())
+                            : authenticatedUser.getUserName());
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.TENANT_DOMAIN,
+                    authenticatedUser.getTenantDomain());
+        }
+        if (context != null) {
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
+                    context.getServiceProviderName());
+        }
+        Object sentTo = eventProperties != null ? eventProperties.get(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO) : null;
+        if (sentTo != null) {
+            diagnosticLogBuilder.inputParam(SMSOTPConstants.LogConstants.InputKeys.SEND_TO,
+                    LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(String.valueOf(sentTo)) : String.valueOf(sentTo));
+        }
+        if (StringUtils.isNotBlank(providerErrorCode)) {
+            diagnosticLogBuilder.inputParam(SMSOTPConstants.LogConstants.InputKeys.PROVIDER_ERROR_CODE,
+                    providerErrorCode);
+        }
+        LoggerUtils.triggerDiagnosticLogEvent(diagnosticLogBuilder);
     }
 
     @Override
