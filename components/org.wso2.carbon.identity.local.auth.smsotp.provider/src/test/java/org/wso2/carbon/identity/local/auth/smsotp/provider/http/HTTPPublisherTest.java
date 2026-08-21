@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.http;
 
+import com.sun.net.httpserver.HttpServer;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -31,6 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 import static org.mockito.Mockito.when;
 
@@ -136,5 +139,80 @@ public class HTTPPublisherTest {
 
         SMSData smsData = new SMSData();
         httpPublisher.publishAndGetResponseCode(smsData, "file://localhost:8080");
+    }
+
+    @DataProvider(name = "endToEndResponseCodes")
+    public Object[][] endToEndResponseCodes() {
+
+        return new Object[][] {
+            {HttpURLConnection.HTTP_OK},
+            {HttpURLConnection.HTTP_ACCEPTED},
+        };
+    }
+
+    /**
+     * Publishes against a locally served endpoint so that the full publish path, including reading the status
+     * returned by the SMS provider, is covered.
+     */
+    @Test(dataProvider = "endToEndResponseCodes")
+    public void testPublishAndGetResponseCodeReturnsProviderStatus(int responseCode) throws Exception {
+
+        HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        server.createContext("/sms", exchange -> {
+            exchange.sendResponseHeaders(responseCode, -1);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            SMSData smsData = new SMSData();
+            smsData.setToNumber("+1234567890");
+            smsData.setBody("{\"content\":\"Verification Code: 769317\"}");
+            smsData.setContentType(Constants.APPLICATION_JSON);
+            smsData.setHttpMethod(Constants.HTTP_POST);
+            smsData.setHeaders(new HashMap<>());
+
+            String url = "http://localhost:" + server.getAddress().getPort() + "/sms";
+            Assert.assertEquals(httpPublisher.publishAndGetResponseCode(smsData, url), responseCode,
+                    "The status returned by the SMS provider should be returned to the caller.");
+
+            // The void variant delegates to the same path and must not fail for a successful response.
+            httpPublisher.publish(smsData, url);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    public void testPublishAndGetResponseCodeThrowsForServerError() throws Exception {
+
+        HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        server.createContext("/sms", exchange -> {
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, -1);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            SMSData smsData = new SMSData();
+            smsData.setToNumber("+1234567890");
+            smsData.setBody("{}");
+            smsData.setContentType(Constants.APPLICATION_JSON);
+            smsData.setHttpMethod(Constants.HTTP_POST);
+            smsData.setHeaders(new HashMap<>());
+
+            String url = "http://localhost:" + server.getAddress().getPort() + "/sms";
+            try {
+                httpPublisher.publishAndGetResponseCode(smsData, url);
+                Assert.fail("Expected PublisherException for HTTP 500");
+            } catch (PublisherException e) {
+                Assert.assertEquals(e.getErrorCode(), Constants.ErrorMessage.SERVER_ERROR.getCode());
+                Assert.assertEquals(e.getProviderStatus(),
+                        String.valueOf(HttpURLConnection.HTTP_INTERNAL_ERROR),
+                        "The status returned by the SMS provider should be carried in the exception.");
+            }
+        } finally {
+            server.stop(0);
+        }
     }
 }

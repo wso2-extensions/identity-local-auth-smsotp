@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.authenticator;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
+import org.wso2.carbon.identity.central.log.mgt.utils.LogConstants;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
@@ -56,6 +58,7 @@ import org.wso2.carbon.identity.local.auth.smsotp.authenticator.util.Authenticat
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.DiagnosticLog;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -73,6 +76,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -120,8 +124,10 @@ public class SMSOTPAuthenticatorTest {
     public void setUpClass() {
 
         /* The authenticator writes diagnostic logs for the SMS OTP notification requests sent to the SMS provider.
-         LoggerUtils is mocked since resolving whether diagnostic logs are enabled requires a carbon context. */
+         LoggerUtils is mocked since resolving whether diagnostic logs are enabled requires a carbon context.
+         Diagnostic logging is reported as enabled so that the diagnostic log building code is exercised. */
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
     }
 
     @AfterClass
@@ -637,6 +643,116 @@ public class SMSOTPAuthenticatorTest {
             Assert.assertEquals(result, "SP-65001",
                     "Should return the provider error code from authenticatorMessage");
         }
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_Success_LogsSendInitiation() throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        when(user.getUserName()).thenReturn("alice");
+        when(user.getTenantDomain()).thenReturn("carbon.super");
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getServiceProviderName()).thenReturn("sample-app");
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO, "+1234567890");
+
+        doNothing().when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+
+        authenticator.triggerOtpEvent("eventName", user, eventProperties, authContext);
+
+        DiagnosticLog diagnosticLog = captureLastDiagnosticLog();
+        assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name(),
+                "A successful SMS OTP send should be recorded as a SUCCESS entry.");
+        assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.USER), "alice");
+        assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.SERVICE_PROVIDER), "sample-app");
+        assertEquals(diagnosticLog.getInput().get(SMSOTPConstants.LogConstants.InputKeys.SEND_TO), "+1234567890");
+        assertNull(diagnosticLog.getInput().get(SMSOTPConstants.LogConstants.InputKeys.PROVIDER_ERROR_CODE),
+                "No provider error code is expected for a successful send.");
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_Failure_LogsProviderErrorCode() throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+        when(authContext.getTenantDomain()).thenReturn("carbon.super");
+
+        IdentityEventException cause = new IdentityEventException("SP-65001", "SMS failed");
+        AuthenticationFailedException thrownException =
+                new AuthenticationFailedException("SMS OTP send failed", cause);
+        /* nullable is required here since the user is deliberately null for this scenario and any() does not
+         match a null argument. */
+        doThrow(thrownException).when(authenticator)
+                .triggerOtpEvent(anyString(), nullable(AuthenticatedUser.class), anyMap());
+
+        try (MockedStatic<AuthenticatorUtils> mockedStatic = Mockito.mockStatic(AuthenticatorUtils.class)) {
+            mockedStatic.when(() -> AuthenticatorUtils.getSmsAuthenticatorConfig(
+                            SMSOTPConstants.ConnectorConfig.SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "carbon.super"))
+                    .thenReturn("false");
+
+            // A null user exercises the branch where no user details are available for the log.
+            try {
+                authenticator.triggerOtpEvent("eventName", null, new HashMap<>(), authContext);
+                Assert.fail("Expected AuthenticationFailedException to be rethrown");
+            } catch (AuthenticationFailedException e) {
+                assertEquals(e, thrownException);
+            }
+        }
+
+        DiagnosticLog diagnosticLog = captureLastDiagnosticLog();
+        assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.FAILED.name(),
+                "A failed SMS OTP send should be recorded as a FAILED entry.");
+        assertEquals(diagnosticLog.getInput().get(SMSOTPConstants.LogConstants.InputKeys.PROVIDER_ERROR_CODE),
+                "SP-65001", "The error code reported by the SMS provider should be logged.");
+        assertNull(diagnosticLog.getInput().get(LogConstants.InputKeys.USER),
+                "No user details are expected when the authenticated user is not available.");
+    }
+
+    @Test
+    public void testTriggerOtpEventWithContext_LogMaskingEnabled_MasksUserAndMobile() throws Exception {
+
+        SMSOTPAuthenticator authenticator = spy(new SMSOTPAuthenticator());
+        AuthenticatedUser user = mock(AuthenticatedUser.class);
+        when(user.getUserName()).thenReturn("alice");
+        AuthenticationContext authContext = mock(AuthenticationContext.class);
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        eventProperties.put(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO, "+1234567890");
+
+        doNothing().when(authenticator)
+                .triggerOtpEvent(anyString(), any(AuthenticatedUser.class), anyMap());
+        mockedLoggerUtils.when(() -> LoggerUtils.getMaskedContent(anyString())).thenReturn("***masked***");
+
+        /* isLogMaskingEnable is a static field rather than a method, so it is set directly for the duration of
+         this test to exercise the masking branch. */
+        boolean originalLogMasking = LoggerUtils.isLogMaskingEnable;
+        LoggerUtils.isLogMaskingEnable = true;
+        try {
+            authenticator.triggerOtpEvent("eventName", user, eventProperties, authContext);
+        } finally {
+            LoggerUtils.isLogMaskingEnable = originalLogMasking;
+        }
+
+        DiagnosticLog diagnosticLog = captureLastDiagnosticLog();
+        assertEquals(diagnosticLog.getInput().get(LogConstants.InputKeys.USER), "***masked***",
+                "The user should be masked when log masking is enabled.");
+        assertEquals(diagnosticLog.getInput().get(SMSOTPConstants.LogConstants.InputKeys.SEND_TO), "***masked***",
+                "The mobile number should be masked when log masking is enabled.");
+    }
+
+    /**
+     * Returns the diagnostic log built by the most recent triggerDiagnosticLogEvent invocation.
+     */
+    private DiagnosticLog captureLastDiagnosticLog() {
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()),
+                Mockito.atLeastOnce());
+        return captor.getValue().build();
     }
 
     @Test

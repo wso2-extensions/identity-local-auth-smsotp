@@ -123,7 +123,10 @@ public class CustomProvider implements Provider {
         HTTPPublisher publisher = new HTTPPublisher();
         int allowedAttempts = getRetryCountAtAuthFailure() + 1;
 
-        for (int attempt = 1; attempt <= allowedAttempts;) {
+        /* Every iteration either returns the response code of the SMS provider or throws, therefore the loop is
+         exited only through one of those two paths. */
+        int attempt = 1;
+        while (true) {
             try {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + ".");
@@ -144,10 +147,6 @@ public class CustomProvider implements Provider {
             }
             attempt++;
         }
-        /* Not reachable since at least one attempt is always made and every attempt either returns the response
-         code of the SMS provider or throws. Kept to satisfy the compiler. */
-        throw new PublisherException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
-                Constants.ErrorMessage.SMS_SEND_FAILED.getMessage());
     }
 
 

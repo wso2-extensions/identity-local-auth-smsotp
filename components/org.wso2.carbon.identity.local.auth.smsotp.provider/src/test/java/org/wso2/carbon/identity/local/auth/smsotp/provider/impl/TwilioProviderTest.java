@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import com.twilio.Twilio;
+import com.twilio.exception.ApiException;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.rest.api.v2010.account.MessageCreator;
 import com.twilio.type.PhoneNumber;
@@ -58,6 +59,9 @@ public class TwilioProviderTest {
     public void setUp() {
 
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
+        /* Diagnostic logging is enabled so that the diagnostic log building code of the provider is
+         exercised. The actual log publishing remains mocked out. */
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
     }
 
     @AfterClass
@@ -144,6 +148,64 @@ public class TwilioProviderTest {
                             nullable(String.class)))
                     .thenReturn(mockCreator);
             twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
+    }
+
+    @Test
+    public void testSendLogsProviderStatusWhenMessageFails() {
+
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        MessageCreator mockCreator = Mockito.mock(MessageCreator.class);
+        Message mockMessage = Mockito.mock(Message.class);
+        when(mockMessage.getStatus()).thenReturn(Message.Status.FAILED);
+        when(mockMessage.getErrorCode()).thenReturn(30003);
+        when(mockMessage.getErrorMessage()).thenReturn("Unreachable destination handset");
+        when(mockCreator.create()).thenReturn(mockMessage);
+
+        try (MockedStatic<Twilio> mockedTwilio = mockStatic(Twilio.class);
+             MockedStatic<Message> mockedMessage = mockStatic(Message.class)) {
+            mockedMessage.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class),
+                            nullable(String.class)))
+                    .thenReturn(mockCreator);
+            twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+            Assert.isTrue(false, "Expected ProviderException when Twilio reports a FAILED message status");
+        } catch (ProviderException e) {
+            /* The exception raised for a FAILED message status is re-wrapped by the generic catch block of
+             TwilioProvider#send, so the resolved error code is carried by the cause. */
+            Assert.isInstanceOf(ProviderException.class, e.getCause());
+            assertEquals(((ProviderException) e.getCause()).getErrorCode(),
+                    Constants.ErrorMessage.UNDELIVERABLE_NUMBER.getCode());
+        }
+    }
+
+    @Test
+    public void testSendLogsProviderStatusWhenApiExceptionIsThrown() {
+
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        MessageCreator mockCreator = Mockito.mock(MessageCreator.class);
+        when(mockCreator.create()).thenThrow(new ApiException("Authenticate", 20003, null, 401, null));
+
+        try (MockedStatic<Twilio> mockedTwilio = mockStatic(Twilio.class);
+             MockedStatic<Message> mockedMessage = mockStatic(Message.class)) {
+            mockedMessage.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class),
+                            nullable(String.class)))
+                    .thenReturn(mockCreator);
+            twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+            Assert.isTrue(false, "Expected ProviderException when Twilio returns an API error");
+        } catch (ProviderException e) {
+            assertEquals(e.getErrorCode(), Constants.ErrorMessage.UNAUTHORIZED.getCode());
         }
     }
 

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSe
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.Authentication;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,6 +69,9 @@ public class CustomProviderTest {
     public void setUp() {
 
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
+        /* Diagnostic logging is enabled so that the diagnostic log building code of the provider is
+         exercised. The actual log publishing remains mocked out. */
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
     }
 
     @AfterClass
@@ -306,6 +311,39 @@ public class CustomProviderTest {
             
             // Verify that rebuildAuthHeaderWithNewToken was called
             verify(notificationService, times(1)).rebuildAuthHeaderWithNewToken(smsSenderDTO);
+        }
+    }
+
+    @Test
+    public void testSendLogsProviderStatusOnSuccess() throws Exception {
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(null);
+        when(smsSenderDTO.getProvider()).thenReturn("Custom");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
+                (mock, context) -> when(mock.publishAndGetResponseCode(Mockito.any(SMSData.class),
+                        Mockito.anyString())).thenReturn(202))) {
+
+            customProvider.send(smsData, smsSenderDTO, "carbon.super");
+
+            /* The LoggerUtils static mock is shared by the whole class, so invocations accumulate across tests.
+             The most recently captured builder is the one produced by this send. */
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()),
+                    Mockito.atLeastOnce());
+            DiagnosticLog diagnosticLog = captor.getValue().build();
+            Assert.assertEquals(diagnosticLog.getResultStatus(),
+                    DiagnosticLog.ResultStatus.SUCCESS.name());
+            Assert.assertEquals(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS), "202",
+                    "The HTTP status returned by the custom provider should be logged.");
         }
     }
 
