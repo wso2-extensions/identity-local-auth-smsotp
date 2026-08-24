@@ -34,6 +34,8 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class ProviderUtilTest {
 
@@ -120,6 +122,35 @@ public class ProviderUtilTest {
 
         mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
                 any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
+    }
+
+    /**
+     * Test that a status which the SMS provider did not report is converted to null rather than to the string
+     * "null", so that it is left out of the diagnostic log instead of being recorded with a misleading value.
+     */
+    @Test
+    public void testProviderStatusConversion() {
+
+        assertNull(ProviderUtil.toProviderStatus(null),
+                "A status which was not reported by the provider should be converted to null.");
+        assertEquals(ProviderUtil.toProviderStatus(200), "200");
+        assertEquals(ProviderUtil.toProviderStatus("ACCEPTED"), "ACCEPTED");
+    }
+
+    /**
+     * Test that a null provider status is not recorded as an input parameter of the diagnostic log.
+     */
+    @Test
+    public void testTriggerDiagnosticLogEventOmitsUnreportedProviderStatus() {
+
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.", MOBILE, PROVIDER,
+                ProviderUtil.toProviderStatus(null), DiagnosticLog.ResultStatus.SUCCESS);
+
+        DiagnosticLog diagnosticLog = captureTriggeredLogBuilder().build();
+        assertNull(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS),
+                "An unreported provider status should not be added to the log.");
     }
 
     private DiagnosticLog.DiagnosticLogBuilder captureTriggeredLogBuilder() {

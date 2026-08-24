@@ -83,6 +83,19 @@ public class ProviderUtil {
     }
 
     /**
+     * Converts a status reported by an SMS provider into a value which can be recorded in a diagnostic log. A null
+     * status is returned as null rather than as the string "null", so that the provider status is left out of the
+     * log instead of being recorded with a misleading value.
+     *
+     * @param status Status reported by the SMS provider. Can be null.
+     * @return String representation of the status, or null if the provider did not report one.
+     */
+    public static String toProviderStatus(Object status) {
+
+        return status == null ? null : String.valueOf(status);
+    }
+
+    /**
      * Trigger Diagnostic Log Event.
      *
      * @param resultMessage Result message.
