@@ -48,6 +48,7 @@ import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.
 public class SMSOTPExecutor extends AbstractOTPExecutor {
 
     private static final String REGISTRATION = "REGISTRATION";
+    private static final String DEVICE_REGISTRATION = "DEVICE_REGISTRATION";
 
     @Override
     public String getName() {
@@ -177,6 +178,8 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         switch (flowExecutionContext.getFlowType()) {
             case REGISTRATION:
                 return SMS_OTP_VERIFICATION_TEMPLATE;
+            case DEVICE_REGISTRATION:
+                return SMSOTPConstants.SMS_OTP_DEVICE_REGISTRATION_TEMPLATE;
             default:
                 return PASSWORD_RESET_TEMPLATE;
         }
