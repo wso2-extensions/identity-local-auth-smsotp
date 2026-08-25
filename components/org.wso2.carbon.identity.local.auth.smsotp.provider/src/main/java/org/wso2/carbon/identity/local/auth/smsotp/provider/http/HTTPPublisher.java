@@ -144,7 +144,8 @@ public class HTTPPublisher {
                 log.debug(String.format("Unauthorized access while publishing the sms data to the: %s. " +
                         "Response code: %s.", publisherURL, responseCode));
             }
-            throw new PublisherException(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage(), providerStatus);
+            throw new PublisherException(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage())
+                    .withProviderStatus(providerStatus);
         }
 
         log.warn("Error occurred while publishing the sms data to the: " + publisherURL
@@ -152,22 +153,22 @@ public class HTTPPublisher {
 
         if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
             throw new PublisherException(Constants.ErrorMessage.BAD_REQUEST.getCode(),
-                    Constants.ErrorMessage.BAD_REQUEST.getMessage(), providerStatus);
+                    Constants.ErrorMessage.BAD_REQUEST.getMessage()).withProviderStatus(providerStatus);
         } else if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
             throw new PublisherException(Constants.ErrorMessage.FORBIDDEN.getCode(),
-                    Constants.ErrorMessage.FORBIDDEN.getMessage(), providerStatus);
+                    Constants.ErrorMessage.FORBIDDEN.getMessage()).withProviderStatus(providerStatus);
         } else if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
             throw new PublisherException(Constants.ErrorMessage.SERVICE_UNREACHABLE.getCode(),
-                    Constants.ErrorMessage.SERVICE_UNREACHABLE.getMessage(), providerStatus);
+                    Constants.ErrorMessage.SERVICE_UNREACHABLE.getMessage()).withProviderStatus(providerStatus);
         } else if (responseCode == 429) {
             throw new PublisherException(Constants.ErrorMessage.TOO_MANY_REQUESTS.getCode(),
-                    Constants.ErrorMessage.TOO_MANY_REQUESTS.getMessage(), providerStatus);
+                    Constants.ErrorMessage.TOO_MANY_REQUESTS.getMessage()).withProviderStatus(providerStatus);
         } else if (responseCode >= HttpURLConnection.HTTP_INTERNAL_ERROR) {
             throw new PublisherException(Constants.ErrorMessage.SERVER_ERROR.getCode(),
-                    Constants.ErrorMessage.SERVER_ERROR.getMessage(), providerStatus);
+                    Constants.ErrorMessage.SERVER_ERROR.getMessage()).withProviderStatus(providerStatus);
         } else {
             throw new PublisherException(Constants.ErrorMessage.SMS_SEND_FAILED.getCode(),
-                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage(), providerStatus);
+                    Constants.ErrorMessage.SMS_SEND_FAILED.getMessage()).withProviderStatus(providerStatus);
         }
     }
 

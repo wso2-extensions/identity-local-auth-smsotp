@@ -37,21 +37,6 @@ public class PublisherException extends Exception {
     }
 
     /**
-     * Constructs a new exception with the specified error code, detail message and the status returned by the
-     * SMS provider.
-     *
-     * @param errorCode      The error code.
-     * @param message        The detail message.
-     * @param providerStatus The status returned by the SMS provider.
-     */
-    public PublisherException(String errorCode, String message, String providerStatus) {
-
-        super(message);
-        this.errorCode = errorCode;
-        this.providerStatus = providerStatus;
-    }
-
-    /**
      * Constructs a new exception with the specified error code, detail message and cause.
      *
      * @param errorCode The error code.
@@ -117,5 +102,19 @@ public class PublisherException extends Exception {
     public String getProviderStatus() {
 
         return providerStatus;
+    }
+
+    /**
+     * Records the status returned by the SMS provider for the failure. This is set separately rather than through a
+     * constructor, since a constructor taking the status as a third String would be ambiguous with the existing
+     * constructor which takes the cause as its third argument.
+     *
+     * @param providerStatus Status returned by the SMS provider. Can be null.
+     * @return This exception, so that the status can be set where the exception is thrown.
+     */
+    public PublisherException withProviderStatus(String providerStatus) {
+
+        this.providerStatus = providerStatus;
+        return this;
     }
 }
