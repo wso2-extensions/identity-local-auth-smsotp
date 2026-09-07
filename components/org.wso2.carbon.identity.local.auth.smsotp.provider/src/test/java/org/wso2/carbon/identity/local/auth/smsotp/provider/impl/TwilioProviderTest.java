@@ -48,6 +48,8 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 public class TwilioProviderTest {
 
@@ -219,6 +221,44 @@ public class TwilioProviderTest {
             assertEquals(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS),
                     Message.Status.UNDELIVERED.toString(),
                     "The status reported by the provider should be recorded in the log.");
+        }
+    }
+
+    /**
+     * Test that a message for which Twilio reports no status at all is not recorded as a failure. The provider not
+     * reporting a status is not the provider rejecting the SMS, and the request did reach the provider.
+     */
+    @Test
+    public void testSendDoesNotClaimFailureWhenNoStatusIsReported() throws ProviderException {
+
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        MessageCreator mockCreator = Mockito.mock(MessageCreator.class);
+        Message mockMessage = Mockito.mock(Message.class);
+        when(mockMessage.getStatus()).thenReturn(null);
+        when(mockCreator.create()).thenReturn(mockMessage);
+
+        try (MockedStatic<Twilio> mockedTwilio = mockStatic(Twilio.class);
+             MockedStatic<Message> mockedMessage = mockStatic(Message.class)) {
+            mockedMessage.when(() -> Message.creator(any(PhoneNumber.class), any(PhoneNumber.class),
+                            nullable(String.class)))
+                    .thenReturn(mockCreator);
+
+            twilioProvider.send(smsData, smsSenderDTO, "carbon.super");
+
+            DiagnosticLog diagnosticLog = captureLastDiagnosticLog();
+            assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name(),
+                    "A missing provider status should not be recorded as a failed send.");
+            assertNull(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS),
+                    "No provider status should be recorded when the provider did not report one.");
+            assertTrue(diagnosticLog.getResultMessage().contains("reported no status"),
+                    "The log should state that the provider reported no status instead of claiming it accepted "
+                            + "the SMS.");
         }
     }
 

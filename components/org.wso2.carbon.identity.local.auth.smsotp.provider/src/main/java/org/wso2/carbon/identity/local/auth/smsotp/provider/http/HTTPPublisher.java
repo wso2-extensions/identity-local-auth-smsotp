@@ -53,7 +53,14 @@ public class HTTPPublisher {
 
     /**
      * This method will publish the {@link SMSData} as a JSON to the provided publisher URL.
-     * @param smsData {@link SMSData} object
+     * <p>
+     * This method is retained for the backward compatibility of the published API and is no longer called from
+     * within this component. New callers should use {@link #publishAndGetResponseCode(SMSData, String)} instead,
+     * which returns the status code reported by the SMS provider so that it can be included in the logs.
+     *
+     * @param smsData      {@link SMSData} object.
+     * @param publisherURL URL of the SMS provider.
+     * @throws PublisherException If the SMS could not be published to the SMS provider.
      */
     public void publish(SMSData smsData, String publisherURL) throws PublisherException {
 

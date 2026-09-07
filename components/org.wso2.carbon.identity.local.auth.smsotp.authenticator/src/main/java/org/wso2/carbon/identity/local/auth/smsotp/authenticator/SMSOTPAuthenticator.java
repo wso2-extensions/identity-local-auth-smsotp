@@ -432,7 +432,17 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser,
             Map<String, Object> eventProperties) throws AuthenticationFailedException {
 
-        triggerEvent(eventName, authenticatedUser, eventProperties);
+        /* The notification request is recorded here rather than in the overload below, so that a send made by an
+         extended authenticator which calls this overload directly also leaves evidence of the request. */
+        try {
+            triggerEvent(eventName, authenticatedUser, eventProperties);
+            logSmsOtpNotificationRequest("SMS OTP send request was successfully initiated to the SMS provider.",
+                    authenticatedUser, eventProperties, null, DiagnosticLog.ResultStatus.SUCCESS);
+        } catch (AuthenticationFailedException e) {
+            logSmsOtpNotificationRequest("SMS OTP send request to the SMS provider failed.", authenticatedUser,
+                    eventProperties, resolveProviderErrorCode(e), DiagnosticLog.ResultStatus.FAILED);
+            throw e;
+        }
     }
 
     protected void triggerOtpEvent(String eventName, AuthenticatedUser authenticatedUser,
@@ -440,14 +450,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         try {
             triggerOtpEvent(eventName, authenticatedUser, eventProperties);
-            logSmsOtpNotificationRequest("SMS OTP send request was successfully initiated to the SMS provider.",
-                    authenticatedUser, eventProperties, context, null, DiagnosticLog.ResultStatus.SUCCESS);
         } catch (AuthenticationFailedException e) {
-            String providerErrorCode = e.getCause() instanceof IdentityEventException
-                    ? ((IdentityEventException) e.getCause()).getErrorCode() : null;
-            logSmsOtpNotificationRequest("SMS OTP send request to the SMS provider failed. " + e.getMessage(),
-                    authenticatedUser, eventProperties, context, providerErrorCode,
-                    DiagnosticLog.ResultStatus.FAILED);
+            String providerErrorCode = resolveProviderErrorCode(e);
             if (context != null
                     && isNotifySmsSendingFailureEnabled(context.getTenantDomain())
                     && e.getCause() instanceof IdentityEventException) {
@@ -466,6 +470,18 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     /**
+     * Resolves the error code reported by the SMS provider from a failed notification request.
+     *
+     * @param e Failure of the SMS OTP notification request.
+     * @return Error code reported by the SMS provider, or null when the provider did not report one.
+     */
+    private String resolveProviderErrorCode(AuthenticationFailedException e) {
+
+        return e.getCause() instanceof IdentityEventException
+                ? ((IdentityEventException) e.getCause()).getErrorCode() : null;
+    }
+
+    /**
      * Records the SMS OTP notification request sent from the Identity Server to the SMS provider as a diagnostic
      * log. This provides evidence that an SMS OTP was requested from our end for the given user and application,
      * even when the user claims that the SMS was never received.
@@ -473,13 +489,11 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
      * @param resultMessage     Message describing the state of the notification request.
      * @param authenticatedUser Authenticated user for whom the OTP is sent.
      * @param eventProperties   Properties of the SMS notification event.
-     * @param context           Authentication context. Can be null.
      * @param providerErrorCode Error code returned by the SMS provider. Can be null.
      * @param resultStatus      Result status of the diagnostic log.
      */
     private void logSmsOtpNotificationRequest(String resultMessage, AuthenticatedUser authenticatedUser,
-                                              Map<String, Object> eventProperties, AuthenticationContext context,
-                                              String providerErrorCode,
+                                              Map<String, Object> eventProperties, String providerErrorCode,
                                               DiagnosticLog.ResultStatus resultStatus) {
 
         if (!LoggerUtils.isDiagnosticLogsEnabled()) {
@@ -494,16 +508,17 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                 .resultStatus(resultStatus)
                 .inputParam(LogConstants.InputKeys.AUTHENTICATOR_NAME, getName());
         if (authenticatedUser != null) {
+            /* getLoggableMaskedUserId() applies the masking configuration and falls back to the identifier which
+             is available, which getUserName() does not do for a federated user. */
             diagnosticLogBuilder.inputParam(LogConstants.InputKeys.USER,
-                    LoggerUtils.isLogMaskingEnable
-                            ? LoggerUtils.getMaskedContent(authenticatedUser.getUserName())
-                            : authenticatedUser.getUserName());
+                    authenticatedUser.getLoggableMaskedUserId());
             diagnosticLogBuilder.inputParam(LogConstants.InputKeys.TENANT_DOMAIN,
                     authenticatedUser.getTenantDomain());
         }
-        if (context != null) {
-            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER,
-                    context.getServiceProviderName());
+        Object serviceProvider = eventProperties != null
+                ? eventProperties.get(IdentityEventConstants.EventProperty.APPLICATION_NAME) : null;
+        if (serviceProvider != null) {
+            diagnosticLogBuilder.inputParam(LogConstants.InputKeys.SERVICE_PROVIDER, serviceProvider);
         }
         Object sentTo = eventProperties != null ? eventProperties.get(SMSOTPConstants.ATTRIBUTE_SMS_SENT_TO) : null;
         if (sentTo != null) {
