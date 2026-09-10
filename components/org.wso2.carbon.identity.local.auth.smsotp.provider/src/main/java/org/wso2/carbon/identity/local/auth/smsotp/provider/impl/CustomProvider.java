@@ -92,12 +92,14 @@ public class CustomProvider implements Provider {
         smsData.setBody(resolveTemplate(smsData.getContentType(), template, smsData.getToNumber(), smsData.getBody()));
 
         try {
-            publish(smsData, smsSenderDTO, headers);
+            int responseCode = publish(smsData, smsSenderDTO, headers);
+            ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.", smsData.getToNumber(),
+                    smsSenderDTO.getProvider(), String.valueOf(responseCode), DiagnosticLog.ResultStatus.SUCCESS);
         } catch (PublisherException e) {
             String errorText = StringUtils.isNotBlank(e.getMessage()) ? e.getMessage() : e.getCause().getMessage();
             ProviderUtil.triggerDiagnosticLogEvent(
                     String.format("Error occurred while sending SMS. Error: %s", errorText), smsData.getToNumber(),
-                    smsSenderDTO.getProvider(), DiagnosticLog.ResultStatus.FAILED);
+                    smsSenderDTO.getProvider(), e.getProviderStatus(), DiagnosticLog.ResultStatus.FAILED);
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using custom provider."
                     + ". Error: " + errorText);
@@ -115,19 +117,21 @@ public class CustomProvider implements Provider {
         }
     }
 
-    private void publish(SMSData smsData, SMSSenderDTO smsSenderDTO, Map<String, String> headers)
+    private int publish(SMSData smsData, SMSSenderDTO smsSenderDTO, Map<String, String> headers)
             throws PublisherException, NotificationSenderManagementException {
 
         HTTPPublisher publisher = new HTTPPublisher();
         int allowedAttempts = getRetryCountAtAuthFailure() + 1;
 
-        for (int attempt = 1; attempt <= allowedAttempts;) {
+        /* Every iteration either returns the response code of the SMS provider or throws, therefore the loop is
+         exited only through one of those two paths. */
+        int attempt = 1;
+        while (true) {
             try {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Publishing SMS to SMS notification provider. Attempt: " + attempt + ".");
                 }
-                publisher.publish(smsData, smsSenderDTO.getProviderURL());
-                return;
+                return publisher.publishAndGetResponseCode(smsData, smsSenderDTO.getProviderURL());
             } catch (PublisherException e) {
                 if (!UNAUTHORIZED.getCode().equals(e.getErrorCode()) || attempt >= allowedAttempts) {
                     throw e;

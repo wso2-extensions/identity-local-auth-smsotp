@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com).
+ * Copyright (c) 2025-2026, WSO2 LLC. (https://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,11 +18,45 @@
 
 package org.wso2.carbon.identity.local.auth.smsotp.provider.util;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.identity.local.auth.smsotp.provider.constant.Constants;
+import org.wso2.carbon.utils.DiagnosticLog;
+
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class ProviderUtilTest {
+
+    private static final String MOBILE = "+1234567890";
+    private static final String PROVIDER = "Twilio";
+
+    private MockedStatic<LoggerUtils> mockedLoggerUtils;
+
+    @BeforeMethod
+    public void setUp() {
+
+        mockedLoggerUtils = mockStatic(LoggerUtils.class);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+
+        if (mockedLoggerUtils != null) {
+            mockedLoggerUtils.close();
+        }
+    }
 
     @DataProvider(name = "parsePositiveOrDefaultData")
     public Object[][] parsePositiveOrDefaultData() {
@@ -41,8 +75,89 @@ public class ProviderUtilTest {
 
     @Test(dataProvider = "parsePositiveOrDefaultData")
     public void testParsePositiveOrDefault(String value, int defaultValue, int expected) {
-        
+
         int result = ProviderUtil.parsePositiveOrDefault(value, defaultValue);
         Assert.assertEquals(result, expected);
+    }
+
+    @Test
+    public void testTriggerDiagnosticLogEventIncludesProviderStatus() {
+
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.", MOBILE, PROVIDER, "202",
+                DiagnosticLog.ResultStatus.SUCCESS);
+
+        DiagnosticLog.DiagnosticLogBuilder builder = captureTriggeredLogBuilder();
+        DiagnosticLog diagnosticLog = builder.build();
+        Assert.assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.SUCCESS.name());
+        Assert.assertEquals(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS), "202",
+                "The status returned by the SMS provider should be logged as a separate input parameter.");
+    }
+
+    @Test
+    public void testTriggerDiagnosticLogEventOmitsBlankProviderStatus() {
+
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        // The four argument variant is used where the provider does not report a status.
+        ProviderUtil.triggerDiagnosticLogEvent("Error occurred while sending SMS.", MOBILE, PROVIDER,
+                DiagnosticLog.ResultStatus.FAILED);
+
+        DiagnosticLog.DiagnosticLogBuilder builder = captureTriggeredLogBuilder();
+        DiagnosticLog diagnosticLog = builder.build();
+        Assert.assertEquals(diagnosticLog.getResultStatus(), DiagnosticLog.ResultStatus.FAILED.name());
+        Map<String, Object> input = diagnosticLog.getInput();
+        Assert.assertTrue(input == null || !input.containsKey(Constants.InputKeys.PROVIDER_STATUS),
+                "A blank provider status should not be added as an input parameter.");
+    }
+
+    @Test
+    public void testTriggerDiagnosticLogEventSkippedWhenDiagnosticLogsDisabled() {
+
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(false);
+
+        ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.", MOBILE, PROVIDER, "200",
+                DiagnosticLog.ResultStatus.SUCCESS);
+
+        mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(
+                any(DiagnosticLog.DiagnosticLogBuilder.class)), never());
+    }
+
+    /**
+     * Test that a status which the SMS provider did not report is converted to null rather than to the string
+     * "null", so that it is left out of the diagnostic log instead of being recorded with a misleading value.
+     */
+    @Test
+    public void testProviderStatusConversion() {
+
+        assertNull(ProviderUtil.toProviderStatus(null),
+                "A status which was not reported by the provider should be converted to null.");
+        assertEquals(ProviderUtil.toProviderStatus(200), "200");
+        assertEquals(ProviderUtil.toProviderStatus("ACCEPTED"), "ACCEPTED");
+    }
+
+    /**
+     * Test that a null provider status is not recorded as an input parameter of the diagnostic log.
+     */
+    @Test
+    public void testTriggerDiagnosticLogEventOmitsUnreportedProviderStatus() {
+
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
+
+        ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.", MOBILE, PROVIDER,
+                ProviderUtil.toProviderStatus(null), DiagnosticLog.ResultStatus.SUCCESS);
+
+        DiagnosticLog diagnosticLog = captureTriggeredLogBuilder().build();
+        assertNull(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS),
+                "An unreported provider status should not be added to the log.");
+    }
+
+    private DiagnosticLog.DiagnosticLogBuilder captureTriggeredLogBuilder() {
+
+        ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+        mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()));
+        return captor.getValue();
     }
 }

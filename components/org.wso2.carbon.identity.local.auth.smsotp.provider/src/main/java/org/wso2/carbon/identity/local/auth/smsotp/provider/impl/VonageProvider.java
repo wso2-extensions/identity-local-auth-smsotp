@@ -77,15 +77,22 @@ public class VonageProvider implements Provider {
                 String errorText = response.getMessages().get(0).getErrorText();
                 ProviderUtil.triggerDiagnosticLogEvent(
                         String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
-                        smsData.getToNumber(), Constants.VONAGE, DiagnosticLog.ResultStatus.FAILED);
+                        smsData.getToNumber(), Constants.VONAGE, ProviderUtil.toProviderStatus(status),
+                        DiagnosticLog.ResultStatus.FAILED);
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Vonage."
                         + " Status: " + response.getMessages().get(0).getStatus() + ". Error: " + errorText);
                 Constants.ErrorMessage error = resolveVonageError(status);
                 throw new ProviderException(error.getCode(), error.getMessage());
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
-                        + " using Vonage");
+            } else {
+                ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.",
+                        smsData.getToNumber(), Constants.VONAGE,
+                        ProviderUtil.toProviderStatus(response.getMessages().get(0).getStatus()),
+                        DiagnosticLog.ResultStatus.SUCCESS);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                            + " using Vonage");
+                }
             }
         } catch (ProviderException e) {
             // Re-throw without wrapping so the structured SP- error code is preserved for the caller.

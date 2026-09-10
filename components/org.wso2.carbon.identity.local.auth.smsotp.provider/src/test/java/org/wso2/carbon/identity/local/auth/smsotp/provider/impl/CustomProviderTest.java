@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.impl;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -40,6 +41,7 @@ import org.wso2.carbon.identity.notification.sender.tenant.config.NotificationSe
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.Authentication;
 import org.wso2.carbon.identity.notification.sender.tenant.config.dto.SMSSenderDTO;
 import org.wso2.carbon.identity.notification.sender.tenant.config.exception.NotificationSenderManagementException;
+import org.wso2.carbon.utils.DiagnosticLog;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,6 +69,9 @@ public class CustomProviderTest {
     public void setUp() {
 
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
+        /* Diagnostic logging is enabled so that the diagnostic log building code of the provider is
+         exercised. The actual log publishing remains mocked out. */
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
     }
 
     @AfterClass
@@ -235,7 +240,7 @@ public class CustomProviderTest {
         // Mock HTTPPublisher to throw a non-unauthorized error
         try (MockedConstruction<HTTPPublisher> mockedPublisher = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException("Server Error"))
-                        .when(mock).publish(smsData, "https://localhost:8888"))) {
+                        .when(mock).publishAndGetResponseCode(smsData, "https://localhost:8888"))) {
 
             Method publishMethod = CustomProvider.class.getDeclaredMethod(
                     "publish", SMSData.class, SMSSenderDTO.class, Map.class);
@@ -282,7 +287,7 @@ public class CustomProviderTest {
                 (mock, context) -> doThrow(new PublisherException(
                         Constants.ErrorMessage.UNAUTHORIZED.getCode(),
                         Constants.ErrorMessage.UNAUTHORIZED.getMessage()))
-                        .when(mock).publish(smsData, "https://localhost:8888"));
+                        .when(mock).publishAndGetResponseCode(smsData, "https://localhost:8888"));
              MockedStatic<SMSNotificationProviderDataHolder> mockedDataHolder = 
                 mockStatic(SMSNotificationProviderDataHolder.class)) {
             mockedDataHolder.when(SMSNotificationProviderDataHolder::getInstance).thenReturn(dataHolder);
@@ -310,6 +315,39 @@ public class CustomProviderTest {
     }
 
     @Test
+    public void testSendLogsProviderStatusOnSuccess() throws Exception {
+
+        when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+        when(smsSenderDTO.getContentType()).thenReturn("contentType");
+        when(smsSenderDTO.getProperties()).thenReturn(propertiesMap);
+        when(smsSenderDTO.getAuthentication()).thenReturn(null);
+        when(smsSenderDTO.getProvider()).thenReturn("Custom");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber(TO_NUMBER);
+
+        try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
+                (mock, context) -> when(mock.publishAndGetResponseCode(Mockito.any(SMSData.class),
+                        Mockito.anyString())).thenReturn(202))) {
+
+            customProvider.send(smsData, smsSenderDTO, "carbon.super");
+
+            /* The LoggerUtils static mock is shared by the whole class, so invocations accumulate across tests.
+             The most recently captured builder is the one produced by this send. */
+            ArgumentCaptor<DiagnosticLog.DiagnosticLogBuilder> captor =
+                    ArgumentCaptor.forClass(DiagnosticLog.DiagnosticLogBuilder.class);
+            mockedLoggerUtils.verify(() -> LoggerUtils.triggerDiagnosticLogEvent(captor.capture()),
+                    Mockito.atLeastOnce());
+            DiagnosticLog diagnosticLog = captor.getValue().build();
+            Assert.assertEquals(diagnosticLog.getResultStatus(),
+                    DiagnosticLog.ResultStatus.SUCCESS.name());
+            Assert.assertEquals(diagnosticLog.getInput().get(Constants.InputKeys.PROVIDER_STATUS), "202",
+                    "The HTTP status returned by the custom provider should be logged.");
+        }
+    }
+
+    @Test
     public void testSendPropagatesPublisherExceptionErrorCodeAndMessage() {
 
         when(smsSenderDTO.getProviderURL()).thenReturn("https://localhost:8888");
@@ -326,7 +364,7 @@ public class CustomProviderTest {
 
         try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException(specificErrorCode, specificErrorMessage))
-                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+                        .when(mock).publishAndGetResponseCode(Mockito.any(SMSData.class), Mockito.anyString()))) {
             try {
                 customProvider.send(smsData, smsSenderDTO, "carbon.super");
                 Assert.fail("Expected ProviderException to be thrown");
@@ -351,7 +389,7 @@ public class CustomProviderTest {
 
         try (MockedConstruction<HTTPPublisher> ignored = mockConstruction(HTTPPublisher.class,
                 (mock, context) -> doThrow(new PublisherException("SMS send failed"))
-                        .when(mock).publish(Mockito.any(SMSData.class), Mockito.anyString()))) {
+                        .when(mock).publishAndGetResponseCode(Mockito.any(SMSData.class), Mockito.anyString()))) {
             try {
                 customProvider.send(smsData, smsSenderDTO, "carbon.super");
                 Assert.fail("Expected ProviderException to be thrown");

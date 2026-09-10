@@ -62,6 +62,9 @@ public class VonageProviderTest {
     public void setUp() {
 
         mockedLoggerUtils = mockStatic(LoggerUtils.class);
+        /* Diagnostic logging is enabled so that the diagnostic log building code of the provider is
+         exercised. The actual log publishing remains mocked out. */
+        mockedLoggerUtils.when(LoggerUtils::isDiagnosticLogsEnabled).thenReturn(true);
     }
 
     @AfterClass
@@ -158,6 +161,40 @@ public class VonageProviderTest {
                     when(mock.build()).thenReturn(mockClient);
                 })) {
             vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+        }
+    }
+
+    @Test
+    public void testSendLogsProviderStatusWhenSubmissionFails() {
+
+        when(smsSenderDTO.getKey()).thenReturn("key");
+        when(smsSenderDTO.getSecret()).thenReturn("secret");
+        when(smsSenderDTO.getSender()).thenReturn("sender");
+
+        SMSData smsData = new SMSData();
+        smsData.setToNumber("1234567890");
+
+        VonageClient mockClient = Mockito.mock(VonageClient.class);
+        SmsClient mockSmsClient = Mockito.mock(SmsClient.class);
+        SmsSubmissionResponse mockResponse = Mockito.mock(SmsSubmissionResponse.class);
+        SmsSubmissionResponseMessage mockSmsMessage = Mockito.mock(SmsSubmissionResponseMessage.class);
+        when(mockSmsMessage.getStatus()).thenReturn(MessageStatus.THROTTLED);
+        when(mockSmsMessage.getErrorText()).thenReturn("Throttled");
+        when(mockResponse.getMessages()).thenReturn(Arrays.asList(mockSmsMessage));
+        when(mockSmsClient.submitMessage(any())).thenReturn(mockResponse);
+        when(mockClient.getSmsClient()).thenReturn(mockSmsClient);
+
+        try (MockedConstruction<VonageClient.Builder> mockedBuilder = mockConstruction(VonageClient.Builder.class,
+                (mock, context) -> {
+                    when(mock.apiKey(anyString())).thenReturn(mock);
+                    when(mock.apiSecret(anyString())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockClient);
+                })) {
+            vonageProvider.send(smsData, smsSenderDTO, "carbon.super");
+            Assert.isTrue(false, "Expected ProviderException when Vonage reports a non OK status");
+        } catch (ProviderException e) {
+            Assert.isTrue(Constants.ErrorMessage.TOO_MANY_REQUESTS.getCode().equals(e.getErrorCode()),
+                    "The Vonage status should be mapped to the corresponding error code");
         }
     }
 

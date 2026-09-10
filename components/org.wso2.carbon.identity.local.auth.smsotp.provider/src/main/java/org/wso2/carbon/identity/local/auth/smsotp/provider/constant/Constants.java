@@ -60,6 +60,17 @@ public class Constants {
     }
 
     /**
+     * Define input keys for diagnostic logs.
+     */
+    public static class InputKeys {
+
+        public static final String PROVIDER_STATUS = "provider status";
+
+        private InputKeys() {
+        }
+    }
+
+    /**
      * Enum for error messages.
      */
     public enum ErrorMessage {

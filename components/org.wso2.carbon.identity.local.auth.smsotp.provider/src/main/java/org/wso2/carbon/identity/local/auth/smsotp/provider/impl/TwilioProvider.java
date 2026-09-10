@@ -77,15 +77,44 @@ public class TwilioProvider implements Provider {
 
                 ProviderUtil.triggerDiagnosticLogEvent(
                         String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
-                        smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
+                        smsData.getToNumber(), Constants.TWILIO, ProviderUtil.toProviderStatus(status),
+                        DiagnosticLog.ResultStatus.FAILED);
                 LOG.warn("Error occurred while sending SMS to "
                         + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                         + " Status: " + status + ". Error: " + errorText);
                 Constants.ErrorMessage error = resolveTwilioMessageError(errorCode);
                 throw new ProviderException(error.getCode(), error.getMessage());
-            } else if (LOG.isDebugEnabled()) {
-                LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
-                        + " using Twilio." + " Status: " + message.getStatus());
+            } else if (message.getStatus() == null) {
+                /* The provider returned without an error but reported no status at all. That is not the provider
+                 rejecting the SMS, and the request did reach it, so this is not recorded as a failure. The result
+                 message says no status was reported rather than claiming the provider accepted the SMS, which it
+                 never said. A result status of its own is not available here, since DiagnosticLog only carries
+                 SUCCESS and FAILED and renders an unset one as the string "null". */
+                ProviderUtil.triggerDiagnosticLogEvent(
+                        "SMS was submitted to the SMS provider, which reported no status for it.",
+                        smsData.getToNumber(), Constants.TWILIO, null, DiagnosticLog.ResultStatus.SUCCESS);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("SMS submitted to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                            + " using Twilio, which reported no status for it.");
+                }
+            } else if (isNotAcceptedByProvider(message.getStatus())) {
+                /* The provider reported a status which says the message was not accepted for delivery. Recording
+                 it as a success would claim the SMS was sent when the provider says otherwise. The existing
+                 behaviour of not failing the flow for these statuses is left unchanged. */
+                ProviderUtil.triggerDiagnosticLogEvent(
+                        String.format("SMS was not accepted by the SMS provider. Status: %s.", message.getStatus()),
+                        smsData.getToNumber(), Constants.TWILIO, ProviderUtil.toProviderStatus(message.getStatus()),
+                        DiagnosticLog.ResultStatus.FAILED);
+                LOG.warn("SMS to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                        + " was not accepted by Twilio. Status: " + message.getStatus());
+            } else {
+                ProviderUtil.triggerDiagnosticLogEvent("SMS was accepted by the SMS provider.",
+                        smsData.getToNumber(), Constants.TWILIO, ProviderUtil.toProviderStatus(message.getStatus()),
+                        DiagnosticLog.ResultStatus.SUCCESS);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("SMS sent to " + ProviderUtil.hashTelephoneNumber(smsData.getToNumber())
+                            + " using Twilio." + " Status: " + message.getStatus());
+                }
             }
         } catch (ApiException e) {
             Integer status = e.getStatusCode();
@@ -93,7 +122,8 @@ public class TwilioProvider implements Provider {
 
             ProviderUtil.triggerDiagnosticLogEvent(
                     String.format("Error occurred while sending SMS. Status : %s. Error: %s", status, errorText),
-                    smsData.getToNumber(), Constants.TWILIO, DiagnosticLog.ResultStatus.FAILED);
+                    smsData.getToNumber(), Constants.TWILIO, ProviderUtil.toProviderStatus(status),
+                    DiagnosticLog.ResultStatus.FAILED);
             LOG.warn("Error occurred while sending SMS to "
                     + ProviderUtil.hashTelephoneNumber(smsData.getToNumber()) + " using Twilio."
                     + " Status: " + e.getStatusCode() + ". Error: " + errorText);
@@ -126,6 +156,27 @@ public class TwilioProvider implements Provider {
             default:
                 return Constants.ErrorMessage.MESSAGE_DELIVERY_FAILED;
         }
+    }
+
+    /**
+     * Checks whether the status reported by Twilio means the message was not accepted for delivery. Twilio reports
+     * these statuses without an error code, so they are not covered by the failed status check, yet they must not
+     * be recorded as a successfully sent SMS.
+     *
+     * @param status Status reported by Twilio for the message. Can be null.
+     * @return true if Twilio reported a status which does not confirm the message was accepted.
+     */
+    /**
+     * Reports whether the status returned by the provider says the SMS was not accepted for delivery. A missing
+     * status is handled by the caller before this is reached, since the provider not reporting a status is not
+     * the provider rejecting the SMS.
+     *
+     * @param status Status reported by the provider for the message.
+     * @return true when the provider reported a status which says the SMS was not accepted.
+     */
+    private boolean isNotAcceptedByProvider(Message.Status status) {
+
+        return Message.Status.UNDELIVERED == status || Message.Status.CANCELED == status;
     }
 
     private Constants.ErrorMessage resolveTwilioApiError(Integer httpStatus) {

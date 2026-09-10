@@ -28,6 +28,7 @@ package org.wso2.carbon.identity.local.auth.smsotp.provider.exception;
 public class PublisherException extends Exception {
 
     private String errorCode;
+    private String providerStatus;
 
     public PublisherException(String errorCode, String message) {
 
@@ -91,5 +92,29 @@ public class PublisherException extends Exception {
     public String getErrorCode() {
 
         return errorCode;
+    }
+
+    /**
+     * Get the status returned by the SMS provider, if the failure was reported by the SMS provider itself.
+     *
+     * @return Status returned by the SMS provider or null if the provider did not return one.
+     */
+    public String getProviderStatus() {
+
+        return providerStatus;
+    }
+
+    /**
+     * Records the status returned by the SMS provider for the failure. This is set separately rather than through a
+     * constructor, since a constructor taking the status as a third String would be ambiguous with the existing
+     * constructor which takes the cause as its third argument.
+     *
+     * @param providerStatus Status returned by the SMS provider. Can be null.
+     * @return This exception, so that the status can be set where the exception is thrown.
+     */
+    public PublisherException withProviderStatus(String providerStatus) {
+
+        this.providerStatus = providerStatus;
+        return this;
     }
 }
