@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PASSWORD_RESET_TEMPLATE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_DEVICE_REGISTRATION_TEMPLATE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE;
 
 /**
@@ -179,7 +180,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
             case REGISTRATION:
                 return SMS_OTP_VERIFICATION_TEMPLATE;
             case DEVICE_REGISTRATION:
-                return SMSOTPConstants.SMS_OTP_DEVICE_REGISTRATION_TEMPLATE;
+                return SMS_OTP_DEVICE_REGISTRATION_TEMPLATE;
             default:
                 return PASSWORD_RESET_TEMPLATE;
         }
