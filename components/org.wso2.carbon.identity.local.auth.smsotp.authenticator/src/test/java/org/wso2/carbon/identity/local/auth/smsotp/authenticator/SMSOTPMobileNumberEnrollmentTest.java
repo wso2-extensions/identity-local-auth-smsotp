@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -336,6 +338,12 @@ public class SMSOTPMobileNumberEnrollmentTest {
         context.setSequenceConfig(sequenceConfig);
         context.setCurrentStep(2);
         context.setCurrentAuthenticator(SMS_OTP_AUTHENTICATOR_NAME);
+        // The user is authenticated by an authenticator in the first step, such as username and password.
+        AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+        authenticatorConfig.setApplicationAuthenticator(mock(ApplicationAuthenticator.class));
+        AuthenticatedIdPData idPData = new AuthenticatedIdPData();
+        idPData.setAuthenticators(Collections.singletonList(authenticatorConfig));
+        context.setCurrentAuthenticatedIdPs(new HashMap<>(Collections.singletonMap("LOCAL", idPData)));
         return context;
     }
 
