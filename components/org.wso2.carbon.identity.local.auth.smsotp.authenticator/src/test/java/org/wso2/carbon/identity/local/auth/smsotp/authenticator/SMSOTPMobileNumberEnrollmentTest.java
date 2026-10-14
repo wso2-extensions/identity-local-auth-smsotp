@@ -68,7 +68,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.MOBILE_NUMBER;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_AUTHENTICATOR_NAME;
 
@@ -108,7 +108,7 @@ public class SMSOTPMobileNumberEnrollmentTest {
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         smsOtpConfigs = new HashMap<>();
-        smsOtpConfigs.put(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW, "true");
+        smsOtpConfigs.put(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW, "true");
         userClaims = new HashMap<>();
 
         authenticatorUtils = mockStatic(AuthenticatorUtils.class);
@@ -185,7 +185,7 @@ public class SMSOTPMobileNumberEnrollmentTest {
     @Test
     public void testNoEnrollmentByDefault() throws Exception {
 
-        smsOtpConfigs.remove(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW);
+        smsOtpConfigs.remove(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW);
 
         assertFalse(authenticator.getEnrollmentHandler().handleInitiation(request, response, context));
     }

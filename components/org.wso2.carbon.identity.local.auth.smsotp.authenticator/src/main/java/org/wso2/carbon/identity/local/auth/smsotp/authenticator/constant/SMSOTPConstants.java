@@ -118,7 +118,7 @@ public class SMSOTPConstants {
         public static final String SMS_OTP_RESEND_ATTEMPTS_COUNT = "SmsOTP.ResendAttemptsCount";
         public static final String SMS_OTP_RESEND_BLOCK_DURATION = "SmsOTP.ResendBlockDuration";
         public static final String SMS_OTP_NOTIFY_SMS_SENDING_FAILURE = "SmsOTP.NotifySmsSendingFailure";
-        public static final String SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW = "SmsOTP.EnrolUserInAuthenticationFlow";
+        public static final String SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW = "SmsOTP.EnrollUserInAuthenticationFlow";
         public static final String SMS_OTP_MOBILE_NUMBER_REGEX = "SmsOTP.MobileNumberRegex";
     }
 

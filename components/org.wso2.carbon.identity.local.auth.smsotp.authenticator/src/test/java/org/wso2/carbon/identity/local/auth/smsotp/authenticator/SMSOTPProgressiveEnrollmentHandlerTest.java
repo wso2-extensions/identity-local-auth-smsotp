@@ -97,7 +97,7 @@ public class SMSOTPProgressiveEnrollmentHandlerTest {
     @Test
     public void testOrganizationSettingsOfSmsOtpConnectorAreUsed() {
 
-        assertEquals(handler.getEnrollmentEnabledSettingKey(), "SmsOTP.EnrolUserInAuthenticationFlow");
+        assertEquals(handler.getEnrollmentEnabledSettingKey(), "SmsOTP.EnrollUserInAuthenticationFlow");
         assertEquals(handler.getValueRegexSettingKey(), "SmsOTP.MobileNumberRegex");
     }
 

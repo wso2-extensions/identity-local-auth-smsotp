@@ -67,7 +67,7 @@ public class SMSOTPProgressiveEnrollmentHandler extends AbstractOTPProgressiveEn
     @Override
     protected String getEnrollmentEnabledSettingKey() {
 
-        return SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW;
+        return SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW;
     }
 
     @Override

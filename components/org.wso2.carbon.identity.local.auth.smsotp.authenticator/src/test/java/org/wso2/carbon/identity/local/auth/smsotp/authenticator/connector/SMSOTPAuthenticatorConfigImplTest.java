@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_MOBILE_NUMBER_REGEX;
 
 public class SMSOTPAuthenticatorConfigImplTest {
@@ -41,11 +41,11 @@ public class SMSOTPAuthenticatorConfigImplTest {
         SMSOTPAuthenticatorConfigImpl config = new SMSOTPAuthenticatorConfigImpl();
         List<String> propertyNames = Arrays.asList(config.getPropertyNames());
 
-        assertTrue(propertyNames.contains(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW));
+        assertTrue(propertyNames.contains(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW));
         assertTrue(propertyNames.contains(SMS_OTP_MOBILE_NUMBER_REGEX));
-        assertTrue(config.getPropertyNameMapping().containsKey(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW));
+        assertTrue(config.getPropertyNameMapping().containsKey(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW));
         assertTrue(config.getPropertyNameMapping().containsKey(SMS_OTP_MOBILE_NUMBER_REGEX));
-        assertTrue(config.getPropertyDescriptionMapping().containsKey(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW));
+        assertTrue(config.getPropertyDescriptionMapping().containsKey(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW));
         assertTrue(config.getPropertyDescriptionMapping().containsKey(SMS_OTP_MOBILE_NUMBER_REGEX));
     }
 
@@ -57,7 +57,7 @@ public class SMSOTPAuthenticatorConfigImplTest {
 
             Properties defaults = new SMSOTPAuthenticatorConfigImpl().getDefaultPropertyValues("carbon.super");
 
-            assertEquals(defaults.getProperty(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW), "false");
+            assertEquals(defaults.getProperty(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW), "false");
             assertEquals(defaults.getProperty(SMS_OTP_MOBILE_NUMBER_REGEX), "");
         }
     }
@@ -67,14 +67,14 @@ public class SMSOTPAuthenticatorConfigImplTest {
 
         try (MockedStatic<IdentityUtil> identityUtil = mockStatic(IdentityUtil.class)) {
             identityUtil.when(() -> IdentityUtil.getProperty(anyString())).thenReturn(null);
-            identityUtil.when(() -> IdentityUtil.getProperty(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW))
+            identityUtil.when(() -> IdentityUtil.getProperty(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW))
                     .thenReturn("true");
             identityUtil.when(() -> IdentityUtil.getProperty(SMS_OTP_MOBILE_NUMBER_REGEX))
                     .thenReturn("^\\+94[0-9]{9}$");
 
             Properties defaults = new SMSOTPAuthenticatorConfigImpl().getDefaultPropertyValues("carbon.super");
 
-            assertEquals(defaults.getProperty(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW), "true");
+            assertEquals(defaults.getProperty(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW), "true");
             assertEquals(defaults.getProperty(SMS_OTP_MOBILE_NUMBER_REGEX), "^\\+94[0-9]{9}$");
         }
     }

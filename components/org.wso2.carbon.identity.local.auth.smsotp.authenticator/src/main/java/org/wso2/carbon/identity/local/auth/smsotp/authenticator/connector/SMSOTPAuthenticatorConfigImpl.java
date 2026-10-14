@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME;
-import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_LENGTH;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_MOBILE_NUMBER_REGEX;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.ConnectorConfig.SMS_OTP_RESEND_ATTEMPTS_COUNT;
@@ -89,7 +89,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         nameMapping.put(
                 SMS_OTP_RESEND_BLOCK_DURATION, "Blocking duration in minutes upon exceeding allowed resend attempts");
         nameMapping.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, "Notify SMS sending failure");
-        nameMapping.put(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW, "Enable mobile number progressive enrollment");
+        nameMapping.put(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW, "Enable mobile number progressive enrollment");
         nameMapping.put(SMS_OTP_MOBILE_NUMBER_REGEX, "Mobile number regex for progressive enrollment");
         return nameMapping;
     }
@@ -107,7 +107,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
                 "functionality upon exceeding allowed resend attempts");
         descriptionMapping.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE,
                 "Enable notifying connection failure errors when connecting to the SMS provider");
-        descriptionMapping.put(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW, "Prompt users who do not have a mobile " +
+        descriptionMapping.put(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW, "Prompt users who do not have a mobile " +
                 "number to enter and verify one during login, after they complete the first authentication step");
         descriptionMapping.put(SMS_OTP_MOBILE_NUMBER_REGEX, "Regex that a mobile number entered during progressive " +
                 "enrollment should match, after removing whitespaces and hyphens. A default pattern is used when " +
@@ -125,7 +125,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         properties.add(SMS_OTP_RESEND_ATTEMPTS_COUNT);
         properties.add(SMS_OTP_RESEND_BLOCK_DURATION);
         properties.add(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE);
-        properties.add(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW);
+        properties.add(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW);
         properties.add(SMS_OTP_MOBILE_NUMBER_REGEX);
         return properties.toArray(new String[0]);
     }
@@ -141,7 +141,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         String blockingTime = Integer.toString(DEFAULT_OTP_RESEND_BLOCK_DURATION);
         String notifySmsSendingFailure = "false";
         // Mobile number enrollment during login is disabled by default.
-        String enrolUserInAuthenticationFlow = "false";
+        String enrollUserInAuthenticationFlow = "false";
         String mobileNumberRegex = StringUtils.EMPTY;
 
         String otpExpiryTimeProperty = IdentityUtil.getProperty(OTP_EXPIRY_TIME);
@@ -150,8 +150,8 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         String resendAttemptsProperty = IdentityUtil.getProperty(SMS_OTP_RESEND_ATTEMPTS_COUNT);
         String blockingTimeProperty = IdentityUtil.getProperty(SMS_OTP_RESEND_BLOCK_DURATION);
         String notifySmsSendingFailureProperty = IdentityUtil.getProperty(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE);
-        String enrolUserInAuthenticationFlowProperty =
-                IdentityUtil.getProperty(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW);
+        String enrollUserInAuthenticationFlowProperty =
+                IdentityUtil.getProperty(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW);
         String mobileNumberRegexProperty = IdentityUtil.getProperty(SMS_OTP_MOBILE_NUMBER_REGEX);
 
         if (StringUtils.isNotBlank(otpExpiryTimeProperty)) {
@@ -172,8 +172,8 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         if (StringUtils.isNotBlank(notifySmsSendingFailureProperty)) {
             notifySmsSendingFailure = notifySmsSendingFailureProperty;
         }
-        if (StringUtils.isNotBlank(enrolUserInAuthenticationFlowProperty)) {
-            enrolUserInAuthenticationFlow = enrolUserInAuthenticationFlowProperty;
+        if (StringUtils.isNotBlank(enrollUserInAuthenticationFlowProperty)) {
+            enrollUserInAuthenticationFlow = enrollUserInAuthenticationFlowProperty;
         }
         if (StringUtils.isNotBlank(mobileNumberRegexProperty)) {
             mobileNumberRegex = mobileNumberRegexProperty;
@@ -185,7 +185,7 @@ public class SMSOTPAuthenticatorConfigImpl implements IdentityConnectorConfig {
         defaultProperties.put(SMS_OTP_RESEND_ATTEMPTS_COUNT, resendAttempts);
         defaultProperties.put(SMS_OTP_RESEND_BLOCK_DURATION, blockingTime);
         defaultProperties.put(SMS_OTP_NOTIFY_SMS_SENDING_FAILURE, notifySmsSendingFailure);
-        defaultProperties.put(SMS_OTP_ENROL_USER_IN_AUTHENTICATION_FLOW, enrolUserInAuthenticationFlow);
+        defaultProperties.put(SMS_OTP_ENROLL_USER_IN_AUTHENTICATION_FLOW, enrollUserInAuthenticationFlow);
         defaultProperties.put(SMS_OTP_MOBILE_NUMBER_REGEX, mobileNumberRegex);
 
         Properties properties = new Properties();
