@@ -1055,24 +1055,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         context.removeProperty(SMSOTPConstants.IS_REDIRECT_TO_SMS_OTP);
         super.processAuthenticationResponse(request, response, context);
-        // Reaching here means the OTP is verified.
-        completeMobileNumberEnrollment(context);
-    }
-
-    /**
-     * Save the mobile number pending enrollment, once the authentication succeeded with the OTP sent to it. The
-     * authentication is already recorded as successful. Hence, a failure to enroll the number does not fail it, and the
-     * user is requested to enroll a number again in the next login.
-     *
-     * @param context AuthenticationContext.
-     */
-    void completeMobileNumberEnrollment(AuthenticationContext context) {
-
-        try {
-            getEnrollmentHandler().completeEnrollment(context);
-        } catch (AuthenticationFailedException e) {
-            LOG.error("Failed to enroll the mobile number of the authenticated user.", e);
-        }
+        // Reaching here means the OTP is verified. The authentication fails if the number cannot be enrolled.
+        getEnrollmentHandler().completeEnrollment(context);
     }
 
     @Override
