@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.auth.otp.core.AbstractOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.PasswordlessOTPAuthenticator;
 import org.wso2.carbon.identity.auth.otp.core.constant.AuthenticatorConstants;
+import org.wso2.carbon.identity.auth.otp.core.enrollment.AbstractOTPProgressiveEnrollmentHandler;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
 import org.wso2.carbon.identity.auth.otp.core.model.OTPResendClaims;
 import org.wso2.carbon.identity.captcha.connector.recaptcha.AbstractOTPCaptchaConnector;
@@ -102,6 +103,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
     private static final Log LOG = LogFactory.getLog(SMSOTPAuthenticator.class);
     private static final long serialVersionUID = 850244886656426295L;
+    private static final AbstractOTPProgressiveEnrollmentHandler ENROLLMENT_HANDLER =
+            new SMSOTPProgressiveEnrollmentHandler();
 
     private static final String SMS_OTP_SENT = "SMSOTPSent";
     private static final String MASKED_MOBILE_NUMBER = "maskedMobileNumber";
@@ -150,6 +153,8 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         }
         if (context.isLogoutRequest()) {
             return AuthenticatorConstants.AuthenticationScenarios.LOGOUT;
+        } else if (getEnrollmentHandler().isValueSubmission(request, context)) {
+            return AuthenticatorConstants.AuthenticationScenarios.INITIAL_OTP;
         } else if (!SMS_OTP_AUTHENTICATOR_NAME.equals(context.getCurrentAuthenticator()) ||
                 !context.isRetrying() && StringUtils.isBlank(request.getParameter(CODE)) &&
                 !Boolean.parseBoolean(request.getParameter(RESEND))) {
@@ -386,6 +391,7 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
         String tenantDomain = authenticationContext.getTenantDomain();
         String mobileNumber = resolveMobileNoOfAuthenticatedUser(authenticatedUser, tenantDomain,
                 authenticationContext, isInitialFederationAttempt);
+        getEnrollmentHandler().recordOTPSent(authenticationContext, mobileNumber);
 
         Map<String, Object> metaProperties = new HashMap<>();
         metaProperties.put(IdentityEventConstants.EventProperty.NOTIFICATION_CHANNEL,
@@ -912,6 +918,10 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
                         "tenant: %s", user.getUserName(), user.getUserStoreDomain(), user.getTenantDomain()));
             }
             mobile = getUserClaimValueFromUserStore(user, context);
+            if (StringUtils.isBlank(mobile)) {
+                // The OTP is sent to the number pending enrollment, if any.
+                mobile = getEnrollmentHandler().getPendingValue(context);
+            }
         }
         return mobile;
     }
@@ -955,7 +965,14 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
 
         List<AuthenticatorParamMetadata> authenticatorParamMetadataList = new ArrayList<>();
         List<String> requiredParams = new ArrayList<>();
-        if (authenticatedUser == null) {
+        if (context != null && getEnrollmentHandler().isAwaitingValue(context)) {
+            AuthenticatorParamMetadata mobileNumberMetadata = new AuthenticatorParamMetadata(
+                    SMSOTPConstants.MOBILE_NUMBER, SMSOTPConstants.MobileNumberEnrollment.DISPLAY_MOBILE_NUMBER,
+                    FrameworkConstants.AuthenticatorParamType.STRING, 0, Boolean.FALSE,
+                    SMSOTPConstants.MobileNumberEnrollment.MOBILE_NUMBER_PARAM_KEY);
+            authenticatorParamMetadataList.add(mobileNumberMetadata);
+            requiredParams.add(SMSOTPConstants.MOBILE_NUMBER);
+        } else if (authenticatedUser == null) {
             AuthenticatorParamMetadata usernameMetadata = new AuthenticatorParamMetadata(
                     USERNAME, DISPLAY_USERNAME, FrameworkConstants.AuthenticatorParamType.STRING,
                     0, Boolean.FALSE, SMSOTPConstants.USERNAME_PARAM_KEY);
@@ -1023,11 +1040,39 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     }
 
     @Override
+    protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
+                                                 AuthenticationContext context) throws AuthenticationFailedException {
+
+        if (getEnrollmentHandler().handleInitiation(request, response, context)) {
+            return;
+        }
+        super.initiateAuthenticationRequest(request, response, context);
+    }
+
+    @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
                                                  AuthenticationContext context) throws AuthenticationFailedException {
 
         context.removeProperty(SMSOTPConstants.IS_REDIRECT_TO_SMS_OTP);
         super.processAuthenticationResponse(request, response, context);
+        // Reaching here means the OTP is verified.
+        completeMobileNumberEnrollment(context);
+    }
+
+    /**
+     * Save the mobile number pending enrollment, once the authentication succeeded with the OTP sent to it. The
+     * authentication is already recorded as successful. Hence, a failure to enroll the number does not fail it, and the
+     * user is requested to enroll a number again in the next login.
+     *
+     * @param context AuthenticationContext.
+     */
+    void completeMobileNumberEnrollment(AuthenticationContext context) {
+
+        try {
+            getEnrollmentHandler().completeEnrollment(context);
+        } catch (AuthenticationFailedException e) {
+            LOG.error("Failed to enroll the mobile number of the authenticated user.", e);
+        }
     }
 
     @Override
@@ -1040,5 +1085,15 @@ public class SMSOTPAuthenticator extends AbstractOTPAuthenticator implements Loc
     protected String getRetryAttemptsPropertyKey() {
 
         return SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME;
+    }
+
+    /**
+     * Get the mobile number enrollment handler.
+     *
+     * @return Mobile number enrollment handler.
+     */
+    protected AbstractOTPProgressiveEnrollmentHandler getEnrollmentHandler() {
+
+        return ENROLLMENT_HANDLER;
     }
 }

@@ -153,6 +153,25 @@ public class AuthenticatorUtils {
     }
 
     /**
+     * Get the mobile number request page URL.
+     *
+     * @param mobileNumberRequestPageUrl Configured page URL. The default page is used when blank.
+     * @return URL of the mobile number request page.
+     * @throws AuthenticationFailedException If an error occurred while building the URL.
+     */
+    public static String getMobileNumberRequestPageUrl(String mobileNumberRequestPageUrl)
+            throws AuthenticationFailedException {
+
+        String pageUrl = StringUtils.isBlank(mobileNumberRequestPageUrl) ?
+                SMSOTPConstants.MobileNumberEnrollment.MOBILE_NUMBER_REQUEST_PAGE : mobileNumberRequestPageUrl;
+        try {
+            return ServiceURLBuilder.create().addPath(pageUrl).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new AuthenticationFailedException("Error building mobile number request page URL", e);
+        }
+    }
+
+    /**
      * Get the SmsOtpAuthenticatorServerException with given error details.
      *
      * @param error     ErrorMessages.
