@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PASSWORD_RESET_TEMPLATE;
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PROFILE_UPDATE_TEMPLATE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE;
 
 /**
@@ -48,6 +49,7 @@ import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.
 public class SMSOTPExecutor extends AbstractOTPExecutor {
 
     private static final String REGISTRATION = "REGISTRATION";
+    private static final String PROFILE_UPDATE = "PROFILE_UPDATE";
 
     @Override
     public String getName() {
@@ -177,6 +179,8 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
         switch (flowExecutionContext.getFlowType()) {
             case REGISTRATION:
                 return SMS_OTP_VERIFICATION_TEMPLATE;
+            case PROFILE_UPDATE:
+                return PROFILE_UPDATE_TEMPLATE;
             default:
                 return PASSWORD_RESET_TEMPLATE;
         }
