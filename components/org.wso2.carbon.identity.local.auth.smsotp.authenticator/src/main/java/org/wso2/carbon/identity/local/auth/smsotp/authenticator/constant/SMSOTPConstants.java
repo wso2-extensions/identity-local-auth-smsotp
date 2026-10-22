@@ -44,6 +44,7 @@ public class SMSOTPConstants {
     public static final String DISPLAY_USERNAME = "Username";
     public static final String PASSWORD = "password";
     public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
+    public static final String SMS_OTP_DEVICE_REGISTRATION_TEMPLATE = "SMSOTPDeviceRegistration";
     public static final String PASSWORD_RESET_TEMPLATE = "passwordReset";
     public static final String SMS_TEMPLATE_TYPE = "notificationTemplate";
     public static final String SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME = "smsOtpRetryAttempts";

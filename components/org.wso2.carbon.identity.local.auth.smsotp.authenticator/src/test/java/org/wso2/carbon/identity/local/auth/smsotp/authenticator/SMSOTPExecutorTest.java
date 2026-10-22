@@ -4,6 +4,7 @@ import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.auth.otp.core.constant.OTPExecutorConstants;
 import org.wso2.carbon.identity.auth.otp.core.model.OTP;
@@ -26,6 +27,8 @@ public class SMSOTPExecutorTest {
     private static final String CARBON_SUPER = "carbon.super";
     private static final SMSOTPExecutor smsotpExecutor = new SMSOTPExecutor();
     private static final String REGISTRATION = "REGISTRATION";
+    private static final String DEVICE_REGISTRATION = "DEVICE_REGISTRATION";
+    private static final String PASSWORD_RECOVERY = "PASSWORD_RECOVERY";
 
     private static FlowExecutionContext flowExecutionContext;
     private static MockedStatic<SMSOTPExecutorUtils> mockedSMSOTPExecutorUtils;
@@ -83,6 +86,39 @@ public class SMSOTPExecutorTest {
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE),
                 SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE);
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.ConnectorConfig.OTP_EXPIRY_TIME), "10");
+    }
+
+    @DataProvider(name = "otpTemplateProvider")
+    public Object[][] otpTemplateProvider() {
+
+        return new Object[][]{
+                {REGISTRATION, SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE},
+                {DEVICE_REGISTRATION, SMSOTPConstants.SMS_OTP_DEVICE_REGISTRATION_TEMPLATE},
+                {PASSWORD_RECOVERY, SMSOTPConstants.PASSWORD_RESET_TEMPLATE},
+                {"INVITED_USER_REGISTRATION", SMSOTPConstants.PASSWORD_RESET_TEMPLATE}
+        };
+    }
+
+    @Test(dataProvider = "otpTemplateProvider")
+    public void testGetSendOTPEventResolvesTemplate(String flowType, String expectedTemplate)
+            throws FlowEngineServerException {
+
+        OTP otp = new OTP("123456", 30000, 600000);
+        flowExecutionContext.getFlowUser().addClaim(SMSOTPConstants.Claims.MOBILE_CLAIM, "1234567890");
+
+        mockedSMSOTPExecutorUtils.when(() -> SMSOTPExecutorUtils.getOTPValidityPeriod(CARBON_SUPER)).thenReturn(600000L);
+
+        flowExecutionContext.setFlowType(flowType);
+        Event event = smsotpExecutor.getSendOTPEvent(OTPExecutorConstants.OTPScenarios.INITIAL_OTP, otp,
+                flowExecutionContext);
+
+        Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE), expectedTemplate);
+    }
+
+    @Test
+    public void testDeviceRegistrationTemplateName() {
+
+        Assert.assertEquals(SMSOTPConstants.SMS_OTP_DEVICE_REGISTRATION_TEMPLATE, "SMSOTPDeviceRegistration");
     }
 
     @Test
