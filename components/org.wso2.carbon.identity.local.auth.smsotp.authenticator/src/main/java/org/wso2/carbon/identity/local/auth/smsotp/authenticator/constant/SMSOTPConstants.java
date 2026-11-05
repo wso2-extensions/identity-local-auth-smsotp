@@ -45,6 +45,7 @@ public class SMSOTPConstants {
     public static final String PASSWORD = "password";
     public static final String SMS_OTP_VERIFICATION_TEMPLATE = "SMSOTPVerification";
     public static final String PASSWORD_RESET_TEMPLATE = "passwordReset";
+    public static final String PROFILE_UPDATE_TEMPLATE = "profileUpdateSMSOTP";
     public static final String SMS_TEMPLATE_TYPE = "notificationTemplate";
     public static final String SMS_OTP_RETRY_ATTEMPTS_PROPERTY_NAME = "smsOtpRetryAttempts";
     public static final String SMS_OTP_RESEND_ATTEMPTS_PROPERTY_NAME = "smsOtpResendAttempts";
