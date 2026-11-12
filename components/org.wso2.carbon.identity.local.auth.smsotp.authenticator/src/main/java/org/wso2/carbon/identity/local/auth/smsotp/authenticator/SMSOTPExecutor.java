@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.DEVICE_REGISTRATION_TEMPLATE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PASSWORD_RESET_TEMPLATE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.PROFILE_UPDATE_TEMPLATE;
 import static org.wso2.carbon.identity.local.auth.smsotp.authenticator.constant.SMSOTPConstants.SMS_OTP_VERIFICATION_TEMPLATE;
@@ -50,6 +51,7 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
 
     private static final String REGISTRATION = "REGISTRATION";
     private static final String PROFILE_UPDATE = "PROFILE_UPDATE";
+    private static final String DEVICE_REGISTRATION = "DEVICE_REGISTRATION";
 
     @Override
     public String getName() {
@@ -181,6 +183,8 @@ public class SMSOTPExecutor extends AbstractOTPExecutor {
                 return SMS_OTP_VERIFICATION_TEMPLATE;
             case PROFILE_UPDATE:
                 return PROFILE_UPDATE_TEMPLATE;
+            case DEVICE_REGISTRATION:
+                return DEVICE_REGISTRATION_TEMPLATE;
             default:
                 return PASSWORD_RESET_TEMPLATE;
         }

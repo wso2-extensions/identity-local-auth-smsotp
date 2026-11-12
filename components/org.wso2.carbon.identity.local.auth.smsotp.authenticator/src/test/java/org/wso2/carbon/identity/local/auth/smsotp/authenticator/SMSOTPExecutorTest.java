@@ -27,6 +27,7 @@ public class SMSOTPExecutorTest {
     private static final SMSOTPExecutor smsotpExecutor = new SMSOTPExecutor();
     private static final String REGISTRATION = "REGISTRATION";
     private static final String PROFILE_UPDATE = "PROFILE_UPDATE";
+    private static final String DEVICE_REGISTRATION = "DEVICE_REGISTRATION";
 
     private static FlowExecutionContext flowExecutionContext;
     private static MockedStatic<SMSOTPExecutorUtils> mockedSMSOTPExecutorUtils;
@@ -99,6 +100,21 @@ public class SMSOTPExecutorTest {
 
         Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE),
                 SMSOTPConstants.PROFILE_UPDATE_TEMPLATE);
+    }
+
+    @Test
+    public void testGetSendOTPEventForDeviceRegistration() throws FlowEngineServerException {
+
+        OTP otp = new OTP("123456", 30000, 600000);
+        flowExecutionContext.getFlowUser().addClaim(SMSOTPConstants.Claims.MOBILE_CLAIM, "1234567890");
+
+        mockedSMSOTPExecutorUtils.when(() -> SMSOTPExecutorUtils.getOTPValidityPeriod(CARBON_SUPER)).thenReturn(600000L);
+
+        flowExecutionContext.setFlowType(DEVICE_REGISTRATION);
+        Event event = smsotpExecutor.getSendOTPEvent(OTPExecutorConstants.OTPScenarios.INITIAL_OTP, otp, flowExecutionContext);
+
+        Assert.assertEquals(event.getEventProperties().get(SMSOTPConstants.TEMPLATE_TYPE),
+                SMSOTPConstants.DEVICE_REGISTRATION_TEMPLATE);
     }
 
     @Test
