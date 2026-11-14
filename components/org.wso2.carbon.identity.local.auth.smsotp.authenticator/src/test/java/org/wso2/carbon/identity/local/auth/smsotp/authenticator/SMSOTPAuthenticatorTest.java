@@ -24,6 +24,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -143,6 +144,15 @@ public class SMSOTPAuthenticatorTest {
     @BeforeTest
     public void createNewObject() {
         smsotpAuthenticator = new SMSOTPAuthenticator();
+        AuthenticatorDataHolder.setRealmService(mockedRealmService);
+    }
+
+    /**
+     * Set the realm service before each test, since other test classes replace the shared realm service.
+     */
+    @BeforeMethod
+    public void setRealmService() {
+
         AuthenticatorDataHolder.setRealmService(mockedRealmService);
     }
 
