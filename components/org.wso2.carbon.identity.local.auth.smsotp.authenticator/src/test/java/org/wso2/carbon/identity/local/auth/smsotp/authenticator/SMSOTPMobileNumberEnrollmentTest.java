@@ -122,6 +122,9 @@ public class SMSOTPMobileNumberEnrollmentTest {
                 .thenReturn("sessionDataKey=session-data-key");
         frameworkUtils.when(() -> FrameworkUtils.appendQueryParamsStringToUrl(anyString(), anyString()))
                 .thenAnswer(invocation -> invocation.getArgument(0) + "?" + invocation.getArgument(1));
+        // Without a requiredAmrForEnrollment parameter the framework allows the enrollment.
+        frameworkUtils.when(() -> FrameworkUtils.isRequiredAmrForEnrollmentSatisfied(any(), any(), anyString()))
+                .thenReturn(true);
 
         AuthenticatorConfig authenticatorConfig = mock(AuthenticatorConfig.class);
         when(authenticatorConfig.getParameterMap()).thenReturn(new HashMap<>());
